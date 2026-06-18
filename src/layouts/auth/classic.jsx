@@ -56,7 +56,9 @@ export default function AuthClassicLayout({ children, image, title }) {
       sx={{
         width: 1,
         mx: 'auto',
-        maxWidth: 480,
+        // maxWidth: 480,
+        maxWidth: 560,
+
         px: { xs: 2, md: 8 },
         pt: { xs: 5, md: 6 },
         pb: { xs: 15, md: 0 },
@@ -72,9 +74,11 @@ export default function AuthClassicLayout({ children, image, title }) {
       spacing={10}
       alignItems="center"
       justifyContent="center"
+
       sx={{
         ...bgGradient({
           color: alpha(
+
             theme.palette.background.default,
             theme.palette.mode === 'light' ? 0.88 : 0.94
           ),
