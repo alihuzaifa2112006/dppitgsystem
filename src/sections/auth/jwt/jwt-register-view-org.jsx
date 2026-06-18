@@ -17,40 +17,42 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import { useAuthContext } from 'src/auth/hooks';
-import { PATH_AFTER_LOGIN } from 'src/config-global';
+
 
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFTextField, RHFUpload } from 'src/components/hook-form';
+import FormProvider, { RHFTextField } from 'src/components/hook-form';
+import { Post } from 'src/api/apibasemethods';
 
 // ----------------------------------------------------------------------
 
 export default function JwtRegisterOrgView() {
-  const { register } = useAuthContext();
-
   const router = useRouter();
 
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const searchParams = useSearchParams();
 
   const returnTo = searchParams.get('returnTo');
-  const [logo, setLogo] = useState(null);
 
   const password = useBoolean();
 
   const RegisterSchema = Yup.object().shape({
-    OrgName: Yup.string().required('First name required'),
-    OrgUserName: Yup.string().required('Last name required'),
-    OrgAddress: Yup.string().required('Address is required'),
-    OrgUserPwd: Yup.string().required('Password is required'),
+    username: Yup.string().required('Username is required'),
+    password: Yup.string()
+      .required('Password is required')
+      .min(6, 'Password must be at least 6 characters'),
+    companyName: Yup.string().required('Company Name is required'),
+    brn: Yup.string().required('Business Registration Number (BRN/Tax ID) is required'),
+    facilityLocation: Yup.string().required('Facility Location is required'),
   });
 
   const defaultValues = {
-    OrgName: '',
-    OrgUserName: '',
-    OrgAddress: '',
-    OrgUserPwd: '',
+    username: '',
+    password: '',
+    companyName: '',
+    brn: '',
+    facilityLocation: '',
   };
 
   const methods = useForm({
@@ -61,37 +63,51 @@ export default function JwtRegisterOrgView() {
   const {
     reset,
     handleSubmit,
-    setValue,
     formState: { isSubmitting },
   } = methods;
 
-  const handleLogo = (acceptedFiles) => {
-    const newFile = acceptedFiles[0];
-    if (newFile) {
-      newFile.preview = URL.createObjectURL(newFile);
-      setLogo(newFile); // Store the uploaded file in state
-      setValue('logo', newFile);
-    }
-  };
-
   const onSubmit = handleSubmit(async (data) => {
-    console.log('data', data);
     try {
-      // await register?.(data.OrgAddress, data.OrgUserPwd, data.OrgName, data.OrgUserName);
-      // router.push(returnTo || PATH_AFTER_LOGIN);
+      setErrorMsg('');
+      setSuccessMsg('');
+
+      const response = await Post('auth/registerOrg', {
+        UserName: data.username,
+        Password: data.password,
+        CompanyName: data.companyName,
+        BRN: data.brn,
+        FacilityLocation: data.facilityLocation,
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        setSuccessMsg('Registration successful! Redirecting to login...');
+        setTimeout(() => {
+          router.push(paths.auth.jwt.login);
+        }, 1500);
+      } else if (response.status === 409) {
+        setErrorMsg('Username or Company already exists.');
+      } else {
+        setErrorMsg('Registration failed. Please try again.');
+      }
     } catch (error) {
       console.error(error);
       reset();
-      setErrorMsg(typeof error === 'string' ? error : error.message);
+      if (error?.response?.status === 409) {
+        setErrorMsg('Username or Company already exists.');
+      } else {
+        setErrorMsg(typeof error === 'string' ? error : error.message || 'An error occurred. Please try again.');
+      }
     }
   });
 
   const renderHead = (
-    <Stack spacing={2} sx={{ mb: 5, position: 'relative' }}>
-      <Typography variant="h4">Get started absolutely free</Typography>
+    <Stack spacing={2} sx={{ mb: 5 }}>
+      <img src="/logo/Logo.png" alt="logo" style={{ width: 300 }} />
+
+      <Typography variant="h4">Register your Company</Typography>
 
       <Stack direction="row" spacing={0.5}>
-        <Typography variant="body2"> Already have an account? </Typography>
+        <Typography variant="body2">Already have an account?</Typography>
 
         <Link href={paths.auth.jwt.login} component={RouterLink} variant="subtitle2">
           Sign in
@@ -100,39 +116,22 @@ export default function JwtRegisterOrgView() {
     </Stack>
   );
 
-  const renderTerms = (
-    <Typography
-      component="div"
-      sx={{
-        mt: 2.5,
-        textAlign: 'center',
-        typography: 'caption',
-        color: 'text.secondary',
-      }}
-    >
-      {'By signing up, I agree to '}
-      <Link underline="always" color="text.primary">
-        Terms of Service
-      </Link>
-      {' and '}
-      <Link underline="always" color="text.primary">
-        Privacy Policy
-      </Link>
-      .
-    </Typography>
-  );
-
   const renderForm = (
     <Stack spacing={2.5}>
-      {/* <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}> */}
-      <RHFTextField name="OrgName" label="Oranization name" />
-      <RHFTextField name="OrgAddress" label="Address" />
-      <RHFTextField name="OrgUserName" label="User name" />
-      {/* </Stack> */}
+      <RHFTextField
+        name="username"
+        label="Username"
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
 
       <RHFTextField
-        name="OrgUserPwd"
+        name="password"
         label="Password"
+        InputLabelProps={{
+          shrink: true,
+        }}
         type={password.value ? 'text' : 'password'}
         InputProps={{
           endAdornment: (
@@ -144,13 +143,29 @@ export default function JwtRegisterOrgView() {
           ),
         }}
       />
-      <RHFUpload
-        title="Logo"
-        name="logo"
-        file={logo}
-        accept={{ 'image/*': [] }}
-        onDrop={handleLogo}
-        onDelete={() => setLogo(null)}
+
+      <RHFTextField
+        name="companyName"
+        label="Company Name"
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
+
+      <RHFTextField
+        name="brn"
+        label="Business Registration Number (BRN/Tax ID)"
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
+
+      <RHFTextField
+        name="facilityLocation"
+        label="Facility Location"
+        InputLabelProps={{
+          shrink: true,
+        }}
       />
 
       <LoadingButton
@@ -161,7 +176,7 @@ export default function JwtRegisterOrgView() {
         variant="contained"
         loading={isSubmitting}
       >
-        Create Organization
+        Register
       </LoadingButton>
     </Stack>
   );
@@ -171,16 +186,20 @@ export default function JwtRegisterOrgView() {
       {renderHead}
 
       {!!errorMsg && (
-        <Alert severity="error" sx={{ m: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {errorMsg}
+        </Alert>
+      )}
+
+      {!!successMsg && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {successMsg}
         </Alert>
       )}
 
       <FormProvider methods={methods} onSubmit={onSubmit}>
         {renderForm}
       </FormProvider>
-
-      {renderTerms}
     </>
   );
 }

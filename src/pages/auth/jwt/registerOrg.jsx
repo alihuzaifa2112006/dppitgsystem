@@ -8,7 +8,7 @@ export default function RegisterPage() {
   return (
     <>
       <Helmet>
-        <title> Jwt: Register Org</title>
+        <title>DPP: Register Company</title>
       </Helmet>
 
       <JwtRegisterOrgView />
