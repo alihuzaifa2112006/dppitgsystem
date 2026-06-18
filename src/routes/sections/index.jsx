@@ -14,7 +14,8 @@ export default function Router() {
     // SET INDEX PAGE WITH SKIP HOME PAGE
     {
       path: '/',
-      element: <Navigate to="/auth/jwt/registerOrg" replace />,
+      // element: <Navigate to="/auth/jwt/registerOrg" replace />,
+      element: <Navigate to="/auth/jwt/login" replace />,
     },
 
     // ----------------------------------------------------------------------

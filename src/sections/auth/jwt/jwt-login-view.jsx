@@ -60,10 +60,10 @@ export default function JwtLoginView() {
     // Agency: 'Ashtex'
   });
 
-  const loginType = [
-    { id: 1, name: 'Supply Chain' },
-    { id: 2, name: 'HRM' },
-  ];
+  // // const loginType = [
+  //   { id: 1, name: 'Supply Chain' },
+  //   { id: 2, name: 'HRM' },
+  // ];
 
   const searchParams = useSearchParams();
 
@@ -180,7 +180,7 @@ export default function JwtLoginView() {
         }}
       />
 
-      <RHFAutocomplete
+      {/* <RHFAutocomplete
         // size="small"
         name="LoginTo"
         label="Login To"
@@ -188,7 +188,7 @@ export default function JwtLoginView() {
         fullWidth
         options={loginType || ''}
         getOptionLabel={(option) => option?.name || null}
-      />
+      /> */}
       {/* href={paths.auth.jwt.forgot} */}
       {/* <Link
         component={RouterLink}
@@ -200,6 +200,17 @@ export default function JwtLoginView() {
       >
         Forgot password?
       </Link> */}
+      <Stack
+        direction="row"
+        spacing={0.5}
+        justifyContent={{ xs: 'center', sm: 'flex-start' }}
+      >
+        <Typography variant="body2">Don&apos;t have an account?</Typography>
+
+        <Link href={paths.auth.jwt.registerOrg} component={RouterLink} variant="subtitle2">
+          Sign up
+        </Link>
+      </Stack>
 
       {/* <Stack direction="row" spacing={0.5}>
         <Typography variant="body2">New to Cyclo?</Typography>

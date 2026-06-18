@@ -116,37 +116,28 @@ export default function JwtRegisterOrgView() {
         Register your Company
       </Typography>
 
-      <Stack
-        direction="row"
-        spacing={0.5}
-        justifyContent={{ xs: 'center', sm: 'flex-start' }}
-      >
-        <Typography variant="body2">Already have an account?</Typography>
 
-        <Link href={paths.auth.jwt.login} component={RouterLink} variant="subtitle2">
-          Sign in
-        </Link>
-      </Stack>
     </Stack>
   );
 
   const renderForm = (
     <Stack spacing={2.5}>
+
+      {/* Row 1 — Username full width */}
       <RHFTextField
         name="username"
         label="Username"
-        InputLabelProps={{
-          shrink: true,
-        }}
+        InputLabelProps={{ shrink: true }}
+        sx={{ '& .MuiInputBase-root': { height: 56 } }}
       />
 
+      {/* Row 2 — Password full width */}
       <RHFTextField
         name="password"
         label="Password"
-        InputLabelProps={{
-          shrink: true,
-        }}
+        InputLabelProps={{ shrink: true }}
         type={password.value ? 'text' : 'password'}
+        sx={{ '& .MuiInputBase-root': { height: 56 } }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -158,30 +149,37 @@ export default function JwtRegisterOrgView() {
         }}
       />
 
-      <RHFTextField
-        name="companyName"
-        label="Company Name"
-        InputLabelProps={{
-          shrink: true,
+      {/* Row 3 — Company Name + BRN side by side */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          gap: 2.5,
         }}
-      />
+      >
+        <RHFTextField
+          name="companyName"
+          label="Company Name"
+          InputLabelProps={{ shrink: true }}
+          sx={{ '& .MuiInputBase-root': { height: 56 } }}
+        />
+        <RHFTextField
+          name="brn"
+          label="BRN / Tax ID"
+          InputLabelProps={{ shrink: true }}
+          sx={{ '& .MuiInputBase-root': { height: 56 } }}
+        />
+      </Box>
 
-      <RHFTextField
-        name="brn"
-        label="Business Registration Number (BRN/Tax ID)"
-        InputLabelProps={{
-          shrink: true,
-        }}
-      />
-
+      {/* Row 4 — Facility Location full width */}
       <RHFTextField
         name="facilityLocation"
         label="Facility Location"
-        InputLabelProps={{
-          shrink: true,
-        }}
+        InputLabelProps={{ shrink: true }}
+        sx={{ '& .MuiInputBase-root': { height: 56 } }}
       />
 
+      {/* Register button */}
       <LoadingButton
         fullWidth
         color="inherit"
@@ -189,9 +187,18 @@ export default function JwtRegisterOrgView() {
         type="submit"
         variant="contained"
         loading={isSubmitting}
+        sx={{ height: 52, fontSize: 16 }}
       >
         Register
       </LoadingButton>
+
+      <Stack direction="row" spacing={0.5} justifyContent="center">
+        <Typography variant="body2">Already have an account?</Typography>
+        <Link href={paths.auth.jwt.login} component={RouterLink} variant="subtitle2">
+          Sign in
+        </Link>
+      </Stack>
+
     </Stack>
   );
 
