@@ -1,0 +1,1 @@
+export { default as ComplaintRegistrationFormView } from './complaint--form-create-view';
