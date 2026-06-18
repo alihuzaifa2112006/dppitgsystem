@@ -163,21 +163,17 @@ export default function JwtRegisterOrgView() {
           InputLabelProps={{ shrink: true }}
           sx={{ '& .MuiInputBase-root': { height: 56 } }}
         />
+
         <RHFTextField
-          name="brn"
-          label="BRN / Tax ID"
+          name="facilityLocation"
+          label="Facility Location"
           InputLabelProps={{ shrink: true }}
           sx={{ '& .MuiInputBase-root': { height: 56 } }}
         />
       </Box>
 
-      {/* Row 4 — Facility Location full width */}
-      <RHFTextField
-        name="facilityLocation"
-        label="Facility Location"
-        InputLabelProps={{ shrink: true }}
-        sx={{ '& .MuiInputBase-root': { height: 56 } }}
-      />
+
+
 
       {/* Register button */}
       <LoadingButton
