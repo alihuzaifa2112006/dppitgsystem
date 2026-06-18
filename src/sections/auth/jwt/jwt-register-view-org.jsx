@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
+import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -16,8 +17,6 @@ import { RouterLink } from 'src/routes/components';
 import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
-
-
 
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
@@ -101,12 +100,27 @@ export default function JwtRegisterOrgView() {
   });
 
   const renderHead = (
-    <Stack spacing={2} sx={{ mb: 5 }}>
-      <img src="/logo/Logo.png" alt="logo" style={{ width: 300 }} />
+    <Stack spacing={2} sx={{ mb: 3 }}>
+      <Box
+        component="img"
+        src="/logo/Logo.png"
+        alt="logo"
+        sx={{
+          width: { xs: 200, sm: 250, md: 300 },
+          height: 'auto',
+          alignSelf: { xs: 'center', sm: 'flex-start' },
+        }}
+      />
 
-      <Typography variant="h4">Register your Company</Typography>
+      <Typography variant="h4" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+        Register your Company
+      </Typography>
 
-      <Stack direction="row" spacing={0.5}>
+      <Stack
+        direction="row"
+        spacing={0.5}
+        justifyContent={{ xs: 'center', sm: 'flex-start' }}
+      >
         <Typography variant="body2">Already have an account?</Typography>
 
         <Link href={paths.auth.jwt.login} component={RouterLink} variant="subtitle2">
@@ -182,24 +196,44 @@ export default function JwtRegisterOrgView() {
   );
 
   return (
-    <>
-      {renderHead}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        minHeight: '100vh',
+        width: '100%',
+        py: { xs: 3, md: 4 },
+        px: { xs: 2, sm: 3, md: 4 },
+        boxSizing: 'border-box',
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 480,
+          position: 'relative',
+        }}
+      >
+        {renderHead}
 
-      {!!errorMsg && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {errorMsg}
-        </Alert>
-      )}
+        {!!errorMsg && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMsg}
+          </Alert>
+        )}
 
-      {!!successMsg && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          {successMsg}
-        </Alert>
-      )}
+        {!!successMsg && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {successMsg}
+          </Alert>
+        )}
 
-      <FormProvider methods={methods} onSubmit={onSubmit}>
-        {renderForm}
-      </FormProvider>
-    </>
+        <FormProvider methods={methods} onSubmit={onSubmit}>
+          {renderForm}
+        </FormProvider>
+      </Box>
+    </Box>
   );
 }
