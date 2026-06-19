@@ -411,88 +411,13 @@ export default function OverviewAppView() {
               icon={<img alt="icon" src="/assets/icons/glass/ic_glass_bag.png" />}
             />
           </Grid>
-          <Grid xs={12} md={6} lg={4}>
-            <AppTotalSuppliersRegistered
-              title="Total Registered Customers"
-              chart={{
-                series: uniqueCitySetArray.map((city) => ({
-                  label: city,
-                  value: suppliersData.filter((obj) => obj.CityName === city).length,
-                })),
-              }}
-            />
-          </Grid>
-          {yarnTypeData && (
-            <>
-              <Grid xs={12} md={6} lg={6}>
-                <InspectionPerformanceBar title="Average of Unit Price (KG)" chart={yarnTypeData} />
-              </Grid>
-              <Grid xs={12} md={6} lg={6}>
-                <InspectionPerformance title="Average of Unit Price (KG)" chart={yarnTypeData} />
-              </Grid>
-            </>
-          )}
 
-          {allKSP && (
-            <>
-              {sortedKSP && (
-                <Grid sm={12} md={6} lg={6}>
-                  <InspectionPerformanceKSP
-                    title="Ordered and Delivered Quantity"
-                    chart={sortedKSP}
-                    selectedPerson={selectedPerson}
-                    onSelectPerson={setSelectedPerson}
-                  />
-                </Grid>
-              )}
 
-              <Grid sm={12} md={6} lg={6}>
-                <AppNewInspections
-                  title={`Ordered and Delivered Quantity by ${selectedPerson}`}
-                  tableData={allKSPofSelectedPerson || []}
-                  tableLabels={[
-                    { id: 'SalesYear', label: 'Year' },
-                    // { id: 'KeySalesPerson', label: 'Key Sales Person' },
-                    {
-                      id: 'AvgUnitPrice_KG',
-                      label: 'Unit Price (KG)',
-                      minWidth: 95,
-                      align: 'right',
-                    },
-                    { id: 'TotalOrderQty_KG', label: 'Ordered Quantity (KG)', align: 'right' },
-                    { id: 'TotalOrderValue_USD_KG', label: 'Ordered Value USD/KG', align: 'right' },
-                    { id: 'TotalDeliveredQty', label: 'Delivered Quantity (KG)', align: 'right' },
-                    { id: 'TotalDeliveredValue', label: 'Delivered Value USD/KG', align: 'right' },
-                  ]}
-                />
-              </Grid>
-            </>
-          )}
-          <Grid xs={12} md={4} lg={4}>
-            <AppTopCustomerCountries
-              title="Customer Distribution by Country"
-              list={customersData.map((x) => ({
-                id: x.id,
-                name: x.name,
-                totalCustomer: x.totalCustomer,
-                flag: x.flag,
-              }))}
-            />
-          </Grid>
-          <Grid xs={12} lg={8}>
-            <AppNewInspections
-              title="New Order"
-              tableData={_appInvoices}
-              tableLabels={[
-                { id: 'id', label: 'PI Referece' },
-                { id: 'Colors', label: 'Color' },
-                { id: 'styleno', label: 'Count' },
-                { id: 'yarnType', label: 'Yarn Type' },
-                { id: 'machineNo', label: 'Machine No' },
-                { id: 'status', label: 'Status' },
-              ]}
-            />
-          </Grid>
+
+
+
+
+
 
 
           <Grid xs={12} sx={{ textAlign: 'center', mt: 5 }}>
@@ -501,8 +426,8 @@ export default function OverviewAppView() {
             </Typography>
           </Grid>
         </>
-        {/* ) : null} */}
+
       </Grid>
-    </Container>
+    </Container >
   );
 }
