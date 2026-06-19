@@ -199,44 +199,24 @@ export default function JwtRegisterOrgView() {
   );
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        minHeight: '100vh',
-        width: '100%',
-        py: { xs: 3, md: 4 },
-        px: { xs: 2, sm: 3, md: 4 },
-        boxSizing: 'border-box',
-      }}
-    >
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: 480,
-          position: 'relative',
-        }}
-      >
-        {renderHead}
+    <>
+      {renderHead}
 
-        {!!errorMsg && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorMsg}
-          </Alert>
-        )}
+      {!!errorMsg && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorMsg}
+        </Alert>
+      )}
 
-        {!!successMsg && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {successMsg}
-          </Alert>
-        )}
+      {!!successMsg && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {successMsg}
+        </Alert>
+      )}
 
-        <FormProvider methods={methods} onSubmit={onSubmit}>
-          {renderForm}
-        </FormProvider>
-      </Box>
-    </Box>
+      <FormProvider methods={methods} onSubmit={onSubmit}>
+        {renderForm}
+      </FormProvider>
+    </>
   );
 }
