@@ -8,39 +8,24 @@ on:
 
 jobs:
   build:
-    name: Lint, Build & Test
+    name: Lint & Build
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline
 
       - name: Run ESLint
         run: npm run lint || true
 
-      # Uncomment when you add tests (e.g. Vitest)
-      # - name: Run tests
-      #   run: npm run test
-
       - name: Build project
         run: npm run build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-node-${{ matrix.node-version }}
-          path: dist/
-          retention-days: 7
