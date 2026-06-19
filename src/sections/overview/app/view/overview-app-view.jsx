@@ -313,13 +313,13 @@ export default function OverviewAppView() {
 
   // *****************************************
   // Is All Data Fetched
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     await Promise.all([FetchPriceByYarnType(), FetchCustomersData(), FetchKeySalePersons()]);
-  //     setLoading(false);
-  //   };
-  //   fetchData();
-  // }, [FetchPriceByYarnType, FetchCustomersData, FetchKeySalePersons]);
+  useEffect(() => {
+    const fetchData = async () => {
+      await Promise.all([FetchPriceByYarnType(), FetchCustomersData(), FetchKeySalePersons()]);
+      setLoading(false);
+    };
+    fetchData();
+  }, [FetchPriceByYarnType, FetchCustomersData, FetchKeySalePersons]);
 
   // Convert the Set back to an array for rendering,
   const uniqueCitySetArray = useMemo(() => [...citySet], [citySet]);
@@ -365,21 +365,21 @@ export default function OverviewAppView() {
   ) : (
     <Container maxWidth={settings.themeStretch ? false : 'xl'}>
       <Grid container spacing={3}>
-        {/* <Grid xs={12} md={8}>
+        <Grid xs={12} md={8}>
           <AppWelcome
             title="TRACEABILITY AND TRANSPARENCY"
             description="WE BELIEVE IN A CONSCIOUS CONSUMPTION WHERE TRANSPARENCY IS SYNONYMOUS WITH QUALITY"
-            // img={<SeoIllustration />}
+          // img={<SeoIllustration />}
           />
         </Grid>
 
         <Grid xs={12} md={4}>
           <AppFeatured list={sliderData} />
-        </Grid> */}
+        </Grid>
 
         {/* {userData?.userDetails?.userId === 1 || 2 ? ( */}
         <>
-          {/* <Grid xs={12} sm={6} md={3}>
+          <Grid xs={12} sm={6} md={3}>
             <AnalyticsWidgetSummary
               title="Active Customers"
               total={127}
@@ -410,19 +410,19 @@ export default function OverviewAppView() {
               color="success"
               icon={<img alt="icon" src="/assets/icons/glass/ic_glass_bag.png" />}
             />
-          </Grid> */}
-          {/* <Grid xs={12} md={6} lg={4}>
-              <AppTotalSuppliersRegistered
-                title="Total Registered Customers"
-                chart={{
-                  series: uniqueCitySetArray.map((city) => ({
-                    label: city,
-                    value: suppliersData.filter((obj) => obj.CityName === city).length,
-                  })),
-                }}
-              />
-            </Grid> */}
-          {/* {yarnTypeData && (
+          </Grid>
+          <Grid xs={12} md={6} lg={4}>
+            <AppTotalSuppliersRegistered
+              title="Total Registered Customers"
+              chart={{
+                series: uniqueCitySetArray.map((city) => ({
+                  label: city,
+                  value: suppliersData.filter((obj) => obj.CityName === city).length,
+                })),
+              }}
+            />
+          </Grid>
+          {yarnTypeData && (
             <>
               <Grid xs={12} md={6} lg={6}>
                 <InspectionPerformanceBar title="Average of Unit Price (KG)" chart={yarnTypeData} />
@@ -431,9 +431,9 @@ export default function OverviewAppView() {
                 <InspectionPerformance title="Average of Unit Price (KG)" chart={yarnTypeData} />
               </Grid>
             </>
-          )} */}
+          )}
 
-          {/* {allKSP && (
+          {allKSP && (
             <>
               {sortedKSP && (
                 <Grid sm={12} md={6} lg={6}>
@@ -467,8 +467,8 @@ export default function OverviewAppView() {
                 />
               </Grid>
             </>
-          )} */}
-          {/* <Grid xs={12} md={4} lg={4}>
+          )}
+          <Grid xs={12} md={4} lg={4}>
             <AppTopCustomerCountries
               title="Customer Distribution by Country"
               list={customersData.map((x) => ({
@@ -492,35 +492,8 @@ export default function OverviewAppView() {
                 { id: 'status', label: 'Status' },
               ]}
             />
-          </Grid> */}
-          <Box
-            sx={{
-              ml: 2,
-              borderRadius: '12px',
-              width: '100%',
-              mt: 2,
-            }}
-          >
-            {hasRole(HRRoles) ? (
-              <>
-                <AppWelcome
-                  title="TRACEABILITY AND TRANSPARENCY"
-                  description="WE BELIEVE IN A CONSCIOUS CONSUMPTION WHERE TRANSPARENCY IS SYNONYMOUS WITH QUALITY"
-                  // img={<SeoIllustration />}
-                />
-              </>
-            ) : (
-              <iframe
-                title="Power BI Report"
-                width="100%"
-                height="800px"
-                src="https://app.powerbi.com/view?r=eyJrIjoiMTIxODI4YTgtYzg2Mi00MzE0LWJiZDMtYzUwZjYxZDdmOWZlIiwidCI6ImU0OTQ0OWZlLThiMWMtNDhlYS05YjM5LWU5YWM0YWUzMTExOCIsImMiOjl9"
-                frameBorder="0"
-                allowFullScreen
-                style={{ borderRadius: '12px' }}
-              />
-            )}
-          </Box>
+          </Grid>
+
 
           <Grid xs={12} sx={{ textAlign: 'center', mt: 5 }}>
             <Typography variant="p" sx={{ fontSize: '14px' }}>
