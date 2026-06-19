@@ -1,7 +1,7 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, useRoutes } from 'react-router-dom';
 
-// import MainLayout from 'src/layouts/main';
-
+import { SplashScreen } from 'src/components/loading-screen';
 import { PATH_AFTER_LOGIN } from 'src/config-global';
 import { authRoutes } from './auth';
 import { dashboardRoutes } from './dashboard';
@@ -9,13 +9,18 @@ import { mainRoutes } from './main';
 
 // ----------------------------------------------------------------------
 
+const LandingPage = lazy(() => import('src/pages/landing'));
+
 export default function Router() {
   return useRoutes([
-    // SET INDEX PAGE WITH SKIP HOME PAGE
+    // SET INDEX PAGE WITH HOME PAGE
     {
       path: '/',
-      // element: <Navigate to="/auth/jwt/registerOrg" replace />,
-      element: <Navigate to="/auth/jwt/login" replace />,
+      element: (
+        <Suspense fallback={<SplashScreen />}>
+          <LandingPage />
+        </Suspense>
+      ),
     },
 
     // ----------------------------------------------------------------------
