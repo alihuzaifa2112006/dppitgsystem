@@ -45,16 +45,6 @@ const shimmer = keyframes`
   100% { background-position: 200% center; }
 `;
 
-const drawLine = keyframes`
-  from { stroke-dashoffset: 1000; }
-  to { stroke-dashoffset: 0; }
-`;
-
-const dotPulse = keyframes`
-  0%, 100% { transform: scale(0.8); opacity: 0.6; }
-  50% { transform: scale(1.4); opacity: 1; }
-`;
-
 // ----------------------------------------------------------------------
 // Reveal-on-scroll wrapper
 // ----------------------------------------------------------------------
@@ -79,19 +69,6 @@ function Reveal({ children, delay = 0, y = 28, sx = {} }) {
     return () => observer.disconnect();
   }, []);
 
-  Reveal.propTypes = {
-    children: PropTypes.node.isRequired,
-    delay: PropTypes.number,
-    y: PropTypes.number,
-    sx: PropTypes.object,
-  };
-
-  Reveal.defaultProps = {
-    delay: 0,
-    y: 28,
-    sx: {},
-  };
-
   return (
     <Box
       ref={ref}
@@ -107,6 +84,19 @@ function Reveal({ children, delay = 0, y = 28, sx = {} }) {
   );
 }
 
+Reveal.propTypes = {
+  children: PropTypes.node.isRequired,
+  delay: PropTypes.number,
+  y: PropTypes.number,
+  sx: PropTypes.object,
+};
+
+Reveal.defaultProps = {
+  delay: 0,
+  y: 28,
+  sx: {},
+};
+
 // ----------------------------------------------------------------------
 
 export default function LandingPage() {
@@ -116,12 +106,22 @@ export default function LandingPage() {
     router.push(path);
   };
 
-  // -- Section: hero metric counters ------------------------------------
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 900) setMobileOpen(false);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   // -- Data -------------------------------------------------------------
@@ -141,7 +141,6 @@ export default function LandingPage() {
     { value: 'ESPR + PPWR', label: 'Regulation packs', icon: 'solar:shield-keyhole-bold-duotone' },
   ];
 
-  // Core platform capabilities (4 design principles + value)
   const capabilities = [
     {
       icon: 'solar:settings-bold-duotone',
@@ -173,7 +172,6 @@ export default function LandingPage() {
     },
   ];
 
-  // Module groups (the 6 functional areas from the blueprint)
   const moduleGroups = [
     {
       no: '01',
@@ -231,7 +229,6 @@ export default function LandingPage() {
     },
   ];
 
-  // End-to-end operating model
   const flowSteps = [
     { icon: 'solar:document-add-bold-duotone', title: 'Product context', text: 'Brand product, purchase order or tech pack creates the commercial reference.' },
     { icon: 'solar:hierarchy-2-bold-duotone', title: 'Master data', text: 'Establish model, style, SKU, batch and item hierarchy with supplier mapping.' },
@@ -241,7 +238,6 @@ export default function LandingPage() {
     { icon: 'solar:users-group-rounded-bold-duotone', title: 'Publish & maintain', text: 'Link data carriers, serve stakeholder views, manage registry and lifecycle.' },
   ];
 
-  // Data sources we gather from
   const dataSources = [
     { icon: 'solar:shop-bold-duotone', label: 'Brands' },
     { icon: 'solar:delivery-bold-duotone', label: 'Suppliers' },
@@ -251,7 +247,6 @@ export default function LandingPage() {
     { icon: 'solar:recive-twice-square-bold-duotone', label: 'Recyclers & repairers' },
   ];
 
-  // Stakeholder views
   const stakeholderViews = [
     {
       icon: 'solar:user-bold-duotone',
@@ -279,7 +274,6 @@ export default function LandingPage() {
     },
   ];
 
-  // Industries
   const industries = [
     { icon: 'solar:t-shirt-bold-duotone', label: 'Textile & Apparel', status: 'Available now' },
     { icon: 'solar:slippers-bold-duotone', label: 'Footwear', status: 'On roadmap' },
@@ -289,7 +283,6 @@ export default function LandingPage() {
     { icon: 'solar:box-minimalistic-bold-duotone', label: 'Packaging (PPWR)', status: 'Available now' },
   ];
 
-  // Roadmap phases
   const phases = [
     {
       tag: 'Phase 1',
@@ -311,7 +304,6 @@ export default function LandingPage() {
     },
   ];
 
-  // FAQ
   const faqs = [
     {
       q: 'What exactly is a Digital Product Passport?',
@@ -422,16 +414,23 @@ export default function LandingPage() {
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            backdropFilter: 'blur(18px)',
-            WebkitBackdropFilter: 'blur(18px)',
-            backgroundColor: alpha('#FFFFFF', scrolled ? 0.8 : 0.55),
-            borderBottom: `1px solid ${alpha('#e0e0e0', scrolled ? 0.12 : 0.04)}`,
-            transition: 'all 0.3s ease',
-            py: scrolled ? 1.25 : 2,
+            backgroundColor: '#FFFFFF',
+            borderBottom: `1px solid ${alpha('#000', 0.08)}`,
+            boxShadow: scrolled
+              ? '0 2px 12px rgba(0,0,0,0.08)'
+              : '0 1px 4px rgba(0,0,0,0.04)',
+            transition: 'box-shadow 0.3s ease',
           }}
         >
           <Container maxWidth="lg">
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
+            {/* Main nav row */}
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ py: scrolled ? 1.25 : 1.75 }}
+            >
+              {/* Logo */}
               <Stack
                 direction="row"
                 alignItems="center"
@@ -449,17 +448,25 @@ export default function LandingPage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#fff',
-                    boxShadow: `0 6px 16px ${alpha(PRIMARY, 0.35)}`,
+                    boxShadow: `0 4px 12px ${alpha(PRIMARY, 0.3)}`,
                   }}
                 >
                   <Iconify icon="solar:qr-code-bold-duotone" width={22} />
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, letterSpacing: '-0.02em', color: '#1a1a1a' }}
+                >
                   DPP
                 </Typography>
               </Stack>
 
-              <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
+              {/* Desktop links */}
+              <Stack
+                direction="row"
+                spacing={3}
+                sx={{ display: { xs: 'none', md: 'flex' } }}
+              >
                 {navLinks.map((link) => (
                   <Typography
                     key={link.id}
@@ -468,7 +475,7 @@ export default function LandingPage() {
                     sx={{
                       cursor: 'pointer',
                       fontWeight: 600,
-                      color: '#666666',
+                      color: '#555555',
                       transition: 'color 0.2s',
                       '&:hover': { color: '#1a1a1a' },
                     }}
@@ -478,8 +485,8 @@ export default function LandingPage() {
                 ))}
               </Stack>
 
+              {/* Right side: CTA + hamburger */}
               <Stack direction="row" spacing={1.5} alignItems="center">
-
                 <Button
                   variant="contained"
                   size="medium"
@@ -488,19 +495,140 @@ export default function LandingPage() {
                     borderRadius: 1.5,
                     px: 2.5,
                     backgroundColor: PRIMARY,
-                    boxShadow: `0 8px 20px ${alpha(PRIMARY, 0.25)}`,
+                    boxShadow: `0 4px 14px ${alpha(PRIMARY, 0.25)}`,
                     fontWeight: 600,
                     textTransform: 'none',
                     '&:hover': {
                       backgroundColor: PRIMARY_DARK,
-                      boxShadow: `0 10px 28px ${alpha(PRIMARY, 0.35)}`
+                      boxShadow: `0 6px 20px ${alpha(PRIMARY, 0.35)}`,
                     },
                   }}
                 >
                   Get Started
                 </Button>
+
+                {/* Hamburger button — mobile only */}
+                <Box
+                  onClick={() => setMobileOpen((prev) => !prev)}
+                  sx={{
+                    display: { xs: 'flex', md: 'none' },
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 38,
+                    height: 38,
+                    borderRadius: 1.5,
+                    border: `1px solid ${alpha('#000', 0.12)}`,
+                    cursor: 'pointer',
+                    color: '#333333',
+                    transition: 'background 0.2s, border-color 0.2s',
+                    '&:hover': {
+                      backgroundColor: alpha('#000', 0.04),
+                      borderColor: alpha('#000', 0.2),
+                    },
+                  }}
+                >
+                  <Iconify
+                    icon={mobileOpen ? 'solar:close-square-bold' : 'solar:hamburger-menu-bold'}
+                    width={22}
+                  />
+                </Box>
               </Stack>
             </Stack>
+
+            {/* Mobile dropdown menu */}
+            <Box
+              sx={{
+                display: { xs: 'block', md: 'none' },
+                maxHeight: mobileOpen ? '420px' : '0px',
+                overflow: 'hidden',
+                transition: 'max-height 0.35s cubic-bezier(0.16,1,0.3,1)',
+              }}
+            >
+              <Box
+                sx={{
+                  borderTop: `1px solid ${alpha('#000', 0.07)}`,
+                  pt: 1,
+                  pb: 2,
+                }}
+              >
+                {navLinks.map((link) => (
+                  <Box
+                    key={link.id}
+                    onClick={() => {
+                      scrollToId(link.id);
+                      setMobileOpen(false);
+                    }}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      py: 1.4,
+                      px: 0.5,
+                      borderBottom: `1px solid ${alpha('#000', 0.05)}`,
+                      cursor: 'pointer',
+                      transition: 'color 0.2s',
+                      color: '#333333',
+                      '&:hover': { color: PRIMARY },
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: 'inherit' }}>
+                      {link.label}
+                    </Typography>
+                    <Iconify icon="solar:alt-arrow-right-bold" width={16} sx={{ color: alpha('#000', 0.25) }} />
+                  </Box>
+                ))}
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={() => {
+                    handleNavigate(paths.auth.jwt.registerOrg);
+                    setMobileOpen(false);
+                  }}
+                  sx={{
+                    mt: 2,
+                    py: 1.4,
+                    borderRadius: 1.5,
+                    backgroundColor: PRIMARY,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontSize: '0.95rem',
+                    boxShadow: `0 6px 16px ${alpha(PRIMARY, 0.3)}`,
+                    '&:hover': {
+                      backgroundColor: PRIMARY_DARK,
+                      boxShadow: `0 8px 22px ${alpha(PRIMARY, 0.4)}`,
+                    },
+                  }}
+                >
+                  Get Started →
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => {
+                    handleNavigate(paths.auth.jwt.login);
+                    setMobileOpen(false);
+                  }}
+                  sx={{
+                    mt: 1,
+                    py: 1.2,
+                    borderRadius: 1.5,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    fontSize: '0.95rem',
+                    borderColor: alpha('#1a1a1a', 0.18),
+                    color: '#1a1a1a',
+                    '&:hover': {
+                      borderColor: '#1a1a1a',
+                      backgroundColor: alpha('#1a1a1a', 0.03),
+                    },
+                  }}
+                >
+                  Sign in
+                </Button>
+              </Box>
+            </Box>
           </Container>
         </Box>
 
@@ -515,8 +643,6 @@ export default function LandingPage() {
             <Grid item xs={12} md={6.5}>
               <Reveal>
                 <Stack spacing={3.5} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-
-
                   <Typography
                     variant="h1"
                     sx={{
@@ -578,7 +704,7 @@ export default function LandingPage() {
                         boxShadow: `0 12px 28px ${alpha(PRIMARY, 0.3)}`,
                         '&:hover': {
                           backgroundColor: PRIMARY_DARK,
-                          boxShadow: `0 16px 36px ${alpha(PRIMARY, 0.4)}`
+                          boxShadow: `0 16px 36px ${alpha(PRIMARY, 0.4)}`,
                         },
                       }}
                     >
@@ -747,7 +873,6 @@ export default function LandingPage() {
                       </Box>
                     </Stack>
 
-                    {/* readiness bars */}
                     <Stack spacing={1.75} sx={{ mb: 2.5 }}>
                       {[
                         { label: 'Identity', pct: 100, col: '#2e7d32' },
@@ -830,7 +955,7 @@ export default function LandingPage() {
         </Container>
 
         {/* ============================================================ */}
-        {/* DATA SOURCES (gather from everywhere)                        */}
+        {/* DATA SOURCES                                                 */}
         {/* ============================================================ */}
         <Box id="platform" sx={{ py: { xs: 8, md: 11 }, position: 'relative', zIndex: 1 }}>
           <Container maxWidth="lg">
@@ -966,7 +1091,7 @@ export default function LandingPage() {
         </Box>
 
         {/* ============================================================ */}
-        {/* HOW IT WORKS — operating model                               */}
+        {/* HOW IT WORKS                                                 */}
         {/* ============================================================ */}
         <Box id="how-it-works" sx={{ py: { xs: 9, md: 13 }, position: 'relative', zIndex: 1 }}>
           <Container maxWidth="lg">
@@ -1511,7 +1636,6 @@ export default function LandingPage() {
                   boxShadow: `0 30px 70px ${alpha(PRIMARY, 0.35)}`,
                 }}
               >
-                {/* decorative blurred circles */}
                 <Box sx={{ position: 'absolute', width: 320, height: 320, borderRadius: '50%', background: alpha('#fff', 0.12), filter: 'blur(60px)', top: -120, left: -80 }} />
                 <Box sx={{ position: 'absolute', width: 360, height: 360, borderRadius: '50%', background: alpha('#fff', 0.1), filter: 'blur(70px)', bottom: -140, right: -100 }} />
 
