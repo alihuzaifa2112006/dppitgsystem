@@ -16,10 +16,10 @@ export default function AuthClassicLayout({ children, image, title }) {
   const renderContent = (
     <Stack
       sx={{
-        width: { xs: 1, md: '50%' },
+        width: { xs: 1, md: '30%' },
         height: '100%',
         overflowY: 'auto',
-        px: { xs: 2, md: 8 },
+        px: { xs: 2, md: 5 },
         py: { xs: 5, md: 5 },
       }}
     >
@@ -41,7 +41,7 @@ export default function AuthClassicLayout({ children, image, title }) {
     <Stack
       sx={{
         flexGrow: 1,
-        width: '50%',
+        width: '70%',
         height: '100%',
         position: 'relative',
         justifyContent: 'flex-end',
@@ -78,9 +78,9 @@ export default function AuthClassicLayout({ children, image, title }) {
         overflow: 'hidden',
       }}
     >
-      {mdUp && renderSection}
-
       {renderContent}
+
+      {mdUp && renderSection}
     </Stack>
   );
 }
