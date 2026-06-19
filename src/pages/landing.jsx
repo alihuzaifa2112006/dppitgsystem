@@ -8,12 +8,16 @@ import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import { alpha, useTheme, keyframes } from '@mui/material/styles';
+import { alpha, keyframes } from '@mui/material/styles';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import Iconify from 'src/components/iconify';
 
+// Hardcoded colors
+const PRIMARY = '#103996';
+const PRIMARY_LIGHT = '#1a4bb5';
+const PRIMARY_DARK = '#0c2a6e';
 
 /* eslint-disable react/no-unescaped-entities */
 
@@ -107,7 +111,6 @@ function Reveal({ children, delay = 0, y = 28, sx = {} }) {
 
 export default function LandingPage() {
   const router = useRouter();
-  const theme = useTheme();
 
   const handleNavigate = (path) => {
     router.push(path);
@@ -145,28 +148,28 @@ export default function LandingPage() {
       title: 'Configurable, not hardcoded',
       description:
         'Regulation packs, fields, validation rules and access policies are administrator-configurable. Publish a new schema without rebuilding the platform.',
-      color: theme.palette.primary.main,
+      color: PRIMARY,
     },
     {
       icon: 'solar:documents-bold-duotone',
       title: 'Evidence-based by design',
       description:
         'Every material, sustainability and compliance claim links to a document, calculation, certificate or verified source — with full provenance.',
-      color: theme.palette.info.main,
+      color: '#0288d1',
     },
     {
       icon: 'solar:plug-circle-bold-duotone',
       title: 'Interoperable & open',
       description:
         'Structured APIs, open identifiers and machine-readable output integrate cleanly with your ERP, PLM, ESG and certification systems.',
-      color: theme.palette.success.main,
+      color: '#2e7d32',
     },
     {
       icon: 'solar:history-bold-duotone',
       title: 'Immutable & auditable',
       description:
         'Published passports are versioned snapshots. Corrections create a new version — history is never silently overwritten.',
-      color: theme.palette.warning.main,
+      color: '#ed6c02',
     },
   ];
 
@@ -179,7 +182,7 @@ export default function LandingPage() {
       description:
         'Versioned regulation packs, economic-operator profiles and policy-based access control that survive changing rules and industries.',
       points: ['Regulatory configuration', 'Organisation & operators', 'Roles & access control'],
-      color: theme.palette.primary.main,
+      color: PRIMARY,
     },
     {
       no: '02',
@@ -188,7 +191,7 @@ export default function LandingPage() {
       description:
         'The traceability backbone — product hierarchy, bills of materials, supplier and facility mapping, and full chain-of-custody events.',
       points: ['SKU & variant master', 'Material & packaging BOM', 'Multi-tier traceability'],
-      color: theme.palette.info.main,
+      color: '#0288d1',
     },
     {
       no: '03',
@@ -197,7 +200,7 @@ export default function LandingPage() {
       description:
         'Restricted-substance compliance, environmental footprint with full calculation lineage, repair and end-of-life circularity data.',
       points: ['Chemical & substance compliance', 'Environmental footprint', 'Circularity & evidence'],
-      color: theme.palette.success.main,
+      color: '#2e7d32',
     },
     {
       no: '04',
@@ -206,7 +209,7 @@ export default function LandingPage() {
       description:
         'Supplier collaboration portal, AI document extraction, configurable validation and four-eye approval workflows.',
       points: ['Supplier collaboration', 'AI document extraction', 'Validation & approval'],
-      color: theme.palette.warning.main,
+      color: '#ed6c02',
     },
     {
       no: '05',
@@ -215,7 +218,7 @@ export default function LandingPage() {
       description:
         'Compose approved data into immutable passports, mint identifiers and data carriers, and publish role-specific stakeholder views.',
       points: ['DPP composer & versioning', 'QR / NFC / RFID carriers', 'Stakeholder views & portal'],
-      color: theme.palette.error.main,
+      color: '#d32f2f',
     },
     {
       no: '06',
@@ -224,7 +227,7 @@ export default function LandingPage() {
       description:
         'Enterprise APIs, complete audit trail, tenant isolation and management dashboards that turn compliance data into action.',
       points: ['Integration & API management', 'Audit, security & integrity', 'Analytics dashboards'],
-      color: theme.palette.secondary.main,
+      color: '#6f42c1',
     },
   ];
 
@@ -254,25 +257,25 @@ export default function LandingPage() {
       icon: 'solar:user-bold-duotone',
       role: 'Consumer',
       text: 'Identity, materials, origin, care, sustainability and recycling guidance through a mobile-first QR experience.',
-      color: theme.palette.primary.main,
+      color: PRIMARY,
     },
     {
       icon: 'solar:case-round-bold-duotone',
       role: 'Business partner',
       text: 'Bill of materials, detailed traceability, certificates and permitted technical records.',
-      color: theme.palette.info.main,
+      color: '#0288d1',
     },
     {
       icon: 'solar:wrench-bold-duotone',
       role: 'Repairer & recycler',
       text: 'Disassembly, component, chemical-warning and material-separation information.',
-      color: theme.palette.success.main,
+      color: '#2e7d32',
     },
     {
       icon: 'solar:scale-bold-duotone',
       role: 'Authority',
       text: 'Economic operator, declarations, compliance dataset, evidence and audit history.',
-      color: theme.palette.warning.main,
+      color: '#ed6c02',
     },
   ];
 
@@ -291,19 +294,19 @@ export default function LandingPage() {
     {
       tag: 'Phase 1',
       title: 'Foundation & first publication',
-      color: theme.palette.primary.main,
+      color: PRIMARY,
       items: ['Organisation & operator setup', 'Product, SKU & variant master', 'Material & packaging BOM', 'Supplier collaboration portal', 'DPP composer & QR carriers', 'Audit trail & readiness dashboard'],
     },
     {
       tag: 'Phase 2',
       title: 'Advanced compliance & automation',
-      color: theme.palette.info.main,
+      color: '#0288d1',
       items: ['Advanced chemical management', 'Footprint calculations & LCA', 'AI extraction at scale', 'Mass-balance & chain-of-custody', 'Item-level serialisation', 'Supplier scoring & remediation'],
     },
     {
       tag: 'Phase 3',
       title: 'Ecosystem & scale',
-      color: theme.palette.success.main,
+      color: '#2e7d32',
       items: ['EU registry adapters', 'Footwear, furniture, electronics packs', 'PPWR & additional markets', 'Repair networks & take-back', 'Benchmarking & intelligence', 'Cross-industry expansion'],
     },
   ];
@@ -359,7 +362,7 @@ export default function LandingPage() {
         sx={{
           minHeight: '100vh',
           backgroundColor: '#FFFFFF',
-          color: theme.palette.text.primary,
+          color: '#1a1a1a',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -374,7 +377,7 @@ export default function LandingPage() {
             height: 620,
             borderRadius: '50%',
             filter: 'blur(150px)',
-            background: `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.16)} 0%, transparent 65%)`,
+            background: `radial-gradient(circle, ${alpha(PRIMARY, 0.16)} 0%, transparent 65%)`,
             top: -240,
             left: '6%',
             zIndex: 0,
@@ -388,7 +391,7 @@ export default function LandingPage() {
             height: 720,
             borderRadius: '50%',
             filter: 'blur(170px)',
-            background: `radial-gradient(circle, ${alpha(theme.palette.info.main, 0.12)} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${alpha('#0288d1', 0.12)} 0%, transparent 70%)`,
             top: 120,
             right: '-4%',
             zIndex: 0,
@@ -402,7 +405,7 @@ export default function LandingPage() {
             height: 560,
             borderRadius: '50%',
             filter: 'blur(150px)',
-            background: `radial-gradient(circle, ${alpha(theme.palette.success.main, 0.10)} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${alpha('#2e7d32', 0.10)} 0%, transparent 70%)`,
             bottom: 200,
             left: '-6%',
             zIndex: 0,
@@ -422,7 +425,7 @@ export default function LandingPage() {
             backdropFilter: 'blur(18px)',
             WebkitBackdropFilter: 'blur(18px)',
             backgroundColor: alpha('#FFFFFF', scrolled ? 0.8 : 0.55),
-            borderBottom: `1px solid ${alpha(theme.palette.divider, scrolled ? 0.12 : 0.04)}`,
+            borderBottom: `1px solid ${alpha('#e0e0e0', scrolled ? 0.12 : 0.04)}`,
             transition: 'all 0.3s ease',
             py: scrolled ? 1.25 : 2,
           }}
@@ -441,12 +444,12 @@ export default function LandingPage() {
                     width: 36,
                     height: 36,
                     borderRadius: 1.5,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
+                    background: `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#fff',
-                    boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.35)}`,
+                    boxShadow: `0 6px 16px ${alpha(PRIMARY, 0.35)}`,
                   }}
                 >
                   <Iconify icon="solar:qr-code-bold-duotone" width={22} />
@@ -465,9 +468,9 @@ export default function LandingPage() {
                     sx={{
                       cursor: 'pointer',
                       fontWeight: 600,
-                      color: 'text.secondary',
+                      color: '#666666',
                       transition: 'color 0.2s',
-                      '&:hover': { color: 'text.primary' },
+                      '&:hover': { color: '#1a1a1a' },
                     }}
                   >
                     {link.label}
@@ -482,25 +485,28 @@ export default function LandingPage() {
                   onClick={() => handleNavigate(paths.auth.jwt.login)}
                   sx={{
                     fontWeight: 600,
-                    color: 'text.secondary',
+                    color: '#666666',
                     textTransform: 'none',
-                    '&:hover': { color: 'text.primary' },
+                    '&:hover': { color: '#1a1a1a' },
                   }}
                 >
                   Sign In
                 </Button>
                 <Button
                   variant="contained"
-                  color="primary"
                   size="medium"
                   onClick={() => handleNavigate(paths.auth.jwt.registerOrg)}
                   sx={{
                     borderRadius: 1.5,
                     px: 2.5,
-                    boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
+                    backgroundColor: PRIMARY,
+                    boxShadow: `0 8px 20px ${alpha(PRIMARY, 0.25)}`,
                     fontWeight: 600,
                     textTransform: 'none',
-                    '&:hover': { boxShadow: `0 10px 28px ${alpha(theme.palette.primary.main, 0.35)}` },
+                    '&:hover': {
+                      backgroundColor: PRIMARY_DARK,
+                      boxShadow: `0 10px 28px ${alpha(PRIMARY, 0.35)}`
+                    },
                   }}
                 >
                   Register Organization
@@ -536,7 +542,7 @@ export default function LandingPage() {
                     <Box
                       component="span"
                       sx={{
-                        background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.info.main}, ${theme.palette.primary.main})`,
+                        background: `linear-gradient(90deg, ${PRIMARY}, ${PRIMARY_LIGHT}, ${PRIMARY})`,
                         backgroundSize: '200% auto',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -550,7 +556,7 @@ export default function LandingPage() {
                   <Typography
                     variant="body1"
                     sx={{
-                      color: 'text.secondary',
+                      color: '#666666',
                       fontSize: { xs: '1.1rem', sm: '1.2rem' },
                       maxWidth: 540,
                       mx: { xs: 'auto', md: 0 },
@@ -571,7 +577,6 @@ export default function LandingPage() {
                     <Button
                       size="large"
                       variant="contained"
-                      color="primary"
                       onClick={() => handleNavigate(paths.auth.jwt.registerOrg)}
                       endIcon={<Iconify icon="solar:arrow-right-linear" width={18} />}
                       sx={{
@@ -581,8 +586,12 @@ export default function LandingPage() {
                         fontSize: '0.95rem',
                         fontWeight: 600,
                         textTransform: 'none',
-                        boxShadow: `0 12px 28px ${alpha(theme.palette.primary.main, 0.3)}`,
-                        '&:hover': { boxShadow: `0 16px 36px ${alpha(theme.palette.primary.main, 0.4)}` },
+                        backgroundColor: PRIMARY,
+                        boxShadow: `0 12px 28px ${alpha(PRIMARY, 0.3)}`,
+                        '&:hover': {
+                          backgroundColor: PRIMARY_DARK,
+                          boxShadow: `0 16px 36px ${alpha(PRIMARY, 0.4)}`
+                        },
                       }}
                     >
                       Register your organization
@@ -590,7 +599,6 @@ export default function LandingPage() {
                     <Button
                       size="large"
                       variant="outlined"
-                      color="inherit"
                       onClick={() => scrollToId('how-it-works')}
                       sx={{
                         borderRadius: 1.5,
@@ -599,10 +607,11 @@ export default function LandingPage() {
                         fontSize: '0.95rem',
                         fontWeight: 600,
                         textTransform: 'none',
-                        borderColor: alpha(theme.palette.text.primary, 0.15),
+                        borderColor: alpha('#1a1a1a', 0.15),
+                        color: '#1a1a1a',
                         '&:hover': {
-                          borderColor: theme.palette.text.primary,
-                          backgroundColor: alpha(theme.palette.text.primary, 0.03),
+                          borderColor: '#1a1a1a',
+                          backgroundColor: alpha('#1a1a1a', 0.03),
                         },
                       }}
                     >
@@ -617,8 +626,8 @@ export default function LandingPage() {
                   >
                     {['No proprietary lock-in', 'Evidence-linked', 'EU-ready'].map((t) => (
                       <Stack key={t} direction="row" alignItems="center" spacing={0.75}>
-                        <Iconify icon="solar:check-circle-bold" width={18} sx={{ color: 'success.main' }} />
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        <Iconify icon="solar:check-circle-bold" width={18} sx={{ color: '#2e7d32' }} />
+                        <Typography variant="body2" sx={{ color: '#666666', fontWeight: 500 }}>
                           {t}
                         </Typography>
                       </Stack>
@@ -644,16 +653,16 @@ export default function LandingPage() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
-                      boxShadow: `0 14px 30px ${alpha(theme.palette.common.black, 0.1)}`,
-                      border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                      boxShadow: `0 14px 30px ${alpha('#000', 0.1)}`,
+                      border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                       animation: `${floatY} 6s ease-in-out infinite`,
                     }}
                   >
-                    <Box sx={{ width: 34, height: 34, borderRadius: 1.25, backgroundColor: alpha(theme.palette.success.main, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'success.main' }}>
+                    <Box sx={{ width: 34, height: 34, borderRadius: 1.25, backgroundColor: alpha('#2e7d32', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2e7d32' }}>
                       <Iconify icon="solar:leaf-bold-duotone" width={20} />
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
+                      <Typography variant="caption" sx={{ color: '#666666', display: 'block', lineHeight: 1.2 }}>
                         Carbon footprint
                       </Typography>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
@@ -674,16 +683,16 @@ export default function LandingPage() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
-                      boxShadow: `0 14px 30px ${alpha(theme.palette.common.black, 0.1)}`,
-                      border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                      boxShadow: `0 14px 30px ${alpha('#000', 0.1)}`,
+                      border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                       animation: `${floatYSlow} 7s ease-in-out infinite`,
                     }}
                   >
-                    <Box sx={{ width: 34, height: 34, borderRadius: 1.25, backgroundColor: alpha(theme.palette.info.main, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'info.main' }}>
+                    <Box sx={{ width: 34, height: 34, borderRadius: 1.25, backgroundColor: alpha('#0288d1', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0288d1' }}>
                       <Iconify icon="solar:routing-2-bold-duotone" width={20} />
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
+                      <Typography variant="caption" sx={{ color: '#666666', display: 'block', lineHeight: 1.2 }}>
                         Traceability
                       </Typography>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
@@ -702,8 +711,8 @@ export default function LandingPage() {
                       position: 'relative',
                       zIndex: 2,
                       backgroundColor: '#fff',
-                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                      boxShadow: `0 30px 70px ${alpha(theme.palette.common.black, 0.16)}`,
+                      border: `1px solid ${alpha('#e0e0e0', 0.1)}`,
+                      boxShadow: `0 30px 70px ${alpha('#000', 0.16)}`,
                     }}
                   >
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
@@ -713,7 +722,7 @@ export default function LandingPage() {
                             width: 44,
                             height: 44,
                             borderRadius: 1.5,
-                            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
+                            background: `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -726,7 +735,7 @@ export default function LandingPage() {
                           <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                             DPP · 8942-X
                           </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          <Typography variant="caption" sx={{ color: '#666666' }}>
                             Organic Cotton Tee
                           </Typography>
                         </Box>
@@ -736,8 +745,8 @@ export default function LandingPage() {
                           px: 1.25,
                           py: 0.5,
                           borderRadius: 5,
-                          backgroundColor: alpha(theme.palette.success.main, 0.1),
-                          color: 'success.main',
+                          backgroundColor: alpha('#2e7d32', 0.1),
+                          color: '#2e7d32',
                           fontSize: '0.7rem',
                           fontWeight: 700,
                           display: 'flex',
@@ -753,22 +762,22 @@ export default function LandingPage() {
                     {/* readiness bars */}
                     <Stack spacing={1.75} sx={{ mb: 2.5 }}>
                       {[
-                        { label: 'Identity', pct: 100, col: theme.palette.success.main },
-                        { label: 'Composition', pct: 95, col: theme.palette.success.main },
-                        { label: 'Traceability', pct: 82, col: theme.palette.info.main },
-                        { label: 'Environmental data', pct: 68, col: theme.palette.warning.main },
-                        { label: 'Evidence', pct: 90, col: theme.palette.success.main },
+                        { label: 'Identity', pct: 100, col: '#2e7d32' },
+                        { label: 'Composition', pct: 95, col: '#2e7d32' },
+                        { label: 'Traceability', pct: 82, col: '#0288d1' },
+                        { label: 'Environmental data', pct: 68, col: '#ed6c02' },
+                        { label: 'Evidence', pct: 90, col: '#2e7d32' },
                       ].map((row) => (
                         <Box key={row.label}>
                           <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                            <Typography variant="caption" sx={{ color: '#666666', fontWeight: 500 }}>
                               {row.label}
                             </Typography>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: row.col }}>
                               {row.pct}%
                             </Typography>
                           </Stack>
-                          <Box sx={{ height: 6, borderRadius: 3, backgroundColor: alpha(theme.palette.text.disabled, 0.12), overflow: 'hidden' }}>
+                          <Box sx={{ height: 6, borderRadius: 3, backgroundColor: alpha('#9e9e9e', 0.12), overflow: 'hidden' }}>
                             <Box
                               sx={{
                                 height: '100%',
@@ -786,12 +795,12 @@ export default function LandingPage() {
                       sx={{
                         py: 1.5,
                         borderRadius: 1.5,
-                        background: `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.info.main, 0.08)})`,
-                        border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+                        background: `linear-gradient(90deg, ${alpha(PRIMARY, 0.08)}, ${alpha(PRIMARY_LIGHT, 0.08)})`,
+                        border: `1px solid ${alpha(PRIMARY, 0.12)}`,
                         textAlign: 'center',
                       }}
                     >
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: PRIMARY }}>
                         87% DPP Ready
                       </Typography>
                     </Box>
@@ -812,17 +821,17 @@ export default function LandingPage() {
                       borderRadius: 2,
                       height: '100%',
                       textAlign: 'center',
-                      border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                      border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                       boxShadow: 'none',
                       transition: 'all 0.3s',
-                      '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 14px 30px ${alpha(theme.palette.common.black, 0.06)}` },
+                      '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 14px 30px ${alpha('#000', 0.06)}` },
                     }}
                   >
-                    <Iconify icon={s.icon} width={26} sx={{ color: 'primary.main', mb: 1 }} />
+                    <Iconify icon={s.icon} width={26} sx={{ color: PRIMARY, mb: 1 }} />
                     <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                       {s.value}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="caption" sx={{ color: '#666666' }}>
                       {s.label}
                     </Typography>
                   </Card>
@@ -839,13 +848,13 @@ export default function LandingPage() {
           <Container maxWidth="lg">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   One source of truth
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                   Gather data from every link in the chain
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 620, mx: 'auto' }}>
+                <Typography variant="body1" sx={{ color: '#666666', maxWidth: 620, mx: 'auto' }}>
                   Companies register on the platform and contribute the data only they hold. A single passport record
                   serves every stakeholder view through access policy — never duplicated datasets.
                 </Typography>
@@ -862,13 +871,13 @@ export default function LandingPage() {
                         borderRadius: 2,
                         textAlign: 'center',
                         height: '100%',
-                        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                         boxShadow: 'none',
                         transition: 'all 0.3s',
                         '&:hover': {
                           transform: 'translateY(-5px)',
-                          borderColor: alpha(theme.palette.primary.main, 0.3),
-                          boxShadow: `0 16px 30px ${alpha(theme.palette.common.black, 0.06)}`,
+                          borderColor: alpha(PRIMARY, 0.3),
+                          boxShadow: `0 16px 30px ${alpha('#000', 0.06)}`,
                         },
                       }}
                     >
@@ -879,11 +888,11 @@ export default function LandingPage() {
                           mx: 'auto',
                           mb: 1.5,
                           borderRadius: 2,
-                          backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                          backgroundColor: alpha(PRIMARY, 0.08),
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: 'primary.main',
+                          color: PRIMARY,
                         }}
                       >
                         <Iconify icon={src.icon} width={28} />
@@ -902,17 +911,17 @@ export default function LandingPage() {
         {/* ============================================================ */}
         {/* CORE CAPABILITIES                                            */}
         {/* ============================================================ */}
-        <Box sx={{ py: { xs: 9, md: 13 }, position: 'relative', zIndex: 1, backgroundColor: alpha(theme.palette.primary.main, 0.02), borderTop: `1px solid ${alpha(theme.palette.divider, 0.05)}`, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.05)}` }}>
+        <Box sx={{ py: { xs: 9, md: 13 }, position: 'relative', zIndex: 1, backgroundColor: alpha(PRIMARY, 0.02), borderTop: `1px solid ${alpha('#e0e0e0', 0.05)}`, borderBottom: `1px solid ${alpha('#e0e0e0', 0.05)}` }}>
           <Container maxWidth="lg">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 7 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   Design principles
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                   A controlled compliance-data system
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 600, mx: 'auto' }}>
+                <Typography variant="body1" sx={{ color: '#666666', maxWidth: 600, mx: 'auto' }}>
                   The passport is the publishing outcome of a broader data, evidence, workflow and integration
                   architecture — built to last beyond any single regulation.
                 </Typography>
@@ -928,13 +937,13 @@ export default function LandingPage() {
                         height: '100%',
                         p: 3.5,
                         borderRadius: 2.5,
-                        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                         backgroundColor: '#fff',
                         boxShadow: 'none',
                         transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
                         '&:hover': {
                           transform: 'translateY(-6px)',
-                          boxShadow: `0 22px 40px ${alpha(theme.palette.common.black, 0.07)}`,
+                          boxShadow: `0 22px 40px ${alpha('#000', 0.07)}`,
                           borderColor: alpha(cap.color, 0.35),
                         },
                       }}
@@ -957,7 +966,7 @@ export default function LandingPage() {
                       <Typography variant="h6" sx={{ mb: 1.25, fontWeight: 700, letterSpacing: '-0.01em' }}>
                         {cap.title}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.65 }}>
+                      <Typography variant="body2" sx={{ color: '#666666', lineHeight: 1.65 }}>
                         {cap.description}
                       </Typography>
                     </Card>
@@ -975,13 +984,13 @@ export default function LandingPage() {
           <Container maxWidth="lg">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 7 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   End-to-end operating model
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                   From source data to published passport
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 600, mx: 'auto' }}>
+                <Typography variant="body1" sx={{ color: '#666666', maxWidth: 600, mx: 'auto' }}>
                   Data moves through a governed pipeline — collected, validated, approved and published — so passports
                   generate consistently across products, regulations and audiences.
                 </Typography>
@@ -998,11 +1007,11 @@ export default function LandingPage() {
                         height: '100%',
                         p: 3.5,
                         borderRadius: 2.5,
-                        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                         boxShadow: 'none',
                         overflow: 'hidden',
                         transition: 'all 0.3s',
-                        '&:hover': { boxShadow: `0 18px 36px ${alpha(theme.palette.common.black, 0.06)}` },
+                        '&:hover': { boxShadow: `0 18px 36px ${alpha('#000', 0.06)}` },
                       }}
                     >
                       <Typography
@@ -1013,7 +1022,7 @@ export default function LandingPage() {
                           fontSize: '3.4rem',
                           fontWeight: 900,
                           lineHeight: 1,
-                          color: alpha(theme.palette.primary.main, 0.07),
+                          color: alpha(PRIMARY, 0.07),
                         }}
                       >
                         {i + 1}
@@ -1023,11 +1032,11 @@ export default function LandingPage() {
                           width: 50,
                           height: 50,
                           borderRadius: 2,
-                          backgroundColor: alpha(theme.palette.primary.main, 0.09),
+                          backgroundColor: alpha(PRIMARY, 0.09),
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: 'primary.main',
+                          color: PRIMARY,
                           mb: 2,
                         }}
                       >
@@ -1036,7 +1045,7 @@ export default function LandingPage() {
                       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                         {step.title}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                      <Typography variant="body2" sx={{ color: '#666666', lineHeight: 1.6 }}>
                         {step.text}
                       </Typography>
                     </Card>
@@ -1050,17 +1059,17 @@ export default function LandingPage() {
         {/* ============================================================ */}
         {/* MODULE GROUPS                                                */}
         {/* ============================================================ */}
-        <Box id="modules" sx={{ py: { xs: 9, md: 13 }, position: 'relative', zIndex: 1, backgroundColor: alpha(theme.palette.info.main, 0.025), borderTop: `1px solid ${alpha(theme.palette.divider, 0.05)}`, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.05)}` }}>
+        <Box id="modules" sx={{ py: { xs: 9, md: 13 }, position: 'relative', zIndex: 1, backgroundColor: alpha('#0288d1', 0.025), borderTop: `1px solid ${alpha('#e0e0e0', 0.05)}`, borderBottom: `1px solid ${alpha('#e0e0e0', 0.05)}` }}>
           <Container maxWidth="lg">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 7 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   24 modules · 6 areas
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                   A complete modular architecture
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 600, mx: 'auto' }}>
+                <Typography variant="body1" sx={{ color: '#666666', maxWidth: 600, mx: 'auto' }}>
                   Everything from regulatory configuration to analytics — organised so you can start small and scale
                   without rebuilding the platform.
                 </Typography>
@@ -1076,7 +1085,7 @@ export default function LandingPage() {
                         height: '100%',
                         p: 4,
                         borderRadius: 2.5,
-                        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                         backgroundColor: '#fff',
                         boxShadow: 'none',
                         position: 'relative',
@@ -1084,7 +1093,7 @@ export default function LandingPage() {
                         transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
                         '&:hover': {
                           transform: 'translateY(-5px)',
-                          boxShadow: `0 24px 44px ${alpha(theme.palette.common.black, 0.08)}`,
+                          boxShadow: `0 24px 44px ${alpha('#000', 0.08)}`,
                           borderColor: alpha(m.color, 0.3),
                         },
                         '&:hover .mod-bar': { width: 64 },
@@ -1116,7 +1125,7 @@ export default function LandingPage() {
                           <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em', mb: 1 }}>
                             {m.title}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6, mb: 2 }}>
+                          <Typography variant="body2" sx={{ color: '#666666', lineHeight: 1.6, mb: 2 }}>
                             {m.description}
                           </Typography>
                           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -1154,13 +1163,13 @@ export default function LandingPage() {
           <Container maxWidth="lg">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 7 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   One record, many views
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                   The right information for every audience
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 600, mx: 'auto' }}>
+                <Typography variant="body1" sx={{ color: '#666666', maxWidth: 600, mx: 'auto' }}>
                   Field-level access policies present the same controlled dataset differently — commercial details stay
                   protected, while authorities and consumers see exactly what they need.
                 </Typography>
@@ -1177,12 +1186,12 @@ export default function LandingPage() {
                         p: 3.5,
                         borderRadius: 2.5,
                         textAlign: 'center',
-                        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                         boxShadow: 'none',
                         transition: 'all 0.3s',
                         '&:hover': {
                           transform: 'translateY(-6px)',
-                          boxShadow: `0 20px 38px ${alpha(theme.palette.common.black, 0.07)}`,
+                          boxShadow: `0 20px 38px ${alpha('#000', 0.07)}`,
                           borderColor: alpha(v.color, 0.3),
                         },
                       }}
@@ -1206,7 +1215,7 @@ export default function LandingPage() {
                       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                         {v.role}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                      <Typography variant="body2" sx={{ color: '#666666', lineHeight: 1.6 }}>
                         {v.text}
                       </Typography>
                     </Card>
@@ -1220,26 +1229,26 @@ export default function LandingPage() {
         {/* ============================================================ */}
         {/* INDUSTRIES                                                   */}
         {/* ============================================================ */}
-        <Box id="industries" sx={{ py: { xs: 9, md: 13 }, position: 'relative', zIndex: 1, backgroundColor: alpha(theme.palette.success.main, 0.025), borderTop: `1px solid ${alpha(theme.palette.divider, 0.05)}`, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.05)}` }}>
+        <Box id="industries" sx={{ py: { xs: 9, md: 13 }, position: 'relative', zIndex: 1, backgroundColor: alpha('#2e7d32', 0.025), borderTop: `1px solid ${alpha('#e0e0e0', 0.05)}`, borderBottom: `1px solid ${alpha('#e0e0e0', 0.05)}` }}>
           <Container maxWidth="lg">
             <Grid container spacing={6} alignItems="center">
               <Grid item xs={12} md={5}>
                 <Reveal>
                   <Stack spacing={2}>
-                    <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                    <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                       Industry packs
                     </Typography>
                     <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                       Built for textile first, ready for what's next
                     </Typography>
-                    <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.65 }}>
+                    <Typography variant="body1" sx={{ color: '#666666', lineHeight: 1.65 }}>
                       Start with a prepared textile and apparel dataset today. Because the core platform uses industry
                       packs and regulation packs, new categories plug in without rebuilding the application.
                     </Typography>
                     <Stack spacing={1.5} sx={{ pt: 1 }}>
                       {['ESPR & PPWR regulation packs', 'Product-specific delegated acts', 'Brand-specific sustainability requirements'].map((t) => (
                         <Stack key={t} direction="row" alignItems="center" spacing={1.25}>
-                          <Iconify icon="solar:check-circle-bold" width={20} sx={{ color: 'success.main' }} />
+                          <Iconify icon="solar:check-circle-bold" width={20} sx={{ color: '#2e7d32' }} />
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             {t}
                           </Typography>
@@ -1260,14 +1269,14 @@ export default function LandingPage() {
                             p: 2.75,
                             borderRadius: 2,
                             height: '100%',
-                            border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                            border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                             boxShadow: 'none',
                             backgroundColor: '#fff',
                             transition: 'all 0.3s',
-                            '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 16px 30px ${alpha(theme.palette.common.black, 0.06)}` },
+                            '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 16px 30px ${alpha('#000', 0.06)}` },
                           }}
                         >
-                          <Box sx={{ width: 46, height: 46, borderRadius: 1.5, backgroundColor: alpha(theme.palette.primary.main, 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'primary.main', mb: 1.5 }}>
+                          <Box sx={{ width: 46, height: 46, borderRadius: 1.5, backgroundColor: alpha(PRIMARY, 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', color: PRIMARY, mb: 1.5 }}>
                             <Iconify icon={ind.icon} width={26} />
                           </Box>
                           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
@@ -1281,8 +1290,8 @@ export default function LandingPage() {
                               borderRadius: 5,
                               fontSize: '0.68rem',
                               fontWeight: 700,
-                              color: ind.status === 'Available now' ? theme.palette.success.main : theme.palette.text.secondary,
-                              backgroundColor: ind.status === 'Available now' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.text.disabled, 0.1),
+                              color: ind.status === 'Available now' ? '#2e7d32' : '#666666',
+                              backgroundColor: ind.status === 'Available now' ? alpha('#2e7d32', 0.1) : alpha('#9e9e9e', 0.1),
                             }}
                           >
                             {ind.status}
@@ -1304,13 +1313,13 @@ export default function LandingPage() {
           <Container maxWidth="lg">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 7 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   Delivery roadmap
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
                   Start with foundation, grow into ecosystem
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 600, mx: 'auto' }}>
+                <Typography variant="body1" sx={{ color: '#666666', maxWidth: 600, mx: 'auto' }}>
                   A practical sequence: get the core information model live and publishing first, then layer on advanced
                   calculation, automation and external registry capabilities.
                 </Typography>
@@ -1326,12 +1335,12 @@ export default function LandingPage() {
                         height: '100%',
                         p: 4,
                         borderRadius: 2.5,
-                        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
                         boxShadow: 'none',
                         position: 'relative',
                         overflow: 'hidden',
                         transition: 'all 0.3s',
-                        '&:hover': { boxShadow: `0 22px 42px ${alpha(theme.palette.common.black, 0.07)}` },
+                        '&:hover': { boxShadow: `0 22px 42px ${alpha('#000', 0.07)}` },
                       }}
                     >
                       <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: `linear-gradient(90deg, ${p.color}, ${alpha(p.color, 0.3)})` }} />
@@ -1358,7 +1367,7 @@ export default function LandingPage() {
                         {p.items.map((it) => (
                           <Stack key={it} direction="row" alignItems="flex-start" spacing={1.25}>
                             <Iconify icon="solar:check-circle-bold" width={18} sx={{ color: p.color, mt: 0.25, flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                            <Typography variant="body2" sx={{ color: '#666666' }}>
                               {it}
                             </Typography>
                           </Stack>
@@ -1375,11 +1384,11 @@ export default function LandingPage() {
         {/* ============================================================ */}
         {/* GOVERNANCE / WHY TRUST                                       */}
         {/* ============================================================ */}
-        <Box sx={{ py: { xs: 9, md: 12 }, position: 'relative', zIndex: 1, backgroundColor: alpha(theme.palette.primary.main, 0.02), borderTop: `1px solid ${alpha(theme.palette.divider, 0.05)}`, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.05)}` }}>
+        <Box sx={{ py: { xs: 9, md: 12 }, position: 'relative', zIndex: 1, backgroundColor: alpha(PRIMARY, 0.02), borderTop: `1px solid ${alpha('#e0e0e0', 0.05)}`, borderBottom: `1px solid ${alpha('#e0e0e0', 0.05)}` }}>
           <Container maxWidth="lg">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   Non-functional foundations
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
@@ -1402,13 +1411,13 @@ export default function LandingPage() {
                 <Grid item xs={12} sm={6} md={3} key={g.t}>
                   <Reveal delay={(i % 4) * 80}>
                     <Stack spacing={1.5} sx={{ p: 1 }}>
-                      <Box sx={{ width: 46, height: 46, borderRadius: 1.5, backgroundColor: alpha(theme.palette.primary.main, 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'primary.main' }}>
+                      <Box sx={{ width: 46, height: 46, borderRadius: 1.5, backgroundColor: alpha(PRIMARY, 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', color: PRIMARY }}>
                         <Iconify icon={g.icon} width={26} />
                       </Box>
                       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                         {g.t}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                      <Typography variant="body2" sx={{ color: '#666666', lineHeight: 1.6 }}>
                         {g.d}
                       </Typography>
                     </Stack>
@@ -1426,7 +1435,7 @@ export default function LandingPage() {
           <Container maxWidth="md">
             <Reveal>
               <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
                   Questions
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
@@ -1446,11 +1455,11 @@ export default function LandingPage() {
                         p: 3,
                         borderRadius: 2,
                         cursor: 'pointer',
-                        border: `1px solid ${alpha(theme.palette.divider, open ? 0.18 : 0.08)}`,
+                        border: `1px solid ${alpha('#e0e0e0', open ? 0.18 : 0.08)}`,
                         boxShadow: 'none',
                         transition: 'all 0.25s',
-                        backgroundColor: open ? alpha(theme.palette.primary.main, 0.02) : '#fff',
-                        '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.25) },
+                        backgroundColor: open ? alpha(PRIMARY, 0.02) : '#fff',
+                        '&:hover': { borderColor: alpha(PRIMARY, 0.25) },
                       }}
                     >
                       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
@@ -1466,8 +1475,8 @@ export default function LandingPage() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: open ? '#fff' : theme.palette.primary.main,
-                            backgroundColor: open ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.1),
+                            color: open ? '#fff' : PRIMARY,
+                            backgroundColor: open ? PRIMARY : alpha(PRIMARY, 0.1),
                             transition: 'all 0.3s',
                             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
                           }}
@@ -1483,7 +1492,7 @@ export default function LandingPage() {
                         }}
                       >
                         <Box sx={{ overflow: 'hidden' }}>
-                          <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7, pt: open ? 2 : 0 }}>
+                          <Typography variant="body2" sx={{ color: '#666666', lineHeight: 1.7, pt: open ? 2 : 0 }}>
                             {faq.a}
                           </Typography>
                         </Box>
@@ -1510,8 +1519,8 @@ export default function LandingPage() {
                   px: { xs: 4, md: 8 },
                   py: { xs: 6, md: 9 },
                   textAlign: 'center',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
-                  boxShadow: `0 30px 70px ${alpha(theme.palette.primary.main, 0.35)}`,
+                  background: `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`,
+                  boxShadow: `0 30px 70px ${alpha(PRIMARY, 0.35)}`,
                 }}
               >
                 {/* decorative blurred circles */}
@@ -1540,8 +1549,8 @@ export default function LandingPage() {
                         fontWeight: 700,
                         textTransform: 'none',
                         backgroundColor: '#fff',
-                        color: theme.palette.primary.main,
-                        '&:hover': { backgroundColor: alpha('#fff', 0.9), boxShadow: `0 14px 30px ${alpha(theme.palette.common.black, 0.2)}` },
+                        color: PRIMARY,
+                        '&:hover': { backgroundColor: alpha('#fff', 0.9), boxShadow: `0 14px 30px ${alpha('#000', 0.2)}` },
                       }}
                     >
                       Register your organization
@@ -1571,12 +1580,10 @@ export default function LandingPage() {
           </Container>
         </Box>
 
-
-
         {/* ============================================================ */}
         {/* FOOTER                                                       */}
         {/* ============================================================ */}
-        <Box component="footer" sx={{ py: 6, borderTop: `1px solid ${alpha(theme.palette.divider, 0.08)}`, position: 'relative', zIndex: 1 }}>
+        <Box component="footer" sx={{ py: 6, borderTop: `1px solid ${alpha('#e0e0e0', 0.08)}`, position: 'relative', zIndex: 1 }}>
           <Container maxWidth="lg">
             <Grid container spacing={4} sx={{ mb: 4 }}>
               <Grid item xs={12} md={4}>
@@ -1586,7 +1593,7 @@ export default function LandingPage() {
                       width: 34,
                       height: 34,
                       borderRadius: 1.5,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
+                      background: `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1599,7 +1606,7 @@ export default function LandingPage() {
                     DPP
                   </Typography>
                 </Stack>
-                <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 320, lineHeight: 1.6 }}>
+                <Typography variant="body2" sx={{ color: '#666666', maxWidth: 320, lineHeight: 1.6 }}>
                   A configurable Digital Product Compliance and Traceability Platform. The passport is the trusted
                   publishing layer over your product, supply-chain, sustainability and evidence data.
                 </Typography>
@@ -1615,7 +1622,7 @@ export default function LandingPage() {
                       key={l.id}
                       variant="body2"
                       onClick={() => scrollToId(l.id)}
-                      sx={{ color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
+                      sx={{ color: '#666666', cursor: 'pointer', '&:hover': { color: PRIMARY } }}
                     >
                       {l.label}
                     </Typography>
@@ -1628,10 +1635,10 @@ export default function LandingPage() {
                   Account
                 </Typography>
                 <Stack spacing={1.25}>
-                  <Typography variant="body2" onClick={() => handleNavigate(paths.auth.jwt.login)} sx={{ color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>
+                  <Typography variant="body2" onClick={() => handleNavigate(paths.auth.jwt.login)} sx={{ color: '#666666', cursor: 'pointer', '&:hover': { color: PRIMARY } }}>
                     Sign in
                   </Typography>
-                  <Typography variant="body2" onClick={() => handleNavigate(paths.auth.jwt.registerOrg)} sx={{ color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>
+                  <Typography variant="body2" onClick={() => handleNavigate(paths.auth.jwt.registerOrg)} sx={{ color: '#666666', cursor: 'pointer', '&:hover': { color: PRIMARY } }}>
                     Register organization
                   </Typography>
                 </Stack>
@@ -1643,7 +1650,7 @@ export default function LandingPage() {
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   {['ESPR', 'PPWR', 'EU Registry', 'GS1'].map((t) => (
-                    <Box key={t} sx={{ px: 1.25, py: 0.5, borderRadius: 5, fontSize: '0.72rem', fontWeight: 600, color: 'text.secondary', backgroundColor: alpha(theme.palette.text.disabled, 0.08) }}>
+                    <Box key={t} sx={{ px: 1.25, py: 0.5, borderRadius: 5, fontSize: '0.72rem', fontWeight: 600, color: '#666666', backgroundColor: alpha('#9e9e9e', 0.08) }}>
                       {t}
                     </Box>
                   ))}
@@ -1651,8 +1658,8 @@ export default function LandingPage() {
               </Grid>
             </Grid>
 
-            <Box sx={{ pt: 3, borderTop: `1px solid ${alpha(theme.palette.divider, 0.06)}` }}>
-              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.disabled', fontWeight: 500 }}>
+            <Box sx={{ pt: 3, borderTop: `1px solid ${alpha('#e0e0e0', 0.06)}` }}>
+              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#9e9e9e', fontWeight: 500 }}>
                 © {new Date().getFullYear()} Digital Product Passport Platform · ITG Technologies. Enterprise technology
                 for compliance, traceability and manufacturing intelligence.
               </Typography>
