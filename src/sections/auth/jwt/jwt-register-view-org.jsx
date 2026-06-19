@@ -7,6 +7,10 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -35,12 +39,14 @@ const ORGANIZATION_TYPES = [
   { id: 7, name: 'Other' },
 ];
 
+const STEPS = ['Organization', 'Account'];
 
 // ----------------------------------------------------------------------
 
 export default function JwtRegisterOrgView() {
   const router = useRouter();
 
+  const [activeStep, setActiveStep] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -52,27 +58,29 @@ export default function JwtRegisterOrgView() {
   const confirmPasswordVisible = useBoolean();
 
   const RegisterSchema = Yup.object().shape({
+    organizationName: Yup.string().required('Organization Name is required'),
+    organizationBusiness: Yup.string().required('Organization Description is required'),
+    organizationType: Yup.object().nullable().required('Organization Type is required'),
+    country: Yup.object().nullable().required('Country is required'),
     username: Yup.string().required('Username is required'),
+    email: Yup.string().required('Email is required').email('Email must be a valid email address'),
     password: Yup.string()
       .required('Password is required')
       .min(6, 'Password must be at least 6 characters'),
     confirmPassword: Yup.string()
       .required('Confirm Password is required')
       .oneOf([Yup.ref('password')], 'Passwords must match'),
-    organizationName: Yup.string().required('Organization Name is required'),
-    organizationBusiness: Yup.string().required('Organization Business is required'),
-    organizationType: Yup.object().nullable().required('Organization Type is required'),
-    country: Yup.object().nullable().required('Country is required'),
   });
 
   const defaultValues = {
-    username: '',
-    password: '',
-    confirmPassword: '',
     organizationName: '',
     organizationBusiness: '',
     organizationType: null,
     country: null,
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   };
 
   const methods = useForm({
@@ -82,9 +90,23 @@ export default function JwtRegisterOrgView() {
 
   const {
     reset,
+    trigger,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
+
+  // Step 1 field validation before proceeding
+  const handleNext = async () => {
+    const step1Fields = ['organizationName', 'organizationBusiness', 'organizationType', 'country'];
+    const isValid = await trigger(step1Fields);
+    if (isValid) {
+      setActiveStep(1);
+    }
+  };
+
+  const handleBack = () => {
+    setActiveStep(0);
+  };
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -93,6 +115,7 @@ export default function JwtRegisterOrgView() {
 
       const response = await Post('auth/registerOrg', {
         UserName: data.username,
+        Email: data.email,
         Password: data.password,
         OrganizationName: data.organizationName,
         OrganizationBusiness: data.organizationBusiness,
@@ -137,36 +160,74 @@ export default function JwtRegisterOrgView() {
       <Typography variant="h4" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
         Register your Organization
       </Typography>
+
+      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        Step {activeStep + 1} of 2 —{' '}
+        <Typography component="span" variant="subtitle2" sx={{ color: 'primary.main' }}>
+          {STEPS[activeStep]}
+        </Typography>
+      </Typography>
     </Stack>
   );
 
-  const renderForm = (
+  const renderStepper = (
+    <Stepper
+      activeStep={activeStep}
+      alternativeLabel
+      sx={{
+        mb: 3,
+        '& .MuiStepConnector-line': {
+          borderColor: 'divider',
+        },
+        '& .MuiStepLabel-label': {
+          fontSize: '0.8rem',
+          fontWeight: 600,
+        },
+        '& .MuiStepIcon-root': {
+          color: '#c4cdd5',
+          '&.Mui-active': {
+            color: '#103996',
+          },
+          '&.Mui-completed': {
+            color: '#103996',
+          },
+        },
+        '& .MuiStepLabel-label.Mui-active': {
+          color: '#103996',
+          fontWeight: 700,
+        },
+        '& .MuiStepLabel-label.Mui-completed': {
+          color: '#103996',
+        },
+      }}
+    >
+      {STEPS.map((label) => (
+        <Step key={label}>
+          <StepLabel>{label}</StepLabel>
+        </Step>
+      ))}
+    </Stepper>
+  );
+
+  const renderStep1 = (
     <Stack spacing={2.5}>
+      {/* Organization Name */}
+      <RHFTextField
+        name="organizationName"
+        label="Organization Name"
+        InputLabelProps={{ shrink: true }}
+        sx={{ '& .MuiInputBase-root': { height: 56 } }}
+      />
 
-      {/* Row 1 — Organization Name + Organization Business side by side */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-          gap: 2.5,
-        }}
-      >
-        <RHFTextField
-          name="organizationName"
-          label="Organization Name"
-          InputLabelProps={{ shrink: true }}
-          sx={{ '& .MuiInputBase-root': { height: 56 } }}
-        />
+      {/* Organization Description */}
+      <RHFTextField
+        name="organizationBusiness"
+        label="Organization Description"
+        InputLabelProps={{ shrink: true }}
+        sx={{ '& .MuiInputBase-root': { height: 56 } }}
+      />
 
-        <RHFTextField
-          name="organizationBusiness"
-          label="Organization Business"
-          InputLabelProps={{ shrink: true }}
-          sx={{ '& .MuiInputBase-root': { height: 56 } }}
-        />
-      </Box>
-
-      {/* Row 2 — Organization Type + Country side by side */}
+      {/* Organization Type + Country side by side */}
       <Box
         sx={{
           display: 'grid',
@@ -195,7 +256,39 @@ export default function JwtRegisterOrgView() {
         />
       </Box>
 
-      {/* Row 3 — Username full width */}
+      {/* Next button */}
+      <Button
+        fullWidth
+        size="large"
+        variant="contained"
+        color="inherit"
+        onClick={handleNext}
+        endIcon={<Iconify icon="solar:arrow-right-linear" width={18} />}
+        sx={{ height: 46, fontSize: 15 }}
+      >
+        Continue
+      </Button>
+
+      <Stack direction="row" spacing={0.5} justifyContent="center">
+        <Typography variant="body2">Already have an account?</Typography>
+        <Link href={paths.auth.jwt.login} component={RouterLink} variant="subtitle2">
+          Sign in
+        </Link>
+      </Stack>
+    </Stack>
+  );
+
+  const renderStep2 = (
+    <Stack spacing={2.5}>
+      {/* Email */}
+      <RHFTextField
+        name="email"
+        label="Email"
+        InputLabelProps={{ shrink: true }}
+        sx={{ '& .MuiInputBase-root': { height: 56 } }}
+      />
+
+      {/* Username */}
       <RHFTextField
         name="username"
         label="Username"
@@ -203,7 +296,7 @@ export default function JwtRegisterOrgView() {
         sx={{ '& .MuiInputBase-root': { height: 56 } }}
       />
 
-      {/* Row 4 — Password + Confirm Password side by side */}
+      {/* Password + Confirm Password side by side */}
       <Box
         sx={{
           display: 'grid',
@@ -246,18 +339,32 @@ export default function JwtRegisterOrgView() {
         />
       </Box>
 
-      {/* Register button */}
-      <LoadingButton
-        fullWidth
-        color="inherit"
-        size="large"
-        type="submit"
-        variant="contained"
-        loading={isSubmitting}
-        sx={{ height: 52, fontSize: 16 }}
-      >
-        Register
-      </LoadingButton>
+      {/* Back + Register buttons */}
+      <Stack direction="row" spacing={2}>
+        <Button
+          fullWidth
+          size="large"
+          variant="outlined"
+          color="inherit"
+          onClick={handleBack}
+          startIcon={<Iconify icon="solar:arrow-left-linear" width={18} />}
+          sx={{ height: 46, fontSize: 15 }}
+        >
+          Back
+        </Button>
+
+        <LoadingButton
+          fullWidth
+          color="inherit"
+          size="large"
+          type="submit"
+          variant="contained"
+          loading={isSubmitting}
+          sx={{ height: 46, fontSize: 15 }}
+        >
+          Register
+        </LoadingButton>
+      </Stack>
 
       <Stack direction="row" spacing={0.5} justifyContent="center">
         <Typography variant="body2">Already have an account?</Typography>
@@ -265,13 +372,14 @@ export default function JwtRegisterOrgView() {
           Sign in
         </Link>
       </Stack>
-
     </Stack>
   );
 
   return (
     <>
       {renderHead}
+
+      {renderStepper}
 
       {!!errorMsg && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -286,7 +394,8 @@ export default function JwtRegisterOrgView() {
       )}
 
       <FormProvider methods={methods} onSubmit={onSubmit}>
-        {renderForm}
+        {activeStep === 0 && renderStep1}
+        {activeStep === 1 && renderStep2}
       </FormProvider>
     </>
   );
