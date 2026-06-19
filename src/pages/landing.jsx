@@ -479,19 +479,7 @@ export default function LandingPage() {
               </Stack>
 
               <Stack direction="row" spacing={1.5} alignItems="center">
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={() => handleNavigate(paths.auth.jwt.login)}
-                  sx={{
-                    fontWeight: 600,
-                    color: '#666666',
-                    textTransform: 'none',
-                    '&:hover': { color: '#1a1a1a' },
-                  }}
-                >
-                  Sign In
-                </Button>
+
                 <Button
                   variant="contained"
                   size="medium"
@@ -509,7 +497,7 @@ export default function LandingPage() {
                     },
                   }}
                 >
-                  Register Organization
+                  Get Started
                 </Button>
               </Stack>
             </Stack>
@@ -594,7 +582,7 @@ export default function LandingPage() {
                         },
                       }}
                     >
-                      Register your organization
+                      Get Started
                     </Button>
                     <Button
                       size="large"
