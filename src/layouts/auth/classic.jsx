@@ -38,7 +38,7 @@ export default function AuthClassicLayout({ children, image, title }) {
         height: '100%',
         overflowY: 'auto',
         px: { xs: 2, md: 3 },
-        py: { xs: 5, md: 5 },
+        py: { xs: 3, md: 3 },
         backgroundColor: (theme) => theme.palette.background.paper,
         '&::-webkit-scrollbar': {
           width: '5px',
@@ -57,7 +57,7 @@ export default function AuthClassicLayout({ children, image, title }) {
           minHeight: '100%',
           justifyContent: 'flex-start',
           alignItems: 'center',
-          pt: { xs: 4, md: 6 },
+          pt: { xs: 2, md: 3 },
         }}
       >
         <Box sx={{ width: 1, maxWidth: 600 }}>

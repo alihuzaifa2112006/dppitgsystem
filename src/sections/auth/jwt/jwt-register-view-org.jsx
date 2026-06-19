@@ -122,13 +122,13 @@ export default function JwtRegisterOrgView() {
   });
 
   const renderHead = (
-    <Stack spacing={2} sx={{ mb: 3 }}>
+    <Stack spacing={1.5} sx={{ mb: 2 }}>
       <Box
         component="img"
         src="/logo/Logo.png"
         alt="logo"
         sx={{
-          width: { xs: 200, sm: 250, md: 300 },
+          width: { xs: 180, sm: 220, md: 250 },
           height: 'auto',
           alignSelf: 'flex-start',
         }}
