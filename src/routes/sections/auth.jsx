@@ -71,7 +71,7 @@ const authJwt = {
       path: 'registerOrg',
       element: (
         <GuestGuard>
-          <AuthClassicLayout title="Digital Passport System - Company Registration">
+          <AuthClassicLayout title="Digital Product Passport System - Company Registration">
             <JwtRegisterOrgPage />
           </AuthClassicLayout>
         </GuestGuard>
