@@ -34,10 +34,10 @@ export default function AuthClassicLayout({ children, image, title }) {
   const renderContent = (
     <Stack
       sx={{
-        width: { xs: 1, md: '35%' },
+        width: { xs: 1, md: '40%' },
         height: '100%',
         overflowY: 'auto',
-        px: { xs: 2, md: 5 },
+        px: { xs: 2, md: 3 },
         py: { xs: 5, md: 5 },
         backgroundColor: (theme) => theme.palette.background.paper,
         '&::-webkit-scrollbar': {
@@ -55,11 +55,12 @@ export default function AuthClassicLayout({ children, image, title }) {
       <Stack
         sx={{
           minHeight: '100%',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'center',
+          pt: { xs: 4, md: 6 },
         }}
       >
-        <Box sx={{ width: 1, maxWidth: 480 }}>
+        <Box sx={{ width: 1, maxWidth: 600 }}>
           {children}
         </Box>
       </Stack>
@@ -70,7 +71,7 @@ export default function AuthClassicLayout({ children, image, title }) {
     <Stack
       sx={{
         flexGrow: 1,
-        width: '65%',
+        width: '60%',
         height: '100%',
         position: 'relative',
         justifyContent: 'flex-end',

@@ -490,7 +490,7 @@ export default function LandingPage() {
                 <Button
                   variant="contained"
                   size="medium"
-                  onClick={() => handleNavigate(paths.auth.jwt.registerOrg)}
+                  onClick={() => handleNavigate(paths.auth.jwt.login)}
                   sx={{
                     borderRadius: 1.5,
                     px: 2.5,
@@ -582,7 +582,7 @@ export default function LandingPage() {
                   fullWidth
                   variant="contained"
                   onClick={() => {
-                    handleNavigate(paths.auth.jwt.registerOrg);
+                    handleNavigate(paths.auth.jwt.login);
                     setMobileOpen(false);
                   }}
                   sx={{
@@ -691,7 +691,7 @@ export default function LandingPage() {
                     <Button
                       size="large"
                       variant="contained"
-                      onClick={() => handleNavigate(paths.auth.jwt.registerOrg)}
+                      onClick={() => handleNavigate(paths.auth.jwt.login)}
                       endIcon={<Iconify icon="solar:arrow-right-linear" width={18} />}
                       sx={{
                         borderRadius: 1.5,

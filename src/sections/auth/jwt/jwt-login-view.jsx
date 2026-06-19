@@ -144,14 +144,14 @@ export default function JwtLoginView() {
 
   const renderHead = (
     <Stack spacing={2} sx={{ mb: 5 }}>
-      <img src="/logo/Logo.png" alt="logo" style={{ width: 300 }} />
+      <img src="/logo/Logo.png" alt="logo" style={{ width: 300, display: 'block' }} />
 
       <Typography variant="h4">Sign in</Typography>
     </Stack>
   );
 
   const renderForm = (
-    <Stack spacing={2.5}>
+    <Stack spacing={3}>
       <RHFTextField
         InputLabelProps={{
           shrink: true,
@@ -173,7 +173,7 @@ export default function JwtLoginView() {
           endAdornment: (
             <InputAdornment position="end">
               <IconButton onClick={password.onToggle} edge="end">
-                <Iconify icon={password.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                <Iconify icon={password.value ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
               </IconButton>
             </InputAdornment>
           ),

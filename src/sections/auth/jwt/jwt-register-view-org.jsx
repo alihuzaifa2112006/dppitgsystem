@@ -19,8 +19,22 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFTextField } from 'src/components/hook-form';
+import FormProvider, { RHFTextField, RHFAutocomplete } from 'src/components/hook-form';
 import { Post } from 'src/api/apibasemethods';
+import { countries } from 'src/assets/data';
+
+// ----------------------------------------------------------------------
+
+const ORGANIZATION_TYPES = [
+  { id: 1, name: 'Manufacturer' },
+  { id: 2, name: 'Supplier' },
+  { id: 3, name: 'Retailer' },
+  { id: 4, name: 'Distributor' },
+  { id: 5, name: 'Exporter' },
+  { id: 6, name: 'Importer' },
+  { id: 7, name: 'Other' },
+];
+
 
 // ----------------------------------------------------------------------
 
@@ -35,23 +49,30 @@ export default function JwtRegisterOrgView() {
   const returnTo = searchParams.get('returnTo');
 
   const password = useBoolean();
+  const confirmPasswordVisible = useBoolean();
 
   const RegisterSchema = Yup.object().shape({
     username: Yup.string().required('Username is required'),
     password: Yup.string()
       .required('Password is required')
       .min(6, 'Password must be at least 6 characters'),
-    companyName: Yup.string().required('Company Name is required'),
-    brn: Yup.string().required('Business Registration Number (BRN/Tax ID) is required'),
-    facilityLocation: Yup.string().required('Facility Location is required'),
+    confirmPassword: Yup.string()
+      .required('Confirm Password is required')
+      .oneOf([Yup.ref('password')], 'Passwords must match'),
+    organizationName: Yup.string().required('Organization Name is required'),
+    organizationBusiness: Yup.string().required('Organization Business is required'),
+    organizationType: Yup.object().nullable().required('Organization Type is required'),
+    country: Yup.object().nullable().required('Country is required'),
   });
 
   const defaultValues = {
     username: '',
     password: '',
-    companyName: '',
-    brn: '',
-    facilityLocation: '',
+    confirmPassword: '',
+    organizationName: '',
+    organizationBusiness: '',
+    organizationType: null,
+    country: null,
   };
 
   const methods = useForm({
@@ -73,9 +94,10 @@ export default function JwtRegisterOrgView() {
       const response = await Post('auth/registerOrg', {
         UserName: data.username,
         Password: data.password,
-        CompanyName: data.companyName,
-        BRN: data.brn,
-        FacilityLocation: data.facilityLocation,
+        OrganizationName: data.organizationName,
+        OrganizationBusiness: data.organizationBusiness,
+        OrganizationType: data.organizationType?.name,
+        Country: data.country?.label,
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -108,48 +130,20 @@ export default function JwtRegisterOrgView() {
         sx={{
           width: { xs: 200, sm: 250, md: 300 },
           height: 'auto',
-          alignSelf: { xs: 'center', sm: 'flex-start' },
+          alignSelf: 'flex-start',
         }}
       />
 
       <Typography variant="h4" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-        Register your Company
+        Register your Organization
       </Typography>
-
-
     </Stack>
   );
 
   const renderForm = (
     <Stack spacing={2.5}>
 
-      {/* Row 1 — Username full width */}
-      <RHFTextField
-        name="username"
-        label="Username"
-        InputLabelProps={{ shrink: true }}
-        sx={{ '& .MuiInputBase-root': { height: 56 } }}
-      />
-
-      {/* Row 2 — Password full width */}
-      <RHFTextField
-        name="password"
-        label="Password"
-        InputLabelProps={{ shrink: true }}
-        type={password.value ? 'text' : 'password'}
-        sx={{ '& .MuiInputBase-root': { height: 56 } }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={password.onToggle} edge="end">
-                <Iconify icon={password.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
-
-      {/* Row 3 — Company Name + BRN side by side */}
+      {/* Row 1 — Organization Name + Organization Business side by side */}
       <Box
         sx={{
           display: 'grid',
@@ -158,22 +152,99 @@ export default function JwtRegisterOrgView() {
         }}
       >
         <RHFTextField
-          name="companyName"
-          label="Company Name"
+          name="organizationName"
+          label="Organization Name"
           InputLabelProps={{ shrink: true }}
           sx={{ '& .MuiInputBase-root': { height: 56 } }}
         />
 
         <RHFTextField
-          name="facilityLocation"
-          label="Facility Location"
+          name="organizationBusiness"
+          label="Organization Business"
           InputLabelProps={{ shrink: true }}
           sx={{ '& .MuiInputBase-root': { height: 56 } }}
         />
       </Box>
 
+      {/* Row 2 — Organization Type + Country side by side */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          gap: 2.5,
+        }}
+      >
+        <RHFAutocomplete
+          name="organizationType"
+          label="Organization Type"
+          placeholder="Select Organization Type"
+          fullWidth
+          options={ORGANIZATION_TYPES}
+          getOptionLabel={(option) => option?.name || ''}
+          isOptionEqualToValue={(option, value) => option?.id === value?.id}
+        />
 
+        <RHFAutocomplete
+          name="country"
+          label="Country"
+          placeholder="Select Country"
+          fullWidth
+          options={countries.filter((c) => c.label)}
+          getOptionLabel={(option) => option?.label || ''}
+          isOptionEqualToValue={(option, value) => option?.code === value?.code}
+        />
+      </Box>
 
+      {/* Row 3 — Username full width */}
+      <RHFTextField
+        name="username"
+        label="Username"
+        InputLabelProps={{ shrink: true }}
+        sx={{ '& .MuiInputBase-root': { height: 56 } }}
+      />
+
+      {/* Row 4 — Password + Confirm Password side by side */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          gap: 2.5,
+        }}
+      >
+        <RHFTextField
+          name="password"
+          label="Password"
+          InputLabelProps={{ shrink: true }}
+          type={password.value ? 'text' : 'password'}
+          sx={{ '& .MuiInputBase-root': { height: 56 } }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={password.onToggle} edge="end">
+                  <Iconify icon={password.value ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <RHFTextField
+          name="confirmPassword"
+          label="Confirm Password"
+          InputLabelProps={{ shrink: true }}
+          type={confirmPasswordVisible.value ? 'text' : 'password'}
+          sx={{ '& .MuiInputBase-root': { height: 56 } }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={confirmPasswordVisible.onToggle} edge="end">
+                  <Iconify icon={confirmPasswordVisible.value ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
 
       {/* Register button */}
       <LoadingButton

@@ -50,7 +50,7 @@ export default function SplashScreen({ sx, ...other }) {
             repeat: Infinity,
           }}
         >
-          <img src="/logo/CYCLO-logo.png" alt="logo" style={{ width: 82}} />
+          <img src="/logo/Logo.png" alt="logo" style={{ width: 180, height: 'auto' }} />
         </m.div>
 
         <Box
@@ -63,8 +63,8 @@ export default function SplashScreen({ sx, ...other }) {
           }}
           transition={{ ease: 'linear', duration: 3.2, repeat: Infinity }}
           sx={{
-            width: 100,
-            height: 100,
+            width: 200,
+            height: 200,
             position: 'absolute',
             border: (theme) => `solid 3px ${alpha(theme.palette.primary.dark, 0.24)}`,
           }}
@@ -84,8 +84,8 @@ export default function SplashScreen({ sx, ...other }) {
             repeat: Infinity,
           }}
           sx={{
-            width: 120,
-            height: 120,
+            width: 220,
+            height: 220,
             position: 'absolute',
             border: (theme) => `solid 8px ${alpha(theme.palette.primary.dark, 0.24)}`,
           }}
