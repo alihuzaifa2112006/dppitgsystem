@@ -18,8 +18,8 @@ export default function OverviewAppPage() {
 
   const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData')), []);
   const location = useLocation();
-    const router = useRouter();
-  
+  const router = useRouter();
+
 
   const checkExpiry = () => {
     if (userData) {
@@ -56,7 +56,7 @@ export default function OverviewAppPage() {
   return (
     <>
       <Helmet>
-        <title>Cyclo - Dashboard</title>
+        <title>DDP | Digital Product Passport</title>
       </Helmet>
 
       <OverviewAppView />
