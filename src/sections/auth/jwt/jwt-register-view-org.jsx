@@ -1,7 +1,8 @@
 import * as Yup from 'yup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -24,20 +25,12 @@ import { useBoolean } from 'src/hooks/use-boolean';
 
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField, RHFAutocomplete } from 'src/components/hook-form';
-import { Post } from 'src/api/apibasemethods';
-import { countries } from 'src/assets/data';
+import { Get, Post } from 'src/api/apibasemethods';
+
 
 // ----------------------------------------------------------------------
 
-const ORGANIZATION_TYPES = [
-  { id: 1, name: 'Manufacturer' },
-  { id: 2, name: 'Supplier' },
-  { id: 3, name: 'Retailer' },
-  { id: 4, name: 'Distributor' },
-  { id: 5, name: 'Exporter' },
-  { id: 6, name: 'Importer' },
-  { id: 7, name: 'Other' },
-];
+
 
 const STEPS = ['Organization', 'Account'];
 
@@ -49,8 +42,17 @@ export default function JwtRegisterOrgView() {
   const [activeStep, setActiveStep] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [countries, setCountries] = useState([]);
+  const [organizationTypes, setOrganizationTypes] = useState([]);
+
+
+
+
 
   const searchParams = useSearchParams();
+
+
+
 
   const returnTo = searchParams.get('returnTo');
 
@@ -95,6 +97,40 @@ export default function JwtRegisterOrgView() {
     formState: { isSubmitting },
   } = methods;
 
+  // Fetching organization type 
+
+  const getOrganizationTypes = async () => {
+    try {
+      const response = await Get('OrganizationType/GetAll');
+      if (response.status === 200) {
+        setOrganizationTypes(response?.data?.Data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    getOrganizationTypes();
+  }, []);
+
+
+  // Fetching Country From Api 
+
+  const getCountries = async () => {
+    try {
+      const response = await Get('Country/GetAll');
+      if (response.status === 200) {
+        setCountries(response?.data?.Data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    getCountries();
+  }, []);
+
   // Step 1 field validation before proceeding
   const handleNext = async () => {
     const step1Fields = ['organizationName', 'organizationBusiness', 'organizationType', 'country'];
@@ -113,15 +149,18 @@ export default function JwtRegisterOrgView() {
       setErrorMsg('');
       setSuccessMsg('');
 
-      const response = await Post('auth/registerOrg', {
-        UserName: data.username,
-        Email: data.email,
-        Password: data.password,
-        OrganizationName: data.organizationName,
-        OrganizationBusiness: data.organizationBusiness,
-        OrganizationType: data.organizationType?.name,
-        Country: data.country?.label,
+      const response = await Post('Company/Register', {
+        username: data.username,
+        password: data.password,
+        email: data.email,
+        organizationName: data.organizationName,
+        organizationDescription: data.organizationBusiness,
+        organizationTypeID: data.organizationType?.Id || 0,
+        countryID: data.country?.Country_ID || 0,
+        website: "testing",
       });
+
+
 
       if (response.status === 200 || response.status === 201) {
         setSuccessMsg('Registration successful! Redirecting to login...');
@@ -227,7 +266,7 @@ export default function JwtRegisterOrgView() {
         sx={{ '& .MuiInputBase-root': { height: 56 } }}
       />
 
-      {/* Organization Type + Country side by side */}
+
       <Box
         sx={{
           display: 'grid',
@@ -240,9 +279,9 @@ export default function JwtRegisterOrgView() {
           label="Organization Type"
           placeholder="Select Organization Type"
           fullWidth
-          options={ORGANIZATION_TYPES}
-          getOptionLabel={(option) => option?.name || ''}
-          isOptionEqualToValue={(option, value) => option?.id === value?.id}
+          options={organizationTypes}
+          getOptionLabel={(option) => option?.Name || ''}
+          isOptionEqualToValue={(option, value) => option?.Id === value?.Id}
         />
 
         <RHFAutocomplete
@@ -250,9 +289,9 @@ export default function JwtRegisterOrgView() {
           label="Country"
           placeholder="Select Country"
           fullWidth
-          options={countries.filter((c) => c.label)}
-          getOptionLabel={(option) => option?.label || ''}
-          isOptionEqualToValue={(option, value) => option?.code === value?.code}
+          options={countries}
+          getOptionLabel={(option) => option?.Country_Name || ''}
+          isOptionEqualToValue={(option, value) => option?.Country_ID === value?.Country_ID}
         />
       </Box>
 
