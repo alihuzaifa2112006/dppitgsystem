@@ -149,7 +149,8 @@ export default function JwtRegisterOrgView() {
       setErrorMsg('');
       setSuccessMsg('');
 
-      const response = await Post('Company/Register', {
+
+      const payload = {
         username: data.username,
         password: data.password,
         email: data.email,
@@ -158,9 +159,12 @@ export default function JwtRegisterOrgView() {
         organizationTypeID: data.organizationType?.Id || 0,
         countryID: data.country?.Country_ID || 0,
         website: "testing",
-      });
+      }
 
+      console.log(payload);
+      // return
 
+      const response = await Post('Company/Register', payload);
 
       if (response.status === 200 || response.status === 201) {
         setSuccessMsg('Registration successful! Redirecting to login...');
