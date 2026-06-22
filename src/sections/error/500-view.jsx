@@ -32,7 +32,7 @@ export default function Page500() {
           <SeverErrorIllustration sx={{ height: 260, my: { xs: 5, sm: 10 } }} />
         </m.div>
 
-        <Button component={RouterLink} href="/" size="large" variant="contained">
+        <Button component={RouterLink} href="/app" size="large" variant="contained">
           Go to Home
         </Button>
       </MotionContainer>

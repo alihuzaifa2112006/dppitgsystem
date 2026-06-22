@@ -50,7 +50,7 @@ export default function NavVertical({ openNav, onCloseNav }) {
     >
       <Box
         component="img"
-        src="/logo/CYCLO-logo.png"
+        src="/logo/Logo.png"
         alt="logo"
         sx={{ mt: 3, ml: 4, mb: 1, width: '140px' }}
       />

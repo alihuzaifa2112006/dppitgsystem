@@ -1,1 +1,0 @@
-export { default as ClaimAssignmentListView } from './claim-assignment-list-view';

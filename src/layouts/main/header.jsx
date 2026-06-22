@@ -82,7 +82,7 @@ export default function Header() {
           >
             <Box
               component="img"
-              src="/logo/CYCLO-logo.png"
+              src="/logo/Logo.png"
               alt="logo"
               sx={{ width: '180px' }}
             />

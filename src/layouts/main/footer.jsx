@@ -61,7 +61,7 @@ export default function Footer() {
       <Container>
         <Box
           component="img"
-          src="/logo/CYCLO-logo.png"
+          src="/logo/Logo.png"
           alt="logo"
           sx={{ mb: 1, mx: 'auto', width: '72px' }}
         />
@@ -86,7 +86,7 @@ export default function Footer() {
           textAlign: { xs: 'center', md: 'unset' },
         }}
       >
-        <Box component="img" src="/logo/CYCLO-logo.png" alt="logo" sx={{ mb: 3, width: '72px' }} />
+        <Box component="img" src="/logo/Logo.png" alt="logo" sx={{ mb: 3, width: '72px' }} />
 
         <Grid
           container

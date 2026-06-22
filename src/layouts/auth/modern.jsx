@@ -25,7 +25,7 @@ export default function AuthModernLayout({ children, image }) {
 
       <Box
         component="img"
-        src="/logo/CYCLO-logo.png"
+        src="/logo/Logo.png"
         width={64}
         alt="logo"
         sx={{

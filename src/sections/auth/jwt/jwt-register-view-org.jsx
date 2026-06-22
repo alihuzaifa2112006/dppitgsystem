@@ -151,7 +151,7 @@ export default function JwtRegisterOrgView() {
         src="/logo/Logo.png"
         alt="logo"
         sx={{
-          width: { xs: 180, sm: 220, md: 250 },
+          width: 120,
           height: 'auto',
           alignSelf: 'flex-start',
         }}

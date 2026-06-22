@@ -144,7 +144,7 @@ export default function JwtLoginView() {
 
   const renderHead = (
     <Stack spacing={2} sx={{ mb: 5 }}>
-      <img src="/logo/Logo.png" alt="logo" style={{ width: 300, display: 'block' }} />
+      <img src="/logo/Logo.png" alt="logo" style={{ width: 120, display: 'block' }} />
 
       <Typography variant="h4">Sign in</Typography>
     </Stack>

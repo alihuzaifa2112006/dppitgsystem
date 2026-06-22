@@ -15,10 +15,9 @@ const Page500 = lazy(() => import('src/pages/500'));
 const Page403 = lazy(() => import('src/pages/403'));
 const Page404 = lazy(() => import('src/pages/404'));
 
-const CustomerOnboardingPage = lazy(() => import('src/pages/dashboard/CustomerOnboardingPage'));
-const CertificateUploadPage = lazy(() => import('src/pages/dashboard/CertificateUploadPage'));
+// const CustomerOnboardingPage = lazy(() => import('src/pages/dashboard/CustomerOnboardingPage'));
+// const CertificateUploadPage = lazy(() => import('src/pages/dashboard/CertificateUploadPage'));
 
-const ComplaintRegistrationPage = lazy(() => import('src/pages/customer-complaint-page'));
 
 // ----------------------------------------------------------------------
 
@@ -31,7 +30,7 @@ export const mainRoutes = [
         </Suspense>
       </SimpleLayout>
     ),
-    children: [{ path: 'complaint-registration-form/:id', element: <ComplaintRegistrationPage /> }],
+    // children: [{ path: 'complaint-registration-form/:id', element: <ComplaintRegistrationPage /> }],
   },
   {
     element: (
@@ -58,8 +57,8 @@ export const mainRoutes = [
       </MainLayout>
     ),
     children: [
-      { path: 'customer-onboarding/:id/', element: <CustomerOnboardingPage /> },
-      { path: 'customer-certificate/:id/', element: <CertificateUploadPage /> },
+      // { path: 'customer-onboarding/:id/', element: <CustomerOnboardingPage /> },
+      // { path: 'customer-certificate/:id/', element: <CertificateUploadPage /> },
     ],
   },
 ];

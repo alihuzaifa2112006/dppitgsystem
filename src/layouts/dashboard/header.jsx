@@ -45,7 +45,7 @@ export default function Header({ onOpenNav }) {
     <>
       {lgUp && isNavHorizontal && <Box
         component="img"
-        src="/logo/CYCLO-logo.png"
+        src="/logo/Logo.png"
         alt="logo"
         sx={{
           mr: 2.5,
@@ -70,7 +70,7 @@ export default function Header({ onOpenNav }) {
       >
         {/* <LanguagePopover />  */}
 
-        <NotificationsPopover /> 
+        <NotificationsPopover />
 
         {/* <ContactsPopover /> */}
 

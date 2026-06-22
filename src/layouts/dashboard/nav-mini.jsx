@@ -45,7 +45,7 @@ export default function NavMini() {
       >
         <Box
           component="img"
-          src="/favicon/android-chrome-192x192.png"
+          src="/logo/Logo-mini.png"
           alt="logo"
           sx={{ mx: 'auto', my: 2, width: '42px' }}
         />
