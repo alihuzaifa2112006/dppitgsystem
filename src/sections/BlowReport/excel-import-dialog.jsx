@@ -76,9 +76,9 @@ export default function UploadExcelDialog({
             !tableData.some(
               (existingItem) =>
                 existingItem.ColorName.toLowerCase().trim() ===
-                  item.ColorName.toLowerCase().trim() &&
+                item.ColorName.toLowerCase().trim() &&
                 existingItem.Color_Code.toLowerCase().trim() ===
-                  item.Color_Code.toLowerCase().trim()
+                item.Color_Code.toLowerCase().trim()
             )
         );
 

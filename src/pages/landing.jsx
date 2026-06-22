@@ -640,7 +640,8 @@ export default function LandingPage() {
           sx={{ position: 'relative', zIndex: 1, pt: { xs: 7, md: 12 }, pb: { xs: 8, md: 12 } }}
         >
           <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6.5}>
+            {/* Left Column (Text Content) */}
+            <Grid item xs={12} md={6}>
               <Reveal>
                 <Stack spacing={3.5} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                   <Typography
@@ -751,179 +752,41 @@ export default function LandingPage() {
               </Reveal>
             </Grid>
 
-            {/* Hero passport mockup */}
-            <Grid item xs={12} md={5.5} sx={{ display: { xs: 'none', md: 'block' } }}>
+            {/* Right Column (Enhanced & Animated Image Section) */}
+            <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Reveal delay={150}>
-                <Box sx={{ position: 'relative', width: '100%', minHeight: 480, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  {/* floating badge top-left */}
-                  <Card
-                    sx={{
-                      position: 'absolute',
-                      top: 6,
-                      left: 0,
-                      zIndex: 3,
-                      p: 1.5,
-                      borderRadius: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      boxShadow: `0 14px 30px ${alpha('#000', 0.1)}`,
-                      border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
-                      animation: `${floatY} 6s ease-in-out infinite`,
+                <Box
+                  sx={{
+                    width: '100%',
+                    maxWidth: { xs: '100%', md: 560 }, // Desktop par image container ko maximum width de kar bara kiya
+                    position: 'relative',
+                    borderRadius: '16px',
+                    padding: '1px', // Border wrapper padding
+                    background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.1)}, ${alpha(PRIMARY_LIGHT, 0.05)})`,
+                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      transform: 'translateY(-6px) scale(1.02)', // Smooth subtle pop-out transition
+                      boxShadow: `0px 32px 64px ${alpha('#000000', 0.08)}, 0px 0px 20px ${alpha(PRIMARY, 0.15)}`,
+                    },
+                  }}
+                >
+                  <img
+                    src="/LandingImg.jpeg"
+                    alt="Dashboard interface showcasing verified product passports and statistics"
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      display: 'block',
+                      borderRadius: '15px', // Inside padding balance ke liye 15px
+                      objectFit: 'cover',
                     }}
-                  >
-                    <Box sx={{ width: 34, height: 34, borderRadius: 1.25, backgroundColor: alpha('#2e7d32', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2e7d32' }}>
-                      <Iconify icon="solar:leaf-bold-duotone" width={20} />
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: '#666666', display: 'block', lineHeight: 1.2 }}>
-                        Carbon footprint
-                      </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                        0.84 kg CO₂e
-                      </Typography>
-                    </Box>
-                  </Card>
-
-                  {/* floating badge bottom-right */}
-                  <Card
-                    sx={{
-                      position: 'absolute',
-                      bottom: 12,
-                      right: -6,
-                      zIndex: 3,
-                      p: 1.5,
-                      borderRadius: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      boxShadow: `0 14px 30px ${alpha('#000', 0.1)}`,
-                      border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
-                      animation: `${floatYSlow} 7s ease-in-out infinite`,
-                    }}
-                  >
-                    <Box sx={{ width: 34, height: 34, borderRadius: 1.25, backgroundColor: alpha('#0288d1', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0288d1' }}>
-                      <Iconify icon="solar:routing-2-bold-duotone" width={20} />
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: '#666666', display: 'block', lineHeight: 1.2 }}>
-                        Traceability
-                      </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                        Tier 1–4 mapped
-                      </Typography>
-                    </Box>
-                  </Card>
-
-                  {/* main passport card */}
-                  <Card
-                    sx={{
-                      width: '94%',
-                      maxWidth: 400,
-                      borderRadius: 3,
-                      p: 3.5,
-                      position: 'relative',
-                      zIndex: 2,
-                      backgroundColor: '#fff',
-                      border: `1px solid ${alpha('#e0e0e0', 0.1)}`,
-                      boxShadow: `0 30px 70px ${alpha('#000', 0.16)}`,
-                    }}
-                  >
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Box
-                          sx={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 1.5,
-                            background: `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                          }}
-                        >
-                          <Iconify icon="solar:qr-code-bold-duotone" width={24} />
-                        </Box>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                            DPP · 8942-X
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#666666' }}>
-                            Organic Cotton Tee
-                          </Typography>
-                        </Box>
-                      </Stack>
-                      <Box
-                        sx={{
-                          px: 1.25,
-                          py: 0.5,
-                          borderRadius: 5,
-                          backgroundColor: alpha('#2e7d32', 0.1),
-                          color: '#2e7d32',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                        }}
-                      >
-                        <Iconify icon="solar:verified-check-bold" width={14} />
-                        Published
-                      </Box>
-                    </Stack>
-
-                    <Stack spacing={1.75} sx={{ mb: 2.5 }}>
-                      {[
-                        { label: 'Identity', pct: 100, col: '#2e7d32' },
-                        { label: 'Composition', pct: 95, col: '#2e7d32' },
-                        { label: 'Traceability', pct: 82, col: '#0288d1' },
-                        { label: 'Environmental data', pct: 68, col: '#ed6c02' },
-                        { label: 'Evidence', pct: 90, col: '#2e7d32' },
-                      ].map((row) => (
-                        <Box key={row.label}>
-                          <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                            <Typography variant="caption" sx={{ color: '#666666', fontWeight: 500 }}>
-                              {row.label}
-                            </Typography>
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: row.col }}>
-                              {row.pct}%
-                            </Typography>
-                          </Stack>
-                          <Box sx={{ height: 6, borderRadius: 3, backgroundColor: alpha('#9e9e9e', 0.12), overflow: 'hidden' }}>
-                            <Box
-                              sx={{
-                                height: '100%',
-                                width: `${row.pct}%`,
-                                borderRadius: 3,
-                                background: `linear-gradient(90deg, ${alpha(row.col, 0.7)}, ${row.col})`,
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      ))}
-                    </Stack>
-
-                    <Box
-                      sx={{
-                        py: 1.5,
-                        borderRadius: 1.5,
-                        background: `linear-gradient(90deg, ${alpha(PRIMARY, 0.08)}, ${alpha(PRIMARY_LIGHT, 0.08)})`,
-                        border: `1px solid ${alpha(PRIMARY, 0.12)}`,
-                        textAlign: 'center',
-                      }}
-                    >
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: PRIMARY }}>
-                        87% DPP Ready
-                      </Typography>
-                    </Box>
-                  </Card>
+                  />
                 </Box>
               </Reveal>
             </Grid>
           </Grid>
 
-          {/* trust stats strip */}
+          {/* Trust stats strip */}
           <Reveal delay={250}>
             <Grid container spacing={2} sx={{ mt: { xs: 4, md: 7 } }}>
               {trustStats.map((s) => (
