@@ -103,7 +103,7 @@ export default function Footer() {
                 mx: { xs: 'auto', md: 'unset' },
               }}
             >
-              CYCLO®
+              DPP
             </Typography>
 
             <Stack

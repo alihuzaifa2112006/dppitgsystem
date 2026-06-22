@@ -120,7 +120,7 @@ export default function JWTForgotPasswordView() {
 
               <div class="footer">
                   <p>For security reasons, please don't share this OTP with anyone.</p>
-                  <p>Best regards,<br>CYCLO® Cloud Team</p>
+                  <p>Best regards,<br>DPP Team</p>
               </div>
           </div>
       </body>

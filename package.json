@@ -1,8 +1,8 @@
 {
-  "name": "cyclo-cloud",
+  "name": "dpp",
   "author": "ITG",
   "version": "2.0.0",
-  "description": "CYCLO® Cloud created by ITG",
+  "description": "Digital Product Passport created by ITG",
   "private": true,
   "type": "module",
   "scripts": {
