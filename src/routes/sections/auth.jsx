@@ -40,11 +40,9 @@ const authJwt = {
     {
       path: 'verify',
       element: (
-        <GuestGuard>
-          <AuthClassicLayout>
-            <JwtVerifyPage />
-          </AuthClassicLayout>
-        </GuestGuard>
+        <AuthClassicLayout>
+          <JwtVerifyPage />
+        </AuthClassicLayout>
       ),
     },
     {

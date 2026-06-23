@@ -11,10 +11,9 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Link from '@mui/material/Link';
 
-import { useRouter, useSearchParams } from 'src/routes/hooks';
+import { useRouter } from 'src/routes/hooks';
 import { useBoolean } from 'src/hooks/use-boolean';
-import { useAuthContext } from 'src/auth/hooks';
-import { PATH_AFTER_LOGIN } from 'src/config-global';
+
 
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
@@ -25,10 +24,7 @@ import { RouterLink } from 'src/routes/components';
 // ----------------------------------------------------------------------
 
 export default function JwtLoginView() {
-  const { login } = useAuthContext();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
 
   const passwordVisibility = useBoolean();
   const [errorMsg, setErrorMsg] = useState('');
@@ -68,16 +64,14 @@ export default function JwtLoginView() {
       if (response?.status === 200 || response?.status === 201) {
         const loginTime = new Date().getTime();
 
-        // Save token/user details in localStorage
+        // API response: { Success, Message, Data: { token, company, ... } }
+        // Save the full response body to localStorage
         localStorage.setItem('UserData', JSON.stringify(response.data));
         localStorage.setItem('loginTime', loginTime);
 
-        // Context login update
-        if (login) {
-          await login(response.data);
-        }
-
-        router.push(returnTo || PATH_AFTER_LOGIN);
+        // Don't call context login() yet — redirect to OTP verification first
+        // Context login will happen after OTP is verified
+        router.push(paths.auth.jwt.verify);
       } else {
         setErrorMsg('Incorrect Username or Password');
       }
