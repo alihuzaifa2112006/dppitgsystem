@@ -430,7 +430,6 @@ export default function LandingPage() {
               justifyContent="space-between"
               sx={{ py: scrolled ? 1.25 : 1.75 }}
             >
-              {/* Logo */}
               <Stack
                 direction="row"
                 alignItems="center"
@@ -440,25 +439,25 @@ export default function LandingPage() {
               >
                 <Box
                   sx={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 1.5,
-                    background: `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`,
+                    width: 45,    // Size 36 se bada karke 52 kar diya hai
+                    height: 45,   // Height bhi 52 kar di hai taake square ratio barkarar rahe
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#fff',
-                    boxShadow: `0 4px 12px ${alpha(PRIMARY, 0.3)}`,
+                    background: 'none',
+                    boxShadow: 'none',
                   }}
                 >
-                  <Iconify icon="solar:qr-code-bold-duotone" width={22} />
+                  <img
+                    src="/logo/Logo-mini.png"
+                    alt="Logo"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                    }}
+                  />
                 </Box>
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 800, letterSpacing: '-0.02em', color: '#1a1a1a' }}
-                >
-                  DPP
-                </Typography>
               </Stack>
 
               {/* Desktop links */}
@@ -488,25 +487,41 @@ export default function LandingPage() {
               {/* Right side: CTA + hamburger */}
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Button
-                  variant="contained"
+                  variant="outlined" // Outlined variant se background shuru me transparent rahega
                   size="medium"
                   onClick={() => handleNavigate(paths.auth.jwt.login)}
                   sx={{
-                    borderRadius: 1.5,
-                    px: 2.5,
-                    backgroundColor: PRIMARY,
-                    boxShadow: `0 4px 14px ${alpha(PRIMARY, 0.25)}`,
-                    fontWeight: 600,
+                    borderRadius: '50px', // Clean pill shape
+                    px: 3.5,
+                    py: 1.1,
+
+                    // Border aur Text se highlight hoga
+                    border: `2px solid ${PRIMARY}`, // Strong outline taake bina bg ke bhi nazar aaye
+                    color: PRIMARY,
+                    backgroundColor: 'transparent',
+
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
                     textTransform: 'none',
+                    letterSpacing: '0.02em',
+
+                    // Smooth liquid transition
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+
                     '&:hover': {
-                      backgroundColor: PRIMARY_DARK,
-                      boxShadow: `0 6px 20px ${alpha(PRIMARY, 0.35)}`,
+                      border: `2px solid ${PRIMARY}`, // Border same rahega
+                      backgroundColor: PRIMARY, // Hover par background smoothly fill ho jayega
+                      color: '#fff', // Text color white ho jayega taake read-able ho
+                      transform: 'scale(1.03)', // Halka sa zoom-in effect highlight karne ke liye
+                      boxShadow: `0 6px 20px ${alpha(PRIMARY, 0.3)}`, // Soft premium glow
                     },
+                    '&:active': {
+                      transform: 'scale(1)',
+                    }
                   }}
                 >
                   Get Started
                 </Button>
-
                 {/* Hamburger button — mobile only */}
                 <Box
                   onClick={() => setMobileOpen((prev) => !prev)}
