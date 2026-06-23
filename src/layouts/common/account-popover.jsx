@@ -1,7 +1,7 @@
 import { m } from 'framer-motion';
 
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
+import Stack from '@mui/material/Stack'; // <-- Isko theek kar diya hai
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import { alpha } from '@mui/material/styles';
@@ -12,26 +12,19 @@ import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
-
 import { useAuthContext } from 'src/auth/hooks';
 
 import { varHover } from 'src/components/animate';
 import { useSnackbar } from 'src/components/snackbar';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
-import { decrypt, encrypt } from 'src/api/encryption';
 
 // ----------------------------------------------------------------------
 
 const OPTIONS = [
   {
     label: 'Home',
-    linkTo: '/',
+    linkTo: '/app',
   },
-  // {
-  //   label: 'Settings',
-  //   linkTo: paths.dashboard.user.account,
-  // },
 ];
 
 // ----------------------------------------------------------------------
@@ -39,21 +32,27 @@ const OPTIONS = [
 export default function AccountPopover() {
   const router = useRouter();
 
-  const { user } = useMockedUser();
-
   const { logout } = useAuthContext();
 
   const { enqueueSnackbar } = useSnackbar();
 
   const popover = usePopover();
 
+  // Local storage se aapka data parse ho raha hai
   const userData = JSON.parse(localStorage.getItem('UserData'));
+
+  // Aapke data structure ke mutabik keys extract ho rahi hain
+  const organizationName = userData?.Data?.company?.OrganizationName || 'User';
+  const emailAddress = userData?.Data?.company?.Email || '';
+
+  // Pehla letter profile icon par dikhane ke liye
+  const firstLetter = organizationName.charAt(0).toUpperCase();
 
   const handleLogout = async () => {
     try {
       await logout();
       localStorage.removeItem('UserData');
-      localStorage.removeItem('loginTime'); // Might as well clear this too
+      localStorage.removeItem('loginTime');
       popover.onClose();
       router.replace('/auth/jwt/login');
     } catch (error) {
@@ -86,27 +85,29 @@ export default function AccountPopover() {
         }}
       >
         <Avatar
-          src={userData?.userDetails?.ImagePath || ''}
-          alt={userData?.userDetails?.userName || ''}
+          alt={organizationName}
           sx={{
             width: 36,
             height: 36,
             border: (theme) => `solid 2px ${theme.palette.background.default}`,
+            bgcolor: 'primary.main', // Avatar ka background fill karne ke liye
+            color: 'common.white',   // Letter ka color white karne ke liye
+            fontWeight: 'fontWeightBold',
           }}
         >
-          {userData?.userDetails?.userName?.charAt(0)?.toUpperCase() || ''}
+          {firstLetter}
         </Avatar>
       </IconButton>
 
       <CustomPopover open={popover.open} onClose={popover.onClose} sx={{ width: 200, p: 0 }}>
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {userData?.userDetails?.userName}
+            {organizationName}
           </Typography>
 
-          {/* <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {userData?.userDetails?.emailAddress}
-          </Typography> */}
+          <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
+            {emailAddress}
+          </Typography>
         </Box>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
