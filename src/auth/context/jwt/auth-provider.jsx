@@ -98,23 +98,20 @@ export function AuthProvider({ children }) {
   }, [initialize]);
 
   // LOGIN
-  const login = useCallback(async (email, password) => {
-    const data = {
-      email,
-      password,
-    };
+  const login = useCallback(async (userData) => {
+    // The API call is already handled in the view component, 
+    // so we just update the context state here.
+    const accessToken = userData?.token || userData?.accessToken || '';
 
-    const response = await axios.post(endpoints.auth.login, data);
-
-    const { accessToken, user } = response.data;
-
-    setSession(accessToken);
+    if (accessToken) {
+      setSession(accessToken);
+    }
 
     dispatch({
       type: 'LOGIN',
       payload: {
         user: {
-          ...user,
+          ...userData,
           accessToken,
         },
       },

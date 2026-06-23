@@ -167,10 +167,10 @@ export default function JwtRegisterOrgView() {
       const response = await Post('Company/Register', payload);
 
       if (response.status === 200 || response.status === 201) {
-        setSuccessMsg('Registration successful! Redirecting to login...');
+        setSuccessMsg('Organization Registered Successfully!');
         setTimeout(() => {
           router.push(paths.auth.jwt.login);
-        }, 1500);
+        }, 1000);
       } else if (response.status === 409) {
         setErrorMsg('Username or Company already exists.');
       } else {

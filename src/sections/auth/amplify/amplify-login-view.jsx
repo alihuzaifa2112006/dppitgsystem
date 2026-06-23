@@ -59,17 +59,17 @@ export default function AmplifyLoginView() {
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      await login?.(data.email, data.password);
+  // const onSubmit = handleSubmit(async (data) => {
+  //   try {
+  //     await login?.(data.email, data.password);
 
-      router.push(returnTo || PATH_AFTER_LOGIN);
-    } catch (error) {
-      console.error(error);
-      reset();
-      setErrorMsg(typeof error === 'string' ? error : error.message);
-    }
-  });
+  //     router.push(returnTo || PATH_AFTER_LOGIN);
+  //   } catch (error) {
+  //     console.error(error);
+  //     reset();
+  //     setErrorMsg(typeof error === 'string' ? error : error.message);
+  //   }
+  // });
 
   const renderHead = (
     <Stack spacing={2} sx={{ mb: 5 }}>
@@ -138,7 +138,7 @@ export default function AmplifyLoginView() {
         </Alert>
       )}
 
-      <FormProvider methods={methods} onSubmit={onSubmit}>
+      <FormProvider methods={methods}>
         {renderForm}
       </FormProvider>
     </>

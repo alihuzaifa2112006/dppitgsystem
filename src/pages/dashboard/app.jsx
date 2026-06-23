@@ -23,29 +23,35 @@ export default function OverviewAppPage() {
 
   const checkExpiry = () => {
     if (userData) {
-      const token = userData?.token;
-      const parsedToken = decodeJWT(token);
-      const exp = parsedToken?.payload?.exp;
-      let shouldLogout = false;
+      const token = userData?.token || userData?.accessToken;
+      if (!token) return; // Prevent crashing if token doesn't exist
 
-      if (exp) {
-        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-        if (currentTimeInSeconds >= exp) {
-          shouldLogout = true; // token expired
-        } else {
-          shouldLogout = false;
+      try {
+        const parsedToken = decodeJWT(token);
+        const exp = parsedToken?.payload?.exp;
+        let shouldLogout = false;
+
+        if (exp) {
+          const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+          if (currentTimeInSeconds >= exp) {
+            shouldLogout = true; // token expired
+          } else {
+            shouldLogout = false;
+          }
         }
-      }
-      if (shouldLogout) {
-        const searchParams = new URLSearchParams({
-          returnTo: window.location.pathname,
-        }).toString();
+        if (shouldLogout) {
+          const searchParams = new URLSearchParams({
+            returnTo: window.location.pathname,
+          }).toString();
 
-        const loginPath = loginPaths[method];
-        const href = `${loginPath}?${searchParams}`;
-        router.replace(href);
-        localStorage.removeItem('UserData');
-        localStorage.removeItem('loginTime');
+          const loginPath = loginPaths[method];
+          const href = `${loginPath}?${searchParams}`;
+          router.replace(href);
+          localStorage.removeItem('UserData');
+          localStorage.removeItem('loginTime');
+        }
+      } catch (error) {
+        console.error('Invalid token format:', error);
       }
     }
   };
