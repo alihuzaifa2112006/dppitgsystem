@@ -6,6 +6,8 @@ import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Link from '@mui/material/Link';
+import Snackbar from '@mui/material/Snackbar';
+import Chip from '@mui/material/Chip';
 import { alpha, keyframes } from '@mui/material/styles';
 
 import { useRouter } from 'src/routes/hooks';
@@ -28,6 +30,14 @@ const fadeInUp = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
+const shakeX = keyframes`
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+`;
+
 const OTP_LENGTH = 6;
 
 // ----------------------------------------------------------------------
@@ -39,11 +49,18 @@ export default function JWTVerifyView() {
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', attemptsLeft: null });
+
+  // Wrong OTP status
+  const [wrongOtpStatus, setWrongOtpStatus] = useState(null); // { attemptsLeft: number }
+
   const inputRefs = useRef([]);
 
   const handleChange = useCallback(
     (index, value) => {
-      // Only allow digits
       if (value && !/^\d$/.test(value)) return;
 
       const newOtp = [...otp];
@@ -51,7 +68,6 @@ export default function JWTVerifyView() {
       setOtp(newOtp);
       setErrorMsg('');
 
-      // Auto-focus next input
       if (value && index < OTP_LENGTH - 1) {
         inputRefs.current[index + 1]?.focus();
       }
@@ -63,7 +79,6 @@ export default function JWTVerifyView() {
     (index, e) => {
       if (e.key === 'Backspace') {
         if (!otp[index] && index > 0) {
-          // Move to previous input on backspace if current is empty
           const newOtp = [...otp];
           newOtp[index - 1] = '';
           setOtp(newOtp);
@@ -96,10 +111,14 @@ export default function JWTVerifyView() {
     setOtp(newOtp);
     setErrorMsg('');
 
-    // Focus the next empty input or the last one
     const focusIndex = Math.min(pastedData.length, OTP_LENGTH - 1);
     inputRefs.current[focusIndex]?.focus();
   }, []);
+
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+  };
 
   const handleVerify = async () => {
     const otpCode = otp.join('');
@@ -113,8 +132,6 @@ export default function JWTVerifyView() {
       setIsSubmitting(true);
       setErrorMsg('');
 
-      // Get token from login response stored in localStorage
-      // Login response structure: { Success, Data: { token, company, ... } }
       const storedData = JSON.parse(localStorage.getItem('UserData') || '{}');
       const token = storedData?.Data?.token || storedData?.token || '';
 
@@ -127,14 +144,11 @@ export default function JWTVerifyView() {
       });
 
       if (response?.status === 200 || response?.status === 201) {
-        // Verify response: { Success, Data: { token, tokenType, expiresInMinutes } }
         const verifyData = response?.data;
         const newToken = verifyData?.Data?.token || token;
 
-        // Save the new verified token/data to localStorage
         localStorage.setItem('UserData', JSON.stringify(verifyData));
 
-        // Call auth context login with the token to authenticate the user
         if (login) {
           await login({ token: newToken, accessToken: newToken, ...verifyData?.Data });
         }
@@ -146,19 +160,51 @@ export default function JWTVerifyView() {
     } catch (error) {
       console.error('OTP verification error:', error);
 
-      if (error?.response?.data?.Message) {
-        setErrorMsg(error.response.data.Message);
-      } else if (error?.response?.data?.message) {
-        setErrorMsg(error.response.data.message);
+      const responseData = error?.response?.data;
+      const attemptsLeft = responseData?.AttemptsLeft ?? null;
+      const serverMessage = responseData?.Message || responseData?.message || null;
+
+      // Check if it's a wrong OTP scenario (has AttemptsLeft in response)
+      if (attemptsLeft !== null && attemptsLeft !== undefined) {
+        // Update persistent status badge
+        setWrongOtpStatus({ attemptsLeft });
+
+        // Show snackbar with attempts info
+        const snackMsg = attemptsLeft === 0
+          ? 'Too many failed attempts. Please request a new OTP.'
+          : `Wrong OTP — ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining`;
+
+        setSnackbar({ open: true, message: snackMsg, attemptsLeft });
+
+        // Shake the OTP boxes
+        triggerShake();
+
+        // Clear OTP fields and refocus first input
+        setOtp(Array(OTP_LENGTH).fill(''));
+        setTimeout(() => inputRefs.current[0]?.focus(), 100);
       } else if (error?.response?.status === 400 || error?.response?.status === 401) {
-        setErrorMsg('Invalid or expired OTP. Please try again.');
+        setErrorMsg(serverMessage || 'Invalid or expired OTP. Please try again.');
+        triggerShake();
       } else {
-        setErrorMsg(error?.message || 'Verification failed. Please try again.');
+        setErrorMsg(serverMessage || error?.message || 'Verification failed. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const handleSnackbarClose = (_, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  // Snackbar severity based on attempts left
+  const snackbarSeverity =
+    snackbar.attemptsLeft === 0
+      ? 'error'
+      : snackbar.attemptsLeft === 1
+        ? 'warning'
+        : 'error';
 
   return (
     <Stack
@@ -180,7 +226,33 @@ export default function JWTVerifyView() {
         </Typography>
       </Stack>
 
-      {/* Error Alert */}
+      {/* Wrong OTP status badge — only shown after at least one wrong attempt */}
+      {wrongOtpStatus !== null && (
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Chip
+            label={
+              wrongOtpStatus.attemptsLeft === 0
+                ? 'No attempts remaining'
+                : `${wrongOtpStatus.attemptsLeft} attempt${wrongOtpStatus.attemptsLeft === 1 ? '' : 's'} left`
+            }
+            size="small"
+            color={
+              wrongOtpStatus.attemptsLeft === 0
+                ? 'error'
+                : wrongOtpStatus.attemptsLeft === 1
+                  ? 'warning'
+                  : 'default'
+            }
+            variant="outlined"
+            sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+          />
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Wrong OTP entered
+          </Typography>
+        </Stack>
+      )}
+
+      {/* Error Alert (non-attempts errors) */}
       {!!errorMsg && (
         <Alert severity="error" sx={{ borderRadius: 1.5 }}>
           {errorMsg}
@@ -194,6 +266,7 @@ export default function JWTVerifyView() {
           gap: { xs: 1, sm: 1.5 },
           justifyContent: 'center',
           my: 2,
+          animation: shake ? `${shakeX} 0.5s ease-in-out` : 'none',
         }}
       >
         {otp.map((digit, index) => (
@@ -249,7 +322,7 @@ export default function JWTVerifyView() {
         variant="contained"
         loading={isSubmitting}
         onClick={handleVerify}
-        disabled={otp.join('').length !== OTP_LENGTH}
+        disabled={otp.join('').length !== OTP_LENGTH || wrongOtpStatus?.attemptsLeft === 0}
         sx={{
           mt: 1,
           fontWeight: 600,
@@ -281,6 +354,23 @@ export default function JWTVerifyView() {
           ← Try login again
         </Link>
       </Stack>
+
+      {/* Snackbar for wrong OTP with attempts left */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          variant="filled"
+          sx={{ width: '100%', fontWeight: 500 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }
