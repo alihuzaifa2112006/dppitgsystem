@@ -51,7 +51,9 @@ export default function AccountPopover() {
 
   const handleLogout = async () => {
     try {
-      await localStorage.removeItem('UserData');
+      await logout();
+      localStorage.removeItem('UserData');
+      localStorage.removeItem('loginTime'); // Might as well clear this too
       popover.onClose();
       router.replace('/auth/jwt/login');
     } catch (error) {
