@@ -131,7 +131,7 @@ export default function JwtRegisterOrgView() {
     getCountries();
   }, []);
 
-  // Step 1 field validation before proceeding
+
   const handleNext = async () => {
     const step1Fields = ['organizationName', 'organizationBusiness', 'organizationType', 'country'];
     const isValid = await trigger(step1Fields);

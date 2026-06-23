@@ -47,27 +47,27 @@ export default function NotificationsPopover() {
 
   const totalTodos = notifications?.length;
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await Get(`getPendingPIsByUser?USERID=${userData?.userDetails?.userId}`);
+  // useEffect(() => {
+  //   const fetchNotifications = async () => {
+  //     try {
+  //       const response = await Get(`getPendingPIsByUser?USERID=${userData?.userDetails?.userId}`);
 
-        const updatedData = response.data.Data?.map((item) => ({
-          ...item,
-          PINo: item?.ApplyForReapproval
-            ? `${item?.PINo}-R`
-            : item?.PINo,
-        }));
+  //       const updatedData = response.data.Data?.map((item) => ({
+  //         ...item,
+  //         PINo: item?.ApplyForReapproval
+  //           ? `${item?.PINo}-R`
+  //           : item?.PINo,
+  //       }));
 
-        setNotifications(updatedData);
-      } catch (error) {
-        console.error('Failed to fetch to-dos:', error);
-      }
-    };
+  //       setNotifications(updatedData);
+  //     } catch (error) {
+  //       console.error('Failed to fetch to-dos:', error);
+  //     }
+  //   };
 
-    fetchNotifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  //   fetchNotifications();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [location.pathname]);
 
   const renderHead = (
     <Stack direction="row" alignItems="center" sx={{ py: 2, pl: 2.5, pr: 1, minHeight: 68 }}>
