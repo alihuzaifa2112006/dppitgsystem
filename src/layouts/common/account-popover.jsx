@@ -38,7 +38,7 @@ export default function AccountPopover() {
 
   const popover = usePopover();
 
-  // Local storage se aapka data parse ho raha hai
+
   const userData = JSON.parse(localStorage.getItem('UserData'));
 
   // Aapke data structure ke mutabik keys extract ho rahi hain
