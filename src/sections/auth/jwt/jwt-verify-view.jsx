@@ -132,20 +132,14 @@ export default function JWTVerifyView() {
       setIsSubmitting(true);
       setErrorMsg('');
 
-      const storedData = JSON.parse(localStorage.getItem('UserData') || '{}');
-      const token = storedData?.Data?.token || storedData?.token || '';
-
+      // The Verify API no longer requires a token.
       const response = await axios.post(`${APP_API}Auth/VerifyOtp`, {
         otp: otpCode,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (response?.status === 200 || response?.status === 201) {
         const verifyData = response?.data;
-        const newToken = verifyData?.Data?.token || token;
+        const newToken = verifyData?.Data?.token || verifyData?.token || '';
 
         localStorage.setItem('UserData', JSON.stringify(verifyData));
 

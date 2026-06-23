@@ -65,8 +65,7 @@ export default function JwtLoginView() {
         const loginTime = new Date().getTime();
 
         // API response: { Success, Message, Data: { token, company, ... } }
-        // Save the full response body to localStorage
-        localStorage.setItem('UserData', JSON.stringify(response.data));
+        // We no longer save UserData here. It will be saved after OTP verification.
         localStorage.setItem('loginTime', loginTime);
 
         // Don't call context login() yet — redirect to OTP verification first
