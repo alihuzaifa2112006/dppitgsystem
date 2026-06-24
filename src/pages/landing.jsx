@@ -13,6 +13,9 @@ import { alpha, keyframes } from '@mui/material/styles';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import Iconify from 'src/components/iconify';
+import { useAuthContext } from 'src/auth/hooks';
+import { PATH_AFTER_LOGIN } from 'src/config-global';
+import { jwtDecode } from 'jwt-decode';
 
 // Hardcoded colors
 const PRIMARY = '#103996';
@@ -101,6 +104,46 @@ Reveal.defaultProps = {
 
 export default function LandingPage() {
   const router = useRouter();
+  // const router = useRouter();
+  const { authenticated } = useAuthContext();
+
+
+  useEffect(() => {
+    // Check from auth context
+    if (authenticated) {
+      router.replace(PATH_AFTER_LOGIN);
+      return;
+    }
+
+    // Fallback: Check localStorage directly with expiry check
+    const storedData = localStorage.getItem('UserData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        const token = parsedData?.Data?.token || parsedData?.token;
+
+        if (token) {
+          try {
+            const decoded = jwtDecode(token);
+            const currentTime = Date.now() / 1000;
+
+            if (decoded.exp && decoded.exp > currentTime) {
+              // Token is valid - redirect to dashboard
+              router.replace(PATH_AFTER_LOGIN);
+            } else {
+              // Token expired - clear it
+              localStorage.removeItem('UserData');
+            }
+          } catch (decodeError) {
+            localStorage.removeItem('UserData');
+          }
+        }
+      } catch (e) {
+        localStorage.removeItem('UserData');
+      }
+    }
+  }, [authenticated, router]);
+
 
   const handleNavigate = (path) => {
     router.push(path);

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -17,6 +17,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { PATH_AFTER_LOGIN, APP_API } from 'src/config-global';
 
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode'; // ✅ ADD THIS
 
 // ----------------------------------------------------------------------
 
@@ -44,7 +45,7 @@ const OTP_LENGTH = 6;
 
 export default function JWTVerifyView() {
   const router = useRouter();
-  const { login } = useAuthContext();
+  const { login, authenticated, logout } = useAuthContext();
 
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [errorMsg, setErrorMsg] = useState('');
@@ -58,6 +59,96 @@ export default function JWTVerifyView() {
   const [wrongOtpStatus, setWrongOtpStatus] = useState(null); // { attemptsLeft: number }
 
   const inputRefs = useRef([]);
+
+  // ✅ CHECK IF USER IS ALREADY AUTHENTICATED - WITH TOKEN EXPIRY CHECK
+  useEffect(() => {
+    // Check if user is authenticated from context
+    if (authenticated) {
+      router.replace(PATH_AFTER_LOGIN);
+      return;
+    }
+
+    // Fallback: Check localStorage directly
+    const storedData = localStorage.getItem('UserData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        const token = parsedData?.Data?.token || parsedData?.token;
+
+        if (token) {
+          // ✅ TOKEN EXPIRY CHECK
+          try {
+            const decoded = jwtDecode(token);
+            const currentTime = Date.now() / 1000;
+
+            if (decoded.exp && decoded.exp > currentTime) {
+              // Token is still valid - login and redirect
+              if (login && !authenticated) {
+                login({
+                  token,
+                  accessToken: token,
+                  ...parsedData?.Data,
+                  user: parsedData?.Data?.company || parsedData?.Data
+                });
+              }
+              router.replace(PATH_AFTER_LOGIN);
+            } else {
+              // ❌ Token expired - clear storage and redirect to login
+              localStorage.removeItem('UserData');
+              if (logout) logout();
+              router.replace(paths.auth.jwt.login);
+            }
+          } catch (decodeError) {
+            // Invalid token - clear storage
+            localStorage.removeItem('UserData');
+            if (logout) logout();
+            router.replace(paths.auth.jwt.login);
+          }
+        }
+      } catch (e) {
+        // Invalid JSON data, clear it
+        localStorage.removeItem('UserData');
+        if (logout) logout();
+        router.replace(paths.auth.jwt.login);
+      }
+    }
+  }, [authenticated, router, login, logout]);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem('UserData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        const token = parsedData?.Data?.token || parsedData?.token;
+
+        if (token) {
+          const decoded = jwtDecode(token);
+          const currentTime = Date.now() / 1000;
+
+          if (decoded.exp && decoded.exp > currentTime) {
+            // Calculate remaining time
+            const timeUntilExpiry = (decoded.exp - currentTime) * 1000;
+
+            // Set auto-logout timer
+            const logoutTimer = setTimeout(() => {
+              localStorage.removeItem('UserData');
+              if (logout) logout();
+              alert('Your session has expired. Please login again.');
+              router.push(paths.auth.jwt.login);
+            }, timeUntilExpiry);
+
+            // ✅ Return cleanup function
+            return () => clearTimeout(logoutTimer);
+          }
+        }
+      } catch (e) {
+        console.error('Error setting up auto-logout:', e);
+      }
+    }
+
+    // ✅ Return undefined explicitly (or return empty cleanup)
+    return undefined;
+  }, [logout, router]);
 
   const handleChange = useCallback(
     (index, value) => {
@@ -132,7 +223,6 @@ export default function JWTVerifyView() {
       setIsSubmitting(true);
       setErrorMsg('');
 
-      // The Verify API no longer requires a token.
       const response = await axios.post(`${APP_API}Auth/VerifyOtp`, {
         otp: otpCode,
       });
@@ -144,7 +234,11 @@ export default function JWTVerifyView() {
         localStorage.setItem('UserData', JSON.stringify(verifyData));
 
         if (login) {
-          await login({ token: newToken, accessToken: newToken, ...verifyData?.Data });
+          await login({
+            token: newToken,
+            accessToken: newToken,
+            ...verifyData?.Data
+          });
         }
 
         router.push(PATH_AFTER_LOGIN);
@@ -158,22 +252,16 @@ export default function JWTVerifyView() {
       const attemptsLeft = responseData?.AttemptsLeft ?? null;
       const serverMessage = responseData?.Message || responseData?.message || null;
 
-      // Check if it's a wrong OTP scenario (has AttemptsLeft in response)
       if (attemptsLeft !== null && attemptsLeft !== undefined) {
-        // Update persistent status badge
         setWrongOtpStatus({ attemptsLeft });
 
-        // Show snackbar with attempts info
         const snackMsg = attemptsLeft === 0
           ? 'Too many failed attempts. Please request a new OTP.'
           : `Wrong OTP — ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining`;
 
         setSnackbar({ open: true, message: snackMsg, attemptsLeft });
 
-        // Shake the OTP boxes
         triggerShake();
-
-        // Clear OTP fields and refocus first input
         setOtp(Array(OTP_LENGTH).fill(''));
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
       } else if (error?.response?.status === 400 || error?.response?.status === 401) {
@@ -192,7 +280,6 @@ export default function JWTVerifyView() {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // Snackbar severity based on attempts left
   const snackbarSeverity =
     snackbar.attemptsLeft === 0
       ? 'error'
@@ -207,10 +294,8 @@ export default function JWTVerifyView() {
         animation: `${fadeInUp} 0.5s ease-out`,
       }}
     >
-      {/* Logo */}
       <img src="/logo/Logo.png" alt="logo" style={{ width: 120, display: 'block' }} />
 
-      {/* Header */}
       <Stack spacing={1}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Verify OTP
@@ -220,7 +305,6 @@ export default function JWTVerifyView() {
         </Typography>
       </Stack>
 
-      {/* Wrong OTP status badge — only shown after at least one wrong attempt */}
       {wrongOtpStatus !== null && (
         <Stack direction="row" alignItems="center" spacing={1}>
           <Chip
@@ -246,14 +330,12 @@ export default function JWTVerifyView() {
         </Stack>
       )}
 
-      {/* Error Alert (non-attempts errors) */}
       {!!errorMsg && (
         <Alert severity="error" sx={{ borderRadius: 1.5 }}>
           {errorMsg}
         </Alert>
       )}
 
-      {/* OTP Input Boxes */}
       <Box
         sx={{
           display: 'flex',
@@ -308,7 +390,6 @@ export default function JWTVerifyView() {
         ))}
       </Box>
 
-      {/* Verify Button */}
       <LoadingButton
         fullWidth
         color="inherit"
@@ -328,7 +409,6 @@ export default function JWTVerifyView() {
         Verify OTP
       </LoadingButton>
 
-      {/* Hint + Try again */}
       <Stack spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
         <Typography variant="caption" sx={{ color: 'text.disabled' }}>
           Didn&apos;t receive the code? Check your spam folder.
@@ -349,7 +429,6 @@ export default function JWTVerifyView() {
         </Link>
       </Stack>
 
-      {/* Snackbar for wrong OTP with attempts left */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
