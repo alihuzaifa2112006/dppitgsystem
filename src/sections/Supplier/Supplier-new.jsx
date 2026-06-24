@@ -23,6 +23,7 @@ import {
   Divider,
   Paper,
   Avatar,
+  InputAdornment,
 } from '@mui/material';
 
 import { LoadingScreen } from 'src/components/loading-screen';
@@ -54,6 +55,12 @@ import dayjs from 'dayjs';
 import { fNumber } from 'src/utils/format-number';
 import { fDate } from 'src/utils/format-time';
 
+// Helper function to get country flag URL
+const getCountryFlag = (countryCode) => {
+  if (!countryCode) return '';
+  return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`;
+};
+
 // ----------------------------------------------------------------------
 
 export default function SupplierCreateForm() {
@@ -75,6 +82,7 @@ export default function SupplierCreateForm() {
       .shape({
         Country_ID: Yup.string().required(),
         Country_Name: Yup.string().required(),
+        Country_Code: Yup.string().nullable(),
       }),
     email: Yup.string()
       .required('Email is required')
@@ -126,6 +134,7 @@ export default function SupplierCreateForm() {
       city: data.city,
       countryId: data.country?.Country_ID || '',
       countryName: data.country?.Country_Name || '',
+      countryCode: data.country?.Country_Code || '',
       email: data.email,
       orgId: userData?.userDetails?.orgId || '',
       branchId: userData?.userDetails?.branchID || '',
@@ -275,23 +284,66 @@ export default function SupplierCreateForm() {
                   getOptionLabel={(option) => option?.Country_Name || ''}
                   isOptionEqualToValue={(option, value) => option?.Country_ID === value?.Country_ID}
                   renderOption={(props, option) => (
-                    <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Iconify
-                        icon="mdi:flag"
-                        width={20}
-                        sx={{ mr: 1, color: '#3366ff' }}
-                      />
-                      {option?.Country_Name}
+                    <Box
+                      component="li"
+                      {...props}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        py: 1,
+                        px: 2,
+                      }}
+                    >
+                      {option?.Country_Code && (
+                        <img
+                          src={getCountryFlag(option.Country_Code)}
+                          alt={option.Country_Name}
+                          style={{
+                            width: 28,
+                            height: 18,
+                            objectFit: 'cover',
+                            borderRadius: 2,
+                            border: '1px solid #e0e0e0',
+                            flexShrink: 0,
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {option?.Country_Name}
+                      </Typography>
                     </Box>
                   )}
                   TextFieldProps={{
                     InputProps: {
                       startAdornment: (
-                        <Iconify
-                          icon="mdi:flag"
-                          width={20}
-                          sx={{ color: '#666', mr: 1 }}
-                        />
+                        <InputAdornment position="start">
+                          {values?.country?.Country_Code ? (
+                            <img
+                              src={getCountryFlag(values.country.Country_Code)}
+                              alt={values.country.Country_Name}
+                              style={{
+                                width: 28,
+                                height: 18,
+                                objectFit: 'cover',
+                                borderRadius: 2,
+                                border: '1px solid #e0e0e0',
+                              }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <Iconify
+                              icon="mdi:flag"
+                              width={20}
+                              sx={{ color: '#666' }}
+                            />
+                          )}
+                        </InputAdornment>
                       ),
                     },
                   }}
