@@ -115,7 +115,7 @@ const SupplierGrid = () => {
     fetchAllPreBoardData();
   }, [fetchAllPreBoardData]);
 
-  // Filter Data based on search
+
   const filteredData = useMemo(() => {
     if (!searchText) return reportData;
 
