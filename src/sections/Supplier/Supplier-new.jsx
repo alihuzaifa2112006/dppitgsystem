@@ -67,7 +67,7 @@ export default function SupplierCreateForm() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const settings = useSettingsContext();
-  const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData')), []);
+  const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData') || '{}'), []);
 
   const [isLoading, setLoading] = useState(false);
   const [countries, setCountries] = useState([]);
@@ -127,25 +127,24 @@ export default function SupplierCreateForm() {
   const values = watch();
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log('Form Data:', data);
+    console.log('📝 Form Data:', data);
 
     const payload = {
-      supName: data.supName,
+      supplierName: data.supName,
       city: data.city,
-      countryId: data.country?.Country_ID || '',
-      countryName: data.country?.Country_Name || '',
-      countryCode: data.country?.Country_Code || '',
+      countryID: parseInt(data.country?.Country_ID, 10) || 0,
       email: data.email,
-      orgId: userData?.userDetails?.orgId || '',
-      branchId: userData?.userDetails?.branchID || '',
-      createdBy: userData?.userDetails?.userId || 0,
     };
 
-    console.log('Payload to send:', payload);
+    console.log('📦 Payload to send:', payload);
 
     try {
       setLoading(true);
-      const response = await Post('RegisterOnbaord', payload);
+
+      // ✅ The interceptor will automatically add the Authorization header
+      const response = await Post('Supplier/Invite', payload);
+
+      console.log('✅ Response:', response);
 
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar('Supplier Registered Successfully!');
@@ -155,11 +154,17 @@ export default function SupplierCreateForm() {
         enqueueSnackbar(response?.data?.message || 'Failed to register supplier', { variant: 'error' });
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      enqueueSnackbar(
-        error?.response?.data?.message || 'Error registering supplier',
-        { variant: 'error' }
-      );
+      console.error('❌ Error submitting form:', error);
+
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        enqueueSnackbar('Authentication failed. Please login again.', { variant: 'error' });
+        router.push('/auth/login');
+      } else {
+        enqueueSnackbar(
+          error?.response?.data?.message || error?.message || 'Error registering supplier',
+          { variant: 'error' }
+        );
+      }
     } finally {
       setLoading(false);
     }

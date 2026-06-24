@@ -120,14 +120,14 @@ export default function SupplierGridView() {
               gap: 1,
             }}
           >
-            <Button
+            {/* <Button
               variant="contained"
               startIcon={<Iconify icon="uiw:file-excel" />}
               color="primary"
               onClick={handleDownloadOptionsDialogOpen}
             >
               Download Excel
-            </Button>
+            </Button> */}
 
             <Button
               component={RouterLink}
@@ -136,7 +136,7 @@ export default function SupplierGridView() {
               startIcon={<Iconify icon="mingcute:add-line" />}
               color="primary"
             >
-              New Report
+              Add Pre-Onboard Supplier
             </Button>
 
           </Box>
