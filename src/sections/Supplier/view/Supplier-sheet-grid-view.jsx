@@ -9,16 +9,13 @@ import Iconify from 'src/components/iconify';
 import { RouterLink } from 'src/routes/components';
 // import RptDialog from '../ReportDialog';
 import { Box } from '@mui/system';
-import BlowReportGrid from '../BlowReport-sheet-grid';
-import RptDialog from '../ReportDialog';
-import RptDialogTransfer from '../BlowExcel';
-import ItemReportDialog from '../ItemReportDialog';
-// import BlowReportGrid from '../BlowReport-sheet-grid';
+import SupplierGrid from '../Supplier-sheet-grid';
+
 
 
 // ----------------------------------------------------------------------
 
-export default function BlowReportGridView() {
+export default function SupplierGridView() {
   const settings = useSettingsContext();
 
   const [isSuperSearchEnabled, setIsSuperSearchEnabled] = useState(
@@ -102,13 +99,13 @@ export default function BlowReportGridView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading=" Daily Production Report Blowroom"
+        heading=" Pre On Boarding List"
         links={[
           {
             name: 'Home',
             href: paths.dashboard.root,
           },
-          { name: 'Daily Production Report Blowroom' },
+          { name: 'Pre On Boarding List' },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },
@@ -134,7 +131,7 @@ export default function BlowReportGridView() {
 
             <Button
               component={RouterLink}
-              href={paths.dashboard.Production.BlowReport.new}
+              href={paths.dashboard.Onboarding.Supplier.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
               color="primary"
@@ -146,11 +143,11 @@ export default function BlowReportGridView() {
         }
       />
 
-      <BlowReportGrid />
+      <SupplierGrid />
       {/* <RptDialog uploadClose={handleDialogClose} uploadOpen={dialogOpen} /> */}
-      <RptDialog uploadClose={handleDialogClose} uploadOpen={dialogOpen} />
-      <RptDialogTransfer uploadClose={handleTransferDialogClose} uploadOpen={transferDialogOpen} />
-      <ItemReportDialog uploadClose={handleItemDialogClose} uploadOpen={itemDialogOpen} />
+      {/* <RptDialog uploadClose={handleDialogClose} uploadOpen={dialogOpen} /> */}
+      {/* <RptDialogTransfer uploadClose={handleTransferDialogClose} uploadOpen={transferDialogOpen} /> */}
+      {/* <ItemReportDialog uploadClose={handleItemDialogClose} uploadOpen={itemDialogOpen} /> */}
 
       {/* Download Options Dialog */}
       <Dialog open={downloadOptionsDialogOpen} onClose={handleDownloadOptionsDialogClose} maxWidth="sm" fullWidth>

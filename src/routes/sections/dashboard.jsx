@@ -8,9 +8,9 @@ import { LoadingScreen } from 'src/components/loading-screen';
 import RoleGuard from 'src/auth/guard/RoleGuard';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import BlowReportListPage from 'src/pages/dashboard/BlowReport/list';
-import BlowReportNewPage from 'src/pages/dashboard/BlowReport/new';
-import BlowReportEditPage from 'src/pages/dashboard/BlowReport/edit';
+import SupplierListPage from 'src/pages/dashboard/Supplier/list';
+import SupplierNewPage from 'src/pages/dashboard/Supplier/new';
+import SupplierEditPage from 'src/pages/dashboard/Supplier/edit';
 
 // ----------------------------------------------------------------------
 
@@ -44,12 +44,12 @@ export const dashboardRoutes = [
         index: true,
       },
       {
-        path: 'production/BlowReport',
+        path: 'onboarding/suppliers',
         children: [
           {
             element: (
               <Suspense fallback={<LoadingScreen />}>
-                <BlowReportListPage />
+                <SupplierListPage />
               </Suspense>
             ),
             index: true,
@@ -58,7 +58,7 @@ export const dashboardRoutes = [
             path: 'new',
             element: (
               <Suspense fallback={<LoadingScreen />}>
-                <BlowReportNewPage />
+                <SupplierNewPage />
               </Suspense>
             ),
           },
@@ -66,7 +66,7 @@ export const dashboardRoutes = [
             path: 'edit/:GRNID',
             element: (
               <Suspense fallback={<LoadingScreen />}>
-                <BlowReportEditPage />
+                <SupplierEditPage />
               </Suspense>
             ),
           },

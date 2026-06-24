@@ -109,11 +109,17 @@ export function useNavData() {
       {
         subheader: t('application'),
         items: [
-          // {
-          //   title: t('Blowroom'),
-          //   path: paths.dashboard.Production.BlowReport.root,
-          //   icon: ICONS.dashboard,
-          // },
+          {
+            title: t('Onboarding'),
+            path: paths.dashboard.Onboarding.root,
+            icon: ICONS.management,
+            children: [
+              {
+                title: t('Pre On Boarding '),
+                path: paths.dashboard.Onboarding.Supplier.root,
+              },
+            ],
+          },
         ],
       },
     ];

@@ -15,7 +15,7 @@ import { fDate, fDateTime } from 'src/utils/format-time';
 import { fNumber } from 'src/utils/format-number';
 
 // ==================== MAIN COMPONENT ====================
-const BlowReportPDF = ({ currentData }) => {
+const SupplierPDF = ({ currentData }) => {
   console.log(currentData)
   const Master = currentData;
   const Details = currentData?.Details || [];
@@ -538,7 +538,7 @@ const BlowReportPDF = ({ currentData }) => {
             </View>
           )}
 
-     
+
           {allWasteDetails && allWasteDetails.length > 0 && (
             <>
               <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Produced Item Waste</Text>
@@ -708,8 +708,8 @@ const BlowReportPDF = ({ currentData }) => {
 };
 
 // ==================== PROPTYPES ====================
-BlowReportPDF.propTypes = {
+SupplierPDF.propTypes = {
   currentData: PropTypes.object.isRequired,
 };
 
-export default BlowReportPDF;
+export default SupplierPDF;

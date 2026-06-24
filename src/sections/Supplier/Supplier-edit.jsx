@@ -51,7 +51,7 @@ import {
   TableHeadCustom,
   TableNoData,
 } from 'src/components/table';
-import BlowReportTableRow from './BlowReport-table-row';
+import SupplierTableRow from './Supplier-table-row';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -65,7 +65,7 @@ const themeDark = themeBalham.withPart(colorSchemeDarkBlue);
 
 // ----------------------------------------------------------------------
 
-export default function BlowReportEditForm({ currentData }) {
+export default function SupplierEditForm({ currentData }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const settings = useSettingsContext();
@@ -159,7 +159,7 @@ export default function BlowReportEditForm({ currentData }) {
   const [tableData, setTableData] = useState([]);
 
   // --- Form Hooks Setup ---
-  const NewBlowReportSchema = Yup.object().shape({
+  const NewSupplierSchema = Yup.object().shape({
     // Basic Information Fields
     PRDate: Yup.date().required('Report Date is required').typeError('Please select a valid date'),
 
@@ -252,7 +252,7 @@ export default function BlowReportEditForm({ currentData }) {
   });
 
   const methods = useForm({
-    resolver: yupResolver(NewBlowReportSchema),
+    resolver: yupResolver(NewSupplierSchema),
     defaultValues: {
       PRDate: currentData?.RptDate ? new Date(currentData.RptDate) : new Date(),
       SectionID: null,
@@ -388,9 +388,8 @@ export default function BlowReportEditForm({ currentData }) {
         filter: 'agNumberColumnFilter',
         valueFormatter: (params) =>
           params.value
-            ? `${fNumber(params.value)} ${
-                values?.SortedItemOpen?.UOM?.UOMName || values?.SortedItemOpen?.UOMName || ''
-              }`
+            ? `${fNumber(params.value)} ${values?.SortedItemOpen?.UOM?.UOMName || values?.SortedItemOpen?.UOMName || ''
+            }`
             : '-',
         cellStyle: { textAlign: 'right' },
       },
@@ -1302,10 +1301,8 @@ export default function BlowReportEditForm({ currentData }) {
     ) {
       try {
         const response = await Get(
-          `GetAllItemsFromDBByColorAndSubCat?subCatID=${
-            selectedSortedSubCategory?.SubCat_ID
-          }&colorId=${selectedSortedColor?.ColorID || 0}&OrgID=${
-            userData?.userDetails?.orgId
+          `GetAllItemsFromDBByColorAndSubCat?subCatID=${selectedSortedSubCategory?.SubCat_ID
+          }&colorId=${selectedSortedColor?.ColorID || 0}&OrgID=${userData?.userDetails?.orgId
           }&BranchID=${userData?.userDetails?.branchID}`
         );
         const updatedData = response?.data?.map((item) => ({
@@ -1418,8 +1415,7 @@ export default function BlowReportEditForm({ currentData }) {
     const newTotalWaste = totalWasteQty - editingQty + wasteQty;
     if (newTotalWaste > remainingQty) {
       enqueueSnackbar(
-        `Total Waste cannot exceed Remaining Qty (${fNumber(remainingQty)} ${
-          selectedRowData[0]?.UOMName || ''
+        `Total Waste cannot exceed Remaining Qty (${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''
         })`,
         { variant: 'error' }
       );
@@ -1507,8 +1503,7 @@ export default function BlowReportEditForm({ currentData }) {
     const weight = parseFloat(values.TotalWeight) || 0;
     if (weight > totalIssueQty) {
       enqueueSnackbar(
-        `Total Weight cannot exceed Total Issue Qty (${fNumber(totalIssueQty)} ${
-          selectedRowData[0]?.UOMName || ''
+        `Total Weight cannot exceed Total Issue Qty (${fNumber(totalIssueQty)} ${selectedRowData[0]?.UOMName || ''
         })`,
         { variant: 'error' }
       );
@@ -1518,10 +1513,8 @@ export default function BlowReportEditForm({ currentData }) {
     // Validate total waste doesn't exceed remaining qty
     if (totalWasteQty > remainingQty) {
       enqueueSnackbar(
-        `Total Waste (${fNumber(totalWasteQty)} ${
-          selectedRowData[0]?.UOMName || ''
-        }) cannot exceed Remaining Qty (${fNumber(remainingQty)} ${
-          selectedRowData[0]?.UOMName || ''
+        `Total Waste (${fNumber(totalWasteQty)} ${selectedRowData[0]?.UOMName || ''
+        }) cannot exceed Remaining Qty (${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''
         })`,
         { variant: 'error' }
       );
@@ -1587,7 +1580,7 @@ export default function BlowReportEditForm({ currentData }) {
         return;
       }
       enqueueSnackbar('Blow Report Updated Successfully!');
-      router.push(paths.dashboard.Production.BlowReport.root);
+      router.push(paths.dashboard.Onboarding.Supplier.root);
       reset();
       setSelectedValues(new Set());
       setSelectedRowData([]);
@@ -2018,8 +2011,7 @@ export default function BlowReportEditForm({ currentData }) {
                       if (totalIssueQty > 0 && !Number.isNaN(value) && value > totalIssueQty) {
                         field.onChange(totalIssueQty);
                         enqueueSnackbar(
-                          `Total Weight cannot exceed ${fNumber(totalIssueQty)} ${
-                            selectedRowData[0]?.UOMName || ''
+                          `Total Weight cannot exceed ${fNumber(totalIssueQty)} ${selectedRowData[0]?.UOMName || ''
                           }`,
                           { variant: 'warning' }
                         );
@@ -2048,8 +2040,8 @@ export default function BlowReportEditForm({ currentData }) {
                           {selectedRowData.length > 0
                             ? selectedRowData[0]?.UOMName || 'Unit'
                             : values?.SortedItemOpen?.UOM?.UOMName ||
-                              values?.SortedItemOpen?.UOMName ||
-                              'Unit'}
+                            values?.SortedItemOpen?.UOMName ||
+                            'Unit'}
                         </InputAdornment>
                       ),
                     }}
@@ -2152,9 +2144,8 @@ export default function BlowReportEditForm({ currentData }) {
                 }}
                 helperText={
                   selectedRowData.length > 0 && remainingQty > 0
-                    ? `Max: ${fNumber(remainingQty - totalWasteQty)} ${
-                        selectedRowData[0]?.UOMName || ''
-                      } (Remaining: ${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''})`
+                    ? `Max: ${fNumber(remainingQty - totalWasteQty)} ${selectedRowData[0]?.UOMName || ''
+                    } (Remaining: ${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''})`
                     : selectedRowData.length === 0
                       ? 'Please select rows first'
                       : 'No remaining qty available'
@@ -2242,7 +2233,7 @@ export default function BlowReportEditForm({ currentData }) {
                             <Iconify icon="solar:trash-bin-trash-bold" width={18} />
                           </IconButton>
                         </TableCell>
-                        
+
                       </TableRow>
                     ))}
                     {/* Total Waste Row */}
@@ -2255,8 +2246,8 @@ export default function BlowReportEditForm({ currentData }) {
                         {selectedRowData.length > 0
                           ? selectedRowData[0]?.UOMName || ''
                           : values?.SortedItemOpen?.UOM?.UOMName ||
-                            values?.SortedItemOpen?.UOMName ||
-                            ''}
+                          values?.SortedItemOpen?.UOMName ||
+                          ''}
                       </TableCell>
                       <TableCell align="center" />
                     </TableRow>
@@ -2299,6 +2290,6 @@ export default function BlowReportEditForm({ currentData }) {
   );
 }
 
-BlowReportEditForm.propTypes = {
+SupplierEditForm.propTypes = {
   currentData: PropTypes.object,
 };

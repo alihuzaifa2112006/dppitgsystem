@@ -4,20 +4,25 @@ import { useNavigate } from 'react-router';
 import { decrypt } from 'src/api/encryption';
 import { paths } from 'src/routes/paths';
 import { useParams } from 'src/routes/hooks';
-import BlowReportPDFView from 'src/sections/BlowReport/view/BlowReport-pdf-view';
+import SupplierEditView from '../../../sections/Supplier/view/Supplier-edit-view';
+
+
+
 
 // ----------------------------------------------------------------------
 
-export default function ItemReceivePdfPage() {
+export default function SupplierEditPage() {
   const params = useParams();
+
+  const urlData = { ReportID: params.ReportID };
 
   return (
     <>
       <Helmet>
-        <title>  Production Report (Blow Room) PDF : View PDF</title>
+        <title>Pre On Boarding Edit</title>
       </Helmet>
 
-      <BlowReportPDFView urlData={params} />
+      <SupplierEditView urlData={urlData} />
     </>
   );
 }

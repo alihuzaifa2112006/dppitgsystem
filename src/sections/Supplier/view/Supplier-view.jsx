@@ -35,9 +35,9 @@
 //   TablePaginationCustom,
 // } from 'src/components/table';
 
-// import BlowReportTableRow from '../BlowReport-table-row';
-// import BlowReportTableToolbar from '../BlowReport-toolbar';
-// import BlowReportTableFiltersResult from '../BlowReport-filters-result';
+// import SupplierTableRow from '../Supplier-table-row';
+// import SupplierTableToolbar from '../Supplier-toolbar';
+// import SupplierTableFiltersResult from '../Supplier-filters-result';
 
 // // ----------------------------------------------------------------------
 
@@ -60,14 +60,14 @@
 
 // // ----------------------------------------------------------------------
 
-// export default function BlowReportListView() {
+// export default function SupplierListView() {
 //   const navigate = useNavigate();
 //   const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData')), []);
 //   const tableComponentRef = useRef();
 //   const [tableData, setTableData] = useState([]);
 //   const [isLoading, setLoading] = useState(true);
 
-//   const FetchBlowReportData = useCallback(async () => {
+//   const FetchSupplierData = useCallback(async () => {
 //     try {
 //       const response = await Get(
 //         `GetAllSortingReports?Org_ID=${userData?.userDetails?.orgId}&Branch_ID=${userData?.userDetails?.branchID}`
@@ -126,11 +126,11 @@
 
 //   useEffect(() => {
 //     const fetchData = async () => {
-//       await FetchBlowReportData();
+//       await FetchSupplierData();
 //       setLoading(false);
 //     };
 //     fetchData();
-//   }, [FetchBlowReportData]);
+//   }, [FetchSupplierData]);
 
 //   const { enqueueSnackbar } = useSnackbar();
 //   const table = useTable();
@@ -173,7 +173,7 @@
 //     try {
 //       await Delete(`DeleteSortingReport/${id}/${userData?.userDetails?.userId}`);
 //       enqueueSnackbar('Deleted successfully', { variant: 'success' });
-//       FetchBlowReportData();
+//       FetchSupplierData();
 //     } catch (error) {
 //       console.error('Error deleting report:', error);
 //       enqueueSnackbar('Error deleting report', { variant: 'error' });
@@ -203,14 +203,14 @@
 //               { name: 'Home', href: paths.dashboard.root },
 //               {
 //                 name: 'Production',
-//                 href: paths.dashboard.Production.BlowReport.root,
+//                 href: paths.dashboard.Onboarding.Supplier.root,
 //               },
 //               { name: 'Sorting Delay Reports' },
 //             ]}
 //             action={
 //               <Button
 //                 component={RouterLink}
-//                 href={paths.dashboard.Production.BlowReport.new}
+//                 href={paths.dashboard.Onboarding.Supplier.new}
 //                 variant="contained"
 //                 startIcon={<Iconify icon="mingcute:add-line" />}
 //                 color="primary"
@@ -221,7 +221,7 @@
 //           />
 
 //           <Card>
-//             <BlowReportTableToolbar
+//             <SupplierTableToolbar
 //               filters={filters}
 //               onFilters={handleFilters}
 //               tableRef={tableComponentRef.current}
@@ -230,7 +230,7 @@
 //             />
 
 //             {canReset && (
-//               <BlowReportTableFiltersResult
+//               <SupplierTableFiltersResult
 //                 filters={filters}
 //                 onFilters={handleFilters}
 //                 onResetFilters={handleResetFilters}
@@ -263,7 +263,7 @@
 //                         table.page * table.rowsPerPage + table.rowsPerPage
 //                       )
 //                       .map((row) => (
-//                         <BlowReportTableRow
+//                         <SupplierTableRow
 //                           key={row.ReportID}
 //                           row={row}
 //                           selected={table.selected.includes(row.ReportID)}

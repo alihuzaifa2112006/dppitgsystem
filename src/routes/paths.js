@@ -35,13 +35,13 @@ export const paths = {
     calendar: `${ROOTS.DASHBOARD}/calendar`,
 
 
-    Production: {
-      root: `${ROOTS.DASHBOARD}/production`,
-      BlowReport: {
-        root: `${ROOTS.DASHBOARD}/production/BlowReport`,
-        new: `${ROOTS.DASHBOARD}/production/BlowReport/new`,
-        edit: (GRNID) => `${ROOTS.DASHBOARD}/production/BlowReport/edit/${GRNID}`,
-        pdf: (GRNID) => `${ROOTS.DASHBOARD}/production/BlowReport/pdf/${GRNID}`,
+    Onboarding: {
+      root: `${ROOTS.DASHBOARD}/onboarding`,
+      Supplier: {
+        root: `${ROOTS.DASHBOARD}/onboarding/suppliers`,
+        new: `${ROOTS.DASHBOARD}/onboarding/suppliers/new`,
+        edit: (GRNID) => `${ROOTS.DASHBOARD}/onboarding/suppliers/edit/${GRNID}`,
+        pdf: (GRNID) => `${ROOTS.DASHBOARD}/onboarding/suppliers/pdf/${GRNID}`,
       },
     },
 

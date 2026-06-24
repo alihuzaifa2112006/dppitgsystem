@@ -8,11 +8,11 @@ import { Typography, Box, CircularProgress } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
 import { Get } from 'src/api/apibasemethods';
 import { useParams } from 'react-router-dom';
-import BlowReportPDF from '../BlowReport-PDF';
+import SupplierPDF from '../Supplier-PDF';
 
 // ----------------------------------------------------------------------
 
-export default function BlowReportPDFView() {
+export default function SupplierPDFView() {
   const settings = useSettingsContext();
   const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData')), []);
 
@@ -31,9 +31,9 @@ export default function BlowReportPDFView() {
       //   `GetRagTearingReportById?reportId=${ReportID}&orgId=${userData?.userDetails?.orgId}&branchId=${userData?.userDetails?.branchID}`
       // );
       // GetBlowRoomReportById?ReportID=2&OrgID=1&BranchID=1
-     const response = await Get(
-      `GetBlowRoomReportById?ReportID=${ReportID}&OrgID=${userData?.userDetails?.orgId}&BranchID=${userData?.userDetails?.branchID}`
-     );
+      const response = await Get(
+        `GetBlowRoomReportById?ReportID=${ReportID}&OrgID=${userData?.userDetails?.orgId}&BranchID=${userData?.userDetails?.branchID}`
+      );
 
       setCurrentData(response?.data || response);
     } catch (err) {
@@ -62,7 +62,7 @@ export default function BlowReportPDFView() {
           { name: 'Home', href: paths.dashboard.root },
           {
             name: 'Production Report (Blow Room)',
-            href: paths.dashboard.Production.BlowReport.root,
+            href: paths.dashboard.Onboarding.Supplier.root,
           },
           { name: 'Pdf' },
         ]}
@@ -83,7 +83,7 @@ export default function BlowReportPDFView() {
           </Typography>
         </Box>
       ) : currentData ? (
-        <BlowReportPDF currentData={currentData} />
+        <SupplierPDF currentData={currentData} />
       ) : (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
           <Typography variant="h6" color="text.secondary">

@@ -18,7 +18,7 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
 // ----------------------------------------------------------------------
 
-export default function BlowReportTableToolbar({
+export default function SupplierTableToolbar({
   filters,
   onFilters,
   //
@@ -28,33 +28,33 @@ export default function BlowReportTableToolbar({
   tableHead
 }) {
   const popover = usePopover();
-  
+
   const handleExportCSV = () => {
     if (!exportData || !exportData.length) return;
-  
+
     // Dynamically get headers, skipping empty id columns (like the action buttons)
     const headers = tableHead
       .filter((col) => col.id) // skip ones with no `id`
       .map((col) => `"${col.label}"`);
-  
+
     // Use the column IDs to fetch values from data rows
     const rows = exportData.map((row) =>
       tableHead
         .filter((col) => col.id)
         .map((col) => `"${row[col.id] ?? ''}"`)
     );
-  
+
     const csvContent = [headers, ...rows].map((line) => line.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-  
+
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'cyclo_BlowReports.csv');
+    link.setAttribute('download', 'cyclo_Suppliers.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };  
+  };
 
   const handleFilterName = useCallback(
     (event) => {
@@ -125,7 +125,7 @@ export default function BlowReportTableToolbar({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ BlowReport: 'text.disabled' }} />
+                  <Iconify icon="eva:search-fill" sx={{ Supplier: 'text.disabled' }} />
                 </InputAdornment>
               ),
             }}
@@ -166,7 +166,7 @@ export default function BlowReportTableToolbar({
             </>
           )}
           content={() => tableRef}
-          documentTitle="BlowReport Database"
+          documentTitle="Supplier Database"
           pageStyle="print"
         />
       </CustomPopover>
@@ -174,7 +174,7 @@ export default function BlowReportTableToolbar({
   );
 }
 
-BlowReportTableToolbar.propTypes = {
+SupplierTableToolbar.propTypes = {
   filters: PropTypes.object,
   onFilters: PropTypes.func,
   roleOptions: PropTypes.array,

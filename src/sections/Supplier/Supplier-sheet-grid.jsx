@@ -19,7 +19,7 @@ import { paths } from 'src/routes/paths';
 const themeDark = themeBalham.withPart(colorSchemeDarkBlue);
 
 
-const BlowReportGrid = () => {
+const SupplierGrid = () => {
   const settings = useSettingsContext();
   const { enqueueSnackbar } = useSnackbar();
   const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData')), []);
@@ -31,7 +31,7 @@ const BlowReportGrid = () => {
 
   const moveToPDFView = useCallback(
     (ReportID) => {
-      navigate(paths.dashboard.Production.BlowReport.pdf(ReportID));
+      navigate(paths.dashboard.Onboarding.Supplier.pdf(ReportID));
     },
     [navigate]
   );
@@ -56,7 +56,7 @@ const BlowReportGrid = () => {
 
   const moveToEditForm = useCallback(
     (ReportID) => {
-      navigate(paths.dashboard.Production.BlowReport.edit(ReportID));
+      navigate(paths.dashboard.Onboarding.Supplier.edit(ReportID));
     },
     [navigate]
   );
@@ -538,4 +538,4 @@ const BlowReportGrid = () => {
   );
 };
 
-export default BlowReportGrid;
+export default SupplierGrid;

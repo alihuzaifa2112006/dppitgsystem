@@ -51,7 +51,7 @@ import {
   TableHeadCustom,
   TableNoData,
 } from 'src/components/table';
-import BlowReportTableRow from './BlowReport-table-row';
+import SupplierTableRow from './Supplier-table-row';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -65,7 +65,7 @@ const themeDark = themeBalham.withPart(colorSchemeDarkBlue);
 
 // ----------------------------------------------------------------------
 
-export default function BlowReportCreateForm() {
+export default function SupplierCreateForm() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const settings = useSettingsContext();
@@ -155,7 +155,7 @@ export default function BlowReportCreateForm() {
   const [tableData, setTableData] = useState([]);
 
   // --- Form Hooks Setup ---
-  const NewBlowReportSchema = Yup.object().shape({
+  const NewSupplierSchema = Yup.object().shape({
     // Basic Information Fields
     PRDate: Yup.date().required('Report Date is required').typeError('Please select a valid date'),
 
@@ -248,7 +248,7 @@ export default function BlowReportCreateForm() {
   });
 
   const methods = useForm({
-    resolver: yupResolver(NewBlowReportSchema),
+    resolver: yupResolver(NewSupplierSchema),
     defaultValues: {
       PRDate: new Date(),
       SectionID: null,
@@ -379,9 +379,8 @@ export default function BlowReportCreateForm() {
         filter: 'agNumberColumnFilter',
         valueFormatter: (params) =>
           params.value
-            ? `${fNumber(params.value)} ${
-                values?.SortedItemOpen?.UOM?.UOMName || values?.SortedItemOpen?.UOMName || ''
-              }`
+            ? `${fNumber(params.value)} ${values?.SortedItemOpen?.UOM?.UOMName || values?.SortedItemOpen?.UOMName || ''
+            }`
             : '-',
         cellStyle: { textAlign: 'right' },
       },
@@ -1051,10 +1050,8 @@ export default function BlowReportCreateForm() {
     ) {
       try {
         const response = await Get(
-          `GetAllItemsFromDBByColorAndSubCat?subCatID=${
-            selectedSortedSubCategory?.SubCat_ID
-          }&colorId=${selectedSortedColor?.ColorID || 0}&OrgID=${
-            userData?.userDetails?.orgId
+          `GetAllItemsFromDBByColorAndSubCat?subCatID=${selectedSortedSubCategory?.SubCat_ID
+          }&colorId=${selectedSortedColor?.ColorID || 0}&OrgID=${userData?.userDetails?.orgId
           }&BranchID=${userData?.userDetails?.branchID}`
         );
         const updatedData = response?.data?.map((item) => ({
@@ -1161,8 +1158,7 @@ export default function BlowReportCreateForm() {
     const newTotalWaste = totalWasteQty + wasteQty;
     if (newTotalWaste > remainingQty) {
       enqueueSnackbar(
-        `Total Waste cannot exceed Remaining Qty (${fNumber(remainingQty)} ${
-          selectedRowData[0]?.UOMName || ''
+        `Total Waste cannot exceed Remaining Qty (${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''
         })`,
         { variant: 'error' }
       );
@@ -1223,8 +1219,7 @@ export default function BlowReportCreateForm() {
     const weight = parseFloat(values.TotalWeight) || 0;
     if (weight > totalIssueQty) {
       enqueueSnackbar(
-        `Total Weight cannot exceed Total Issue Qty (${fNumber(totalIssueQty)} ${
-          selectedRowData[0]?.UOMName || ''
+        `Total Weight cannot exceed Total Issue Qty (${fNumber(totalIssueQty)} ${selectedRowData[0]?.UOMName || ''
         })`,
         { variant: 'error' }
       );
@@ -1234,10 +1229,8 @@ export default function BlowReportCreateForm() {
     // Validate total waste doesn't exceed remaining qty
     if (totalWasteQty > remainingQty) {
       enqueueSnackbar(
-        `Total Waste (${fNumber(totalWasteQty)} ${
-          selectedRowData[0]?.UOMName || ''
-        }) cannot exceed Remaining Qty (${fNumber(remainingQty)} ${
-          selectedRowData[0]?.UOMName || ''
+        `Total Waste (${fNumber(totalWasteQty)} ${selectedRowData[0]?.UOMName || ''
+        }) cannot exceed Remaining Qty (${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''
         })`,
         { variant: 'error' }
       );
@@ -1298,7 +1291,7 @@ export default function BlowReportCreateForm() {
           enqueueSnackbar(res.data.message, { variant: 'error' });
         } else {
           enqueueSnackbar('Rag Tearing Report Created Successfully!');
-          router.push(paths.dashboard.Production.BlowReport.root);
+          router.push(paths.dashboard.Onboarding.Supplier.root);
           reset();
           setRequestDetails([]);
           setSelectedValues(new Set());
@@ -1732,8 +1725,7 @@ export default function BlowReportCreateForm() {
                       if (totalIssueQty > 0 && !Number.isNaN(value) && value > totalIssueQty) {
                         field.onChange(totalIssueQty);
                         enqueueSnackbar(
-                          `Total Weight cannot exceed ${fNumber(totalIssueQty)} ${
-                            selectedRowData[0]?.UOMName || ''
+                          `Total Weight cannot exceed ${fNumber(totalIssueQty)} ${selectedRowData[0]?.UOMName || ''
                           }`,
                           { variant: 'warning' }
                         );
@@ -1762,8 +1754,8 @@ export default function BlowReportCreateForm() {
                           {selectedRowData.length > 0
                             ? selectedRowData[0]?.UOMName || 'Unit'
                             : values?.SortedItemOpen?.UOM?.UOMName ||
-                              values?.SortedItemOpen?.UOMName ||
-                              'Unit'}
+                            values?.SortedItemOpen?.UOMName ||
+                            'Unit'}
                         </InputAdornment>
                       ),
                     }}
@@ -1866,9 +1858,8 @@ export default function BlowReportCreateForm() {
                 }}
                 helperText={
                   selectedRowData.length > 0 && remainingQty > 0
-                    ? `Max: ${fNumber(remainingQty - totalWasteQty)} ${
-                        selectedRowData[0]?.UOMName || ''
-                      } (Remaining: ${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''})`
+                    ? `Max: ${fNumber(remainingQty - totalWasteQty)} ${selectedRowData[0]?.UOMName || ''
+                    } (Remaining: ${fNumber(remainingQty)} ${selectedRowData[0]?.UOMName || ''})`
                     : selectedRowData.length === 0
                       ? 'Please select rows first'
                       : 'No remaining qty available'
@@ -1941,8 +1932,8 @@ export default function BlowReportCreateForm() {
                         {selectedRowData.length > 0
                           ? selectedRowData[0]?.UOMName || ''
                           : values?.SortedItemOpen?.UOM?.UOMName ||
-                            values?.SortedItemOpen?.UOMName ||
-                            ''}
+                          values?.SortedItemOpen?.UOMName ||
+                          ''}
                       </TableCell>
                       <TableCell align="center" />
                     </TableRow>

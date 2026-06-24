@@ -7,18 +7,18 @@ import { paths } from 'src/routes/paths';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
-// import ProductionRequestEditForm from '../BlowReport-edit';
+// import ProductionRequestEditForm from '../Supplier-edit';
 import { useEffect, useMemo, useState } from 'react';
 import { Get } from 'src/api/apibasemethods';
 import { LoadingScreen } from 'src/components/loading-screen';
 import { useSnackbar } from 'src/components/snackbar';
-import BlowReportEditForm from '../BlowReport-edit';
+import SupplierEditForm from '../Supplier-edit';
 
 
 
 // ----------------------------------------------------------------------
 
-export default function BlowReportEditView({ urlData }) {
+export default function SupplierEditView({ urlData }) {
   const settings = useSettingsContext();
   const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData')), []);
   const { enqueueSnackbar } = useSnackbar();
@@ -32,7 +32,7 @@ export default function BlowReportEditView({ urlData }) {
       try {
         setIsLoading(true);
         const reportId = urlData?.ReportID || urlData?.reportID || urlData?.reportId;
-        
+
         if (!reportId) {
           console.error('ReportID is missing from urlData:', urlData);
           setIsLoading(false);
@@ -42,10 +42,10 @@ export default function BlowReportEditView({ urlData }) {
         const response = await Get(
           `GetBlowRoomReportById?ReportID=${reportId}&OrgID=${userData?.userDetails?.orgId}&BranchID=${userData?.userDetails?.branchID}`
         );
-        
+
         // Handle response - API returns data directly or in data property
         const data = response.data?.Data?.[0] ?? response.data?.Data ?? response.data;
-        
+
         if (data) {
           setCurrentData(data);
         } else {
@@ -60,7 +60,7 @@ export default function BlowReportEditView({ urlData }) {
     };
 
     const reportId = urlData?.ReportID || urlData?.reportID || urlData?.reportId;
-    
+
     if (userData?.userDetails?.orgId && userData?.userDetails?.branchID && reportId) {
       fetch();
     } else {
@@ -79,7 +79,7 @@ export default function BlowReportEditView({ urlData }) {
           },
           {
             name: 'Blow Report',
-            href: paths.dashboard.Production.BlowReport.root,
+            href: paths.dashboard.Onboarding.Supplier.root,
           },
           { name: 'Edit' },
         ]}
@@ -98,12 +98,12 @@ export default function BlowReportEditView({ urlData }) {
           }}
         />
       ) : (
-        currentData && <BlowReportEditForm currentData={currentData} />
+        currentData && <SupplierEditForm currentData={currentData} />
       )}
     </Container>
   );
 }
 
-BlowReportEditView.propTypes = {
+SupplierEditView.propTypes = {
   urlData: PropTypes.any,
 };

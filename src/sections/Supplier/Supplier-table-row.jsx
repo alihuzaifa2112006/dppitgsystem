@@ -12,12 +12,12 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { fNumber } from 'src/utils/format-number';
 
-export default function BlowReportTableRow({ row, selected, onEditRow, onDeleteRow }) {
+export default function SupplierTableRow({ row, selected, onEditRow, onDeleteRow }) {
   const {
     MCRunning,
     ProductionHR,
     ShiftName,
-   
+
     Droppings,
     DroppingsPercentage,
     Challan,
@@ -55,7 +55,7 @@ export default function BlowReportTableRow({ row, selected, onEditRow, onDeleteR
         <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
           {ShiftName?.ShiftName || '-'}
         </TableCell>
-       
+
         <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
           {Line || '-'}
         </TableCell>
@@ -102,11 +102,11 @@ export default function BlowReportTableRow({ row, selected, onEditRow, onDeleteR
           {/* <IconButton onClick={onEditRow} size="small" sx={{ p: 0.5 }}>
             <Iconify icon="solar:pen-bold" width={18} />
           </IconButton> */}
-          <IconButton 
-            onClick={confirm.onTrue} 
-            size="small" 
-            sx={{ 
-              p: 0.5, 
+          <IconButton
+            onClick={confirm.onTrue}
+            size="small"
+            sx={{
+              p: 0.5,
               ml: 0.5,
               color: 'error.main',
               '&:hover': {
@@ -142,7 +142,7 @@ export default function BlowReportTableRow({ row, selected, onEditRow, onDeleteR
   );
 }
 
-BlowReportTableRow.propTypes = {
+SupplierTableRow.propTypes = {
   onDeleteRow: PropTypes.func,
   onEditRow: PropTypes.func,
   row: PropTypes.object,

@@ -11,7 +11,7 @@ import Iconify from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export default function BlowReportTableFiltersResult({
+export default function SupplierTableFiltersResult({
   filters,
   onFilters,
   //
@@ -41,7 +41,7 @@ export default function BlowReportTableFiltersResult({
     <Stack spacing={1.5} {...other}>
       <Box sx={{ typography: 'body2' }}>
         <strong>{results}</strong>
-        <Box component="span" sx={{ BlowReport: 'text.secondary', ml: 0.25 }}>
+        <Box component="span" sx={{ Supplier: 'text.secondary', ml: 0.25 }}>
           results found
         </Box>
       </Box>
@@ -68,7 +68,7 @@ export default function BlowReportTableFiltersResult({
         )}
 
         <Button
-          BlowReport="error"
+          Supplier="error"
           onClick={onResetFilters}
           startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
         >
@@ -79,7 +79,7 @@ export default function BlowReportTableFiltersResult({
   );
 }
 
-BlowReportTableFiltersResult.propTypes = {
+SupplierTableFiltersResult.propTypes = {
   filters: PropTypes.object,
   onFilters: PropTypes.func,
   onResetFilters: PropTypes.func,
