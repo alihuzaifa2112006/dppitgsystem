@@ -41,7 +41,15 @@ const getCountryFlag = (countryCode) => {
 const SupplierGrid = () => {
   const settings = useSettingsContext();
   const { enqueueSnackbar } = useSnackbar();
-  const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData') || '{}'), []);
+  // const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData') || '{}'), []);
+  const userData = useMemo(() => {
+    const localStorageData = JSON.parse(localStorage.getItem('UserData') || '{}');
+    return localStorageData?.Data || {}; // Yeh direct access dega 'token' aur 'company' object ko
+  }, []);
+
+
+
+
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
@@ -65,6 +73,50 @@ const SupplierGrid = () => {
     setInviteDialogOpen(false);
     setSelectedSupplier(null);
   };
+
+  // --- NEW: Copy Onboarding Link Function ---
+  // --- NEW: Copy Onboarding Link Function ---
+  const handleCopyLink = useCallback((row) => {
+    try {
+      const domain = window.location.origin;
+
+      // 1. Fetch CompanyID safely using both common casing strategies
+      // const companyID = userData?.CompanyId ?? userData?.CompanyID ?? 0;
+      const companyID = userData?.company?.CompanyId || 0;
+
+      // 2. Extract Vendor / Supplier ID from Row Context
+      const vendorID = row.VendorID || row.InvitationId || 0;
+
+      // 3. Generate Secure High-Entropy Cryptographic OTP String
+      const generateSecureOTP = () => {
+        const array = new Uint32Array(4);
+        window.crypto.getRandomValues(array);
+        return Array.from(array, (num) => num.toString(16).padStart(8, '0')).join('').substring(0, 24);
+      };
+      const secureOtp = generateSecureOTP();
+
+      // 4. Generate Strict 7-Day Expiry Date Timestamp
+      const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+      const expiryTimestamp = Date.now() + sevenDaysInMilliseconds;
+
+      // 5. Constructing the precise URL matching your query routing schema
+      const onboardingUrl = `${domain}/supplier-onboarding?vendorID=${vendorID}&otp=${secureOtp}&expiry=${expiryTimestamp}&companyID=${companyID}`;
+
+      console.log('🔗 Generated Link Config:', {
+        vendorID,
+        secureOtp,
+        expiryTimestamp,
+        companyID,
+        fullUrl: onboardingUrl
+      });
+
+      navigator.clipboard.writeText(onboardingUrl);
+      enqueueSnackbar('Secure onboarding link copied with 7-day expiry!', { variant: 'success' });
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      enqueueSnackbar('Failed to generate or copy link', { variant: 'error' });
+    }
+  }, [enqueueSnackbar, userData]);
 
   // Navigate to Add Form
   const moveToAddForm = useCallback(() => {
@@ -275,7 +327,6 @@ const SupplierGrid = () => {
                     ...params.InputProps,
                     startAdornment: (
                       <>
-                        {/* Show selected flag inside the input */}
                         {selectedCountry?.Country_Code ? (
                           <InputAdornment position="start">
                             <Box
@@ -549,19 +600,18 @@ const SupplierGrid = () => {
                     backgroundColor: '#fafbfc',
                     fontWeight: 600,
                     color: '#666',
-                    minWidth: 120,
+                    minWidth: 140,
                     fontSize: '0.875rem',
                     textAlign: 'center',
                   }}
                 >
-                  Send Invite
+                  Actions
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedData.map((row, index) => {
                 const serialNumber = page * rowsPerPage + index + 1;
-                // Resolve Country_Code from countryCodeMap using CountryName from supplier row
                 const countryCode = row.Country_Code || countryCodeMap[row.CountryName] || null;
 
                 return (
@@ -610,21 +660,41 @@ const SupplierGrid = () => {
                         '-'
                       )}
                     </TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}>
-                      <Tooltip title={`Send invite to ${row.Email || 'supplier'}`} arrow>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenInvite(row)}
-                          sx={{
-                            color: '#3366ff',
 
-                            transition: 'all 0.2s ease',
-                            padding: '4px',
-                          }}
-                        >
-                          <Iconify icon="mdi:email-outline" width={20} />
-                        </IconButton>
-                      </Tooltip>
+                    {/* Action Buttons Column */}
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+                        {/* Send Email Invite */}
+                        <Tooltip title={`Send email invite to ${row.Email || 'supplier'}`} arrow>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenInvite(row)}
+                            sx={{
+                              color: '#3366ff',
+                              transition: 'all 0.2s ease',
+                              padding: '4px',
+                            }}
+                          >
+                            <Iconify icon="mdi:email-outline" width={20} />
+                          </IconButton>
+                        </Tooltip>
+
+                        {/* Copy Link to Clipboard */}
+                        <Tooltip title="Copy onboarding link" arrow>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopyLink(row)}
+                            sx={{
+                              color: '#4caf50',
+                              transition: 'all 0.2s ease',
+                              padding: '4px',
+                              '&:hover': { backgroundColor: 'rgba(76, 175, 80, 0.08)' }
+                            }}
+                          >
+                            <Iconify icon="mdi:link-variant" width={20} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 );
@@ -632,7 +702,7 @@ const SupplierGrid = () => {
 
               {paginatedData.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
                     <Iconify icon="mdi:inbox" width={48} sx={{ color: '#ccc', mb: 1 }} />
                     <Typography variant="body1" sx={{ color: '#999' }}>
                       No records found
@@ -665,7 +735,6 @@ const SupplierGrid = () => {
         />
       </Paper>
     </Box>
-
   );
 };
 

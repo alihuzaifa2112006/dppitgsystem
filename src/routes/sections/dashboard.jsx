@@ -15,12 +15,22 @@ import SupplierEditPage from 'src/pages/dashboard/Supplier/edit';
 // ----------------------------------------------------------------------
 
 // Lazy-loaded components
+const SupplierPublicOnboardingPage = lazy(() => import('src/pages/SupplierForm'));
 const IndexPage = lazy(() => import('src/pages/dashboard/app'));
 
 // const UserAccountPage = lazy(() => import('src/pages/dashboard/user/account'));
 
 
 export const dashboardRoutes = [
+
+  {
+    path: 'supplier-onboarding',
+    element: (
+      <Suspense fallback={<LoadingScreen />}>
+        <SupplierPublicOnboardingPage />
+      </Suspense>
+    ),
+  },
   {
     path: 'app',
     element: (

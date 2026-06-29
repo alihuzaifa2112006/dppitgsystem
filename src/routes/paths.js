@@ -13,12 +13,22 @@ const ROOTS = {
 
 // ----------------------------------------------------------------------
 
+
+
 export const paths = {
   page403: '/403',
   page404: '/404',
   page500: '/500',
   complaintRegistrationForm: (id) => `/complaint-registration-form/${id}`,
+
+  // supplierPublicOnboarding: '/supplier-onboarding',
+
+
+  supplierPublicOnboarding: (vendorID, otp, expiry, companyID) =>
+    `/supplier-onboarding?vendorID=${vendorID}&otp=${otp}&expiry=${expiry}&companyID=${companyID}`,
   // AUTH
+
+
   auth: {
     jwt: {
       login: `${ROOTS.AUTH}/jwt/login`,
