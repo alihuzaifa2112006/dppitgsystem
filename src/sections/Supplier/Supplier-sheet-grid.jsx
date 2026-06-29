@@ -617,10 +617,7 @@ const SupplierGrid = () => {
                           onClick={() => handleOpenInvite(row)}
                           sx={{
                             color: '#3366ff',
-                            '&:hover': {
-                              backgroundColor: '#3366ff',
-                              color: '#fff',
-                            },
+
                             transition: 'all 0.2s ease',
                             padding: '4px',
                           }}

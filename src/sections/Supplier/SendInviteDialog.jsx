@@ -121,19 +121,7 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Box
-                            sx={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 2,
-                                backgroundColor: '#e8edf5',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <Iconify icon="mdi:email-send-outline" width={20} sx={{ color: '#3366ff' }} />
-                        </Box>
+
                         <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a2035', fontSize: '1rem' }}>
                             Send Invitation
                         </Typography>
@@ -274,7 +262,7 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
 
             <Divider />
 
-            {/* Actions */}
+
             <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
                 <Button
                     onClick={handleClose}
