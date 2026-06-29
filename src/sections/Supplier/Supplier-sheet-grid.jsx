@@ -36,11 +36,7 @@ import { fDateTime } from 'src/utils/format-time';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 
-// Flag helper using flagcdn CDN
-const getCountryFlag = (countryCode) => {
-  if (!countryCode) return '';
-  return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`;
-};
+
 
 const SupplierGrid = () => {
   const settings = useSettingsContext();
@@ -289,19 +285,9 @@ const SupplierGrid = () => {
               renderOption={(props, option) => (
                 <Box component="li" sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75 }} {...props}>
                   {option.Country_Code && (
-                    <Box
-                      component="img"
-                      src={getCountryFlag(option.Country_Code)}
-                      alt={option.Country_Name}
-                      sx={{
-                        width: 22,
-                        height: 15,
-                        objectFit: 'cover',
-                        borderRadius: '2px',
-                        flexShrink: 0,
-                        boxShadow: '0 0 0 1px rgba(0,0,0,0.08)',
-                      }}
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                    <Iconify
+                      icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
+                      sx={{ width: 22, height: 22, flexShrink: 0 }}
                     />
                   )}
                   <Typography variant="body2" sx={{ color: '#344054' }}>
@@ -331,19 +317,9 @@ const SupplierGrid = () => {
                       <>
                         {selectedCountry?.Country_Code ? (
                           <InputAdornment position="start">
-                            <Box
-                              component="img"
-                              src={getCountryFlag(selectedCountry.Country_Code)}
-                              alt={selectedCountry.Country_Name}
-                              sx={{
-                                width: 22,
-                                height: 15,
-                                objectFit: 'cover',
-                                borderRadius: '2px',
-                                ml: 0.5,
-                                boxShadow: '0 0 0 1px rgba(0,0,0,0.08)',
-                              }}
-                              onError={(e) => { e.target.style.display = 'none'; }}
+                            <Iconify
+                              icon={`circle-flags:${selectedCountry.Country_Code.toLowerCase()}`}
+                              sx={{ width: 22, height: 22, ml: 0.5 }}
                             />
                           </InputAdornment>
                         ) : (
@@ -429,19 +405,9 @@ const SupplierGrid = () => {
               <Chip
                 icon={
                   selectedCountry.Country_Code ? (
-                    <Box
-                      component="img"
-                      src={getCountryFlag(selectedCountry.Country_Code)}
-                      alt=""
-                      sx={{
-                        width: 16,
-                        height: 11,
-                        objectFit: 'cover',
-                        borderRadius: '2px',
-                        ml: '8px !important',
-                        boxShadow: '0 0 0 1px rgba(0,0,0,0.08)',
-                      }}
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                    <Iconify
+                      icon={`circle-flags:${selectedCountry.Country_Code.toLowerCase()}`}
+                      sx={{ width: 16, height: 16, ml: '8px !important' }}
                     />
                   ) : undefined
                 }
@@ -558,19 +524,9 @@ const SupplierGrid = () => {
                       {row.CountryName ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {countryCode && (
-                            <Box
-                              component="img"
-                              src={getCountryFlag(countryCode)}
-                              alt={row.CountryName}
-                              sx={{
-                                width: 22,
-                                height: 15,
-                                objectFit: 'cover',
-                                borderRadius: '3px',
-                                flexShrink: 0,
-                                boxShadow: '0 0 0 1px rgba(0,0,0,0.08)',
-                              }}
-                              onError={(e) => { e.target.style.display = 'none'; }}
+                            <Iconify
+                              icon={`circle-flags:${countryCode.toLowerCase()}`}
+                              sx={{ width: 22, height: 22, flexShrink: 0 }}
                             />
                           )}
                           <span>{row.CountryName}</span>

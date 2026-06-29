@@ -93,12 +93,7 @@ const SECTION_CARD_SX = {
     backgroundColor: '#fff',
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const getCountryFlag = (countryCode) => {
-    if (!countryCode) return '';
-    return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`;
-};
 
 /**
  * Decrypt OTP - Replace this with your actual decryption logic
@@ -108,24 +103,9 @@ const getCountryFlag = (countryCode) => {
 const decryptOTP = (encryptedOTP) => {
     if (!encryptedOTP) return null;
 
-    // 🔐 ================================================
-    // TODO: Replace with your actual decryption logic
-    // Example: If using AES encryption:
-    // return CryptoJS.AES.decrypt(encryptedOTP, secretKey).toString(CryptoJS.enc.Utf8);
-    // ==================================================
-
-    // For demo: if OTP looks like base64, decode it
-    try {
-        // Try base64 decode first
-        const decoded = atob(encryptedOTP);
-        if (decoded) return decoded;
-    } catch (e) {
-        // If not base64, return as-is (for demo)
-        return encryptedOTP;
-    }
-
+    // The OTP is already extracted as plain text from the base64-decoded token.
+    // No further decryption is needed — just return it as-is.
     return encryptedOTP;
-
 };
 
 
@@ -759,11 +739,9 @@ export default function PublicSupplierOnboardingForm() {
                                         renderOption={(props, option) => (
                                             <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1, px: 1.5 }}>
                                                 {option?.Country_Code && (
-                                                    <img
-                                                        src={getCountryFlag(option.Country_Code)}
-                                                        alt={option.Country_Name}
-                                                        style={{ width: 26, height: 17, objectFit: 'cover', borderRadius: 2, border: '1px solid #e2e8f0', flexShrink: 0 }}
-                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    <Iconify
+                                                        icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
+                                                        sx={{ width: 26, height: 26, flexShrink: 0 }}
                                                     />
                                                 )}
                                                 <Typography variant="body2">{option?.Country_Name}</Typography>
@@ -774,11 +752,9 @@ export default function PublicSupplierOnboardingForm() {
                                                 startAdornment: (
                                                     <InputAdornment position="start">
                                                         {values?.country?.Country_Code ? (
-                                                            <img
-                                                                src={getCountryFlag(values.country.Country_Code)}
-                                                                alt={values.country.Country_Name}
-                                                                style={{ width: 26, height: 17, objectFit: 'cover', borderRadius: 2, border: '1px solid #e2e8f0' }}
-                                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                                            <Iconify
+                                                                icon={`circle-flags:${values.country.Country_Code.toLowerCase()}`}
+                                                                sx={{ width: 26, height: 26, mr: -0.5, ml: 0.5 }}
                                                             />
                                                         ) : (
                                                             <Iconify icon="mdi:flag-outline" width={18} sx={{ color: '#94a3b8' }} />

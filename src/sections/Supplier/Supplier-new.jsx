@@ -55,11 +55,7 @@ import dayjs from 'dayjs';
 import { fNumber } from 'src/utils/format-number';
 import { fDate } from 'src/utils/format-time';
 
-// Helper function to get country flag URL
-const getCountryFlag = (countryCode) => {
-  if (!countryCode) return '';
-  return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`;
-};
+
 
 // ----------------------------------------------------------------------
 
@@ -301,20 +297,9 @@ export default function SupplierCreateForm() {
                       }}
                     >
                       {option?.Country_Code && (
-                        <img
-                          src={getCountryFlag(option.Country_Code)}
-                          alt={option.Country_Name}
-                          style={{
-                            width: 28,
-                            height: 18,
-                            objectFit: 'cover',
-                            borderRadius: 2,
-                            border: '1px solid #e0e0e0',
-                            flexShrink: 0,
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
+                        <Iconify
+                          icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
+                          sx={{ width: 28, height: 28, flexShrink: 0 }}
                         />
                       )}
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -327,19 +312,9 @@ export default function SupplierCreateForm() {
                       startAdornment: (
                         <InputAdornment position="start">
                           {values?.country?.Country_Code ? (
-                            <img
-                              src={getCountryFlag(values.country.Country_Code)}
-                              alt={values.country.Country_Name}
-                              style={{
-                                width: 28,
-                                height: 18,
-                                objectFit: 'cover',
-                                borderRadius: 2,
-                                border: '1px solid #e0e0e0',
-                              }}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                              }}
+                            <Iconify
+                              icon={`circle-flags:${values.country.Country_Code.toLowerCase()}`}
+                              sx={{ width: 28, height: 28, mr: -0.5, ml: 0.5 }}
                             />
                           ) : (
                             <Iconify
