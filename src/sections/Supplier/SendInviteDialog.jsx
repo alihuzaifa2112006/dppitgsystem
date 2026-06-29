@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
     Dialog,
@@ -22,18 +22,54 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
     const [loading, setLoading] = useState(false);
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
+    const [generatedUrl, setGeneratedUrl] = useState('');
     const [subjectError, setSubjectError] = useState('');
     const [bodyError, setBodyError] = useState('');
 
-    // Initialize subject and body when dialog opens or supplier changes
+    // 1. Fetch, Parse, aur Company ID ko pehle hi nikal lein safely
+    const companyID = useMemo(() => {
+        try {
+            const localStorageData = JSON.parse(localStorage.getItem('UserData') || '{}');
+            const data = localStorageData?.Data || {};
+            return data?.company?.CompanyId ?? data?.company?.CompanyID ?? 0;
+        } catch (e) {
+            console.error('Error parsing UserData from localStorage:', e);
+            return 0;
+        }
+    }, []);
+
+    // 2. Initialize subject and layout configs explicitly when modal toggles open
     useEffect(() => {
         if (open && supplier) {
-            setSubject(`Invitation to onboard with DPP`);
-            setBody(`Hello ${supplier?.SupplierName || ''},\n\nPlease complete your registration by clicking the button below.\n\nBest regards,\nDPP Team`);
+            const vendorID = supplier?.InvitationId || supplier?.VendorID || 0;
+
+            // Generate Secure Cryptographic High-Entropy OTP String
+            const generateSecureOTP = () => {
+                const array = new Uint32Array(4);
+                window.crypto.getRandomValues(array);
+                return Array.from(array, (num) => num.toString(16).padStart(8, '0')).join('').substring(0, 24);
+            };
+            const secureOtp = generateSecureOTP();
+
+            // Generate Strict 7-Day Expiry Timestamp
+            const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+            const expiryTimestamp = Date.now() + sevenDaysInMilliseconds;
+
+            // Build Link Environment Paths
+            const domain = window.location.origin;
+            const onboardingUrl = `${domain}/supplier-onboarding?vendorID=${vendorID}&otp=${secureOtp}&expiry=${expiryTimestamp}&companyID=${companyID}`;
+
+            setGeneratedUrl(onboardingUrl);
+            setSubject(`Invitation to Onboard with DPP`);
+
+            setBody(
+                `Hello ${supplier?.SupplierName || 'Supplier'},\n\nYou have been invited to complete your registration with DPP.\n\nPlease proceed to our secure onboarding portal to submit your profile data and official document verification details.\n\nBest regards,\nDPP Team`
+            );
+
             setSubjectError('');
             setBodyError('');
         }
-    }, [open, supplier]);
+    }, [open, supplier, companyID]); // Now ESLint is completely happy!
 
     const validateForm = () => {
         let isValid = true;
@@ -46,7 +82,7 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
         }
 
         if (!body.trim()) {
-            setBodyError('Message is required');
+            setBodyError('Message body context is required');
             isValid = false;
         } else {
             setBodyError('');
@@ -67,10 +103,56 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
 
         try {
             setLoading(true);
+
+            const userParagraphs = body.trim().split('\n').map(p => p ? `<p style="margin: 0 0 16px 0;">${p}</p>` : '').join('');
+
+            const premiumHtmlTemplate = `
+                <div style="background-color: #f8f9fa; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #334155; line-height: 1.6;">
+                    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+                       <tr>
+                <td style="background: linear-gradient(135deg, #3366ff 0%, #1e40af 100%); padding: 30px 40px; text-align: left;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;">
+                        Digital Product Passport
+                    </h1>
+                    <p style="margin: 4px 0 0 0; color: #93c5fd; font-size: 13px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">
+                        Powered By ITG
+                    </p>
+                </td>
+            </tr>
+                        <tr>
+                            <td style="padding: 40px; font-size: 15px; color: #334155;">
+                                ${userParagraphs}
+                                
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 35px 0 25px 0; text-align: center;">
+                                    <tr>
+                                        <td>
+                                            <a href="${generatedUrl}" target="_blank" style="background-color: #3366ff; color: #ffffff; padding: 14px 32px; font-weight: 600; font-size: 14px; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(51,102,255,0.25); border: 1px solid #2563eb;">
+                                                Complete Onboarding Setup
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <p style="font-size: 12px; color: #94a3b8; margin: 30px 0 0 0; line-height: 1.5; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                                    If the action button above does not work, please copy and paste the alternative secure web address link below directly into your internet browser utility tab bar:<br/>
+                                    <a href="${generatedUrl}" target="_blank" style="color: #3366ff; word-break: break-all; text-decoration: underline;">${generatedUrl}</a>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #f8fafc; padding: 20px 40px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9;">
+                                <p style="margin: 0 0 4px 0; font-weight: 500;">Digital Procurement Platform (DPP)</p>
+                                <p style="margin: 0;">This email contains an automated secure token string link key. Please do not forward or share this message sequence thread.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+
             const payload = {
-                invitationId: supplier.InvitationId,
+                invitationId: Number(supplier.InvitationId),
                 subject: subject.trim(),
-                body: body.trim(),
+                body: premiumHtmlTemplate,
             };
 
             const response = await Post('Supplier/SendInvite', payload);
@@ -121,7 +203,6 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-
                         <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a2035', fontSize: '1rem' }}>
                             Send Invitation
                         </Typography>
@@ -209,7 +290,7 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                     {/* Body - Editable */}
                     <Box>
                         <Typography variant="caption" sx={{ color: '#667085', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                            Message <span style={{ color: '#ff4d4f' }}>*</span>
+                            Message Preview Editor <span style={{ color: '#ff4d4f' }}>*</span>
                         </Typography>
                         <TextField
                             fullWidth
@@ -220,7 +301,7 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                             }}
                             placeholder="Enter your message here..."
                             multiline
-                            rows={5}
+                            rows={6}
                             error={!!bodyError}
                             helperText={bodyError}
                             disabled={loading}
@@ -254,14 +335,13 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                     >
                         <Iconify icon="mdi:information-outline" width={16} sx={{ color: '#3366ff', mt: 0.2, flexShrink: 0 }} />
                         <Typography variant="caption" sx={{ color: '#3366ff', lineHeight: 1.5 }}>
-                            An invitation link will be included in the email, allowing the supplier to complete their onboarding registration.
+                            Your message content will be automatically formatted inside a premium structured DPP corporate card containing a direct secure action verification login button.
                         </Typography>
                     </Box>
                 </Box>
             </DialogContent>
 
             <Divider />
-
 
             <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
                 <Button
@@ -309,7 +389,8 @@ SendInviteDialog.propTypes = {
     onClose: PropTypes.func.isRequired,
     supplier: PropTypes.shape({
         SupplierName: PropTypes.string,
-        InvitationId: PropTypes.string,
+        InvitationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        VendorID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         Email: PropTypes.string,
     }).isRequired,
 };
