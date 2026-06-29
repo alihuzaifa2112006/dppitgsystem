@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
     Dialog,
@@ -20,19 +20,57 @@ import { useSnackbar } from 'src/components/snackbar';
 const SendInviteDialog = ({ open, onClose, supplier }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [loading, setLoading] = useState(false);
+    const [subject, setSubject] = useState('');
+    const [body, setBody] = useState('');
+    const [subjectError, setSubjectError] = useState('');
+    const [bodyError, setBodyError] = useState('');
 
-    const subject = "Invitation to onboard with DPP";
-    const body = `Hello ${supplier?.SupplierName || ''},\n\nPlease complete your registration by clicking the button below.\n\nBest regards,\nDPP Team`;
+    // Initialize subject and body when dialog opens or supplier changes
+    useEffect(() => {
+        if (open && supplier) {
+            setSubject(`Invitation to onboard with DPP`);
+            setBody(`Hello ${supplier?.SupplierName || ''},\n\nPlease complete your registration by clicking the button below.\n\nBest regards,\nDPP Team`);
+            setSubjectError('');
+            setBodyError('');
+        }
+    }, [open, supplier]);
+
+    const validateForm = () => {
+        let isValid = true;
+
+        if (!subject.trim()) {
+            setSubjectError('Subject is required');
+            isValid = false;
+        } else {
+            setSubjectError('');
+        }
+
+        if (!body.trim()) {
+            setBodyError('Message is required');
+            isValid = false;
+        } else {
+            setBodyError('');
+        }
+
+        return isValid;
+    };
 
     const handleSend = async () => {
-        if (!supplier?.InvitationId) return;
+        if (!supplier?.InvitationId) {
+            enqueueSnackbar('Supplier invitation ID is missing', { variant: 'error' });
+            return;
+        }
+
+        if (!validateForm()) {
+            return;
+        }
 
         try {
             setLoading(true);
             const payload = {
                 invitationId: supplier.InvitationId,
-                subject,
-                body,
+                subject: subject.trim(),
+                body: body.trim(),
             };
 
             const response = await Post('Supplier/SendInvite', payload);
@@ -51,10 +89,16 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
         }
     };
 
+    const handleClose = () => {
+        if (!loading) {
+            onClose();
+        }
+    };
+
     return (
         <Dialog
             open={open}
-            onClose={onClose}
+            onClose={handleClose}
             maxWidth="sm"
             fullWidth
             PaperProps={{
@@ -95,8 +139,9 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                         </Typography>
                     </Box>
                     <IconButton
-                        onClick={onClose}
+                        onClick={handleClose}
                         size="small"
+                        disabled={loading}
                         sx={{
                             color: '#667085',
                             '&:hover': { backgroundColor: '#f5f5f5', color: '#344054' },
@@ -111,7 +156,7 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
             <DialogContent sx={{ px: 3, py: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
 
-                    {/* To */}
+                    {/* To - Read Only */}
                     <Box>
                         <Typography variant="caption" sx={{ color: '#667085', fontWeight: 500, mb: 0.5, display: 'block' }}>
                             To
@@ -141,50 +186,65 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                         />
                     </Box>
 
-                    {/* Subject */}
+                    {/* Subject - Editable */}
                     <Box>
                         <Typography variant="caption" sx={{ color: '#667085', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                            Subject
+                            Subject <span style={{ color: '#ff4d4f' }}>*</span>
                         </Typography>
                         <TextField
                             fullWidth
                             value={subject}
-                            disabled
+                            onChange={(e) => {
+                                setSubject(e.target.value);
+                                if (subjectError) setSubjectError('');
+                            }}
+                            placeholder="Enter email subject"
                             size="small"
+                            error={!!subjectError}
+                            helperText={subjectError}
+                            disabled={loading}
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: '10px',
                                     backgroundColor: '#fafbfc',
                                     '& fieldset': { borderColor: '#e5e7eb' },
+                                    '&:hover fieldset': { borderColor: '#3366ff' },
                                 },
-                                '& .MuiInputBase-input.Mui-disabled': {
+                                '& .MuiInputBase-input': {
                                     color: '#344054',
-                                    WebkitTextFillColor: '#344054',
+                                    fontSize: '0.875rem',
                                 },
                             }}
                         />
                     </Box>
 
-                    {/* Body */}
+                    {/* Body - Editable */}
                     <Box>
                         <Typography variant="caption" sx={{ color: '#667085', fontWeight: 500, mb: 0.5, display: 'block' }}>
-                            Message
+                            Message <span style={{ color: '#ff4d4f' }}>*</span>
                         </Typography>
                         <TextField
                             fullWidth
                             value={body}
-                            disabled
+                            onChange={(e) => {
+                                setBody(e.target.value);
+                                if (bodyError) setBodyError('');
+                            }}
+                            placeholder="Enter your message here..."
                             multiline
                             rows={5}
+                            error={!!bodyError}
+                            helperText={bodyError}
+                            disabled={loading}
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: '10px',
                                     backgroundColor: '#fafbfc',
                                     '& fieldset': { borderColor: '#e5e7eb' },
+                                    '&:hover fieldset': { borderColor: '#3366ff' },
                                 },
-                                '& .MuiInputBase-input.Mui-disabled': {
+                                '& .MuiInputBase-input': {
                                     color: '#555',
-                                    WebkitTextFillColor: '#555',
                                     fontSize: '0.875rem',
                                     lineHeight: 1.6,
                                 },
@@ -217,8 +277,9 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
             {/* Actions */}
             <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
                 <Button
-                    onClick={onClose}
+                    onClick={handleClose}
                     variant="outlined"
+                    disabled={loading}
                     sx={{
                         borderRadius: '10px',
                         borderColor: '#d0d5dd',

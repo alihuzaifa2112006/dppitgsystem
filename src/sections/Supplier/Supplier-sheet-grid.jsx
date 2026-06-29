@@ -617,18 +617,15 @@ const SupplierGrid = () => {
                           onClick={() => handleOpenInvite(row)}
                           sx={{
                             color: '#3366ff',
-                            backgroundColor: '#e8edf5',
-                            borderRadius: '8px',
-                            width: 34,
-                            height: 34,
                             '&:hover': {
                               backgroundColor: '#3366ff',
                               color: '#fff',
                             },
                             transition: 'all 0.2s ease',
+                            padding: '4px',
                           }}
                         >
-                          <Iconify icon="mdi:email-send-outline" width={18} />
+                          <Iconify icon="mdi:email-outline" width={20} />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
