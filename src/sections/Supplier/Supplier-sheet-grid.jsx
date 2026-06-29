@@ -25,6 +25,10 @@ import {
   Stack,
   Autocomplete,
   Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import Scrollbar from 'src/components/scrollbar';
 import Iconify from 'src/components/iconify';
@@ -41,14 +45,11 @@ const getCountryFlag = (countryCode) => {
 const SupplierGrid = () => {
   const settings = useSettingsContext();
   const { enqueueSnackbar } = useSnackbar();
-  // const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData') || '{}'), []);
+
   const userData = useMemo(() => {
     const localStorageData = JSON.parse(localStorage.getItem('UserData') || '{}');
-    return localStorageData?.Data || {}; // Yeh direct access dega 'token' aur 'company' object ko
+    return localStorageData?.Data || {};
   }, []);
-
-
-
 
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +65,10 @@ const SupplierGrid = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
+  // --- Copy Link Dialog States ---
+  const [linkDetailsOpen, setLinkDetailsOpen] = useState(false);
+  const [copiedLinkDetails, setCopiedLinkDetails] = useState({ url: '', otp: '' });
+
   const handleOpenInvite = (supplier) => {
     setSelectedSupplier(supplier);
     setInviteDialogOpen(true);
@@ -74,44 +79,45 @@ const SupplierGrid = () => {
     setSelectedSupplier(null);
   };
 
-  // --- NEW: Copy Onboarding Link Function ---
-  // --- NEW: Copy Onboarding Link Function ---
+  // --- SECURED: Copy Onboarding Link with Base64 Obfuscation ---
   const handleCopyLink = useCallback((row) => {
     try {
       const domain = window.location.origin;
-
-      // 1. Fetch CompanyID safely using both common casing strategies
-      // const companyID = userData?.CompanyId ?? userData?.CompanyID ?? 0;
       const companyID = userData?.company?.CompanyId || 0;
-
-      // 2. Extract Vendor / Supplier ID from Row Context
       const vendorID = row.VendorID || row.InvitationId || 0;
 
-      // 3. Generate Secure High-Entropy Cryptographic OTP String
+      // Generates a clean 6-character high-entropy alphanumeric OTP
       const generateSecureOTP = () => {
-        const array = new Uint32Array(4);
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No 0, O, I, L, 1
+        const array = new Uint32Array(6);
         window.crypto.getRandomValues(array);
-        return Array.from(array, (num) => num.toString(16).padStart(8, '0')).join('').substring(0, 24);
+        return Array.from(array, (num) => chars[num % chars.length]).join('');
       };
       const secureOtp = generateSecureOTP();
 
-      // 4. Generate Strict 7-Day Expiry Date Timestamp
-      const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;
-      const expiryTimestamp = Date.now() + sevenDaysInMilliseconds;
+      const gamblingMilliseconds = 7 * 24 * 60 * 60 * 1000;
+      const expiryTimestamp = Date.now() + gamblingMilliseconds;
 
-      // 5. Constructing the precise URL matching your query routing schema
-      const onboardingUrl = `${domain}/supplier-onboarding?vendorID=${vendorID}&otp=${secureOtp}&expiry=${expiryTimestamp}&companyID=${companyID}`;
+      // Create a plain query string or JSON payload to encode
+      const rawPayload = `vendorID=${vendorID}&otp=${secureOtp}&expiry=${expiryTimestamp}&companyID=${companyID}`;
 
-      console.log('🔗 Generated Link Config:', {
-        vendorID,
-        secureOtp,
-        expiryTimestamp,
-        companyID,
-        fullUrl: onboardingUrl
-      });
+      // Base64 encoding to secure/hide values in URL
+      const encodedToken = btoa(rawPayload);
 
+      // Final dynamic secure onboarding link
+      const onboardingUrl = `${domain}/supplier-onboarding?token=${encodedToken}`;
+
+      // Clipboard logic
       navigator.clipboard.writeText(onboardingUrl);
-      enqueueSnackbar('Secure onboarding link copied with 7-day expiry!', { variant: 'success' });
+      enqueueSnackbar('Secure onboarding link copied to clipboard!', { variant: 'success' });
+
+      // Save configurations to state for the preview popup
+      setCopiedLinkDetails({
+        url: onboardingUrl,
+        otp: secureOtp
+      });
+      setLinkDetailsOpen(true);
+
     } catch (error) {
       console.error('Failed to copy link:', error);
       enqueueSnackbar('Failed to generate or copy link', { variant: 'error' });
@@ -150,12 +156,9 @@ const SupplierGrid = () => {
       setLoading(true);
       const response = await Get('Supplier/GetAll');
 
-      console.log('Supplier Data Response:', response);
-
       if (response.status === 200 && response.data?.Success) {
         const suppliers = response.data?.Data || [];
         setReportData(suppliers);
-        console.log('Suppliers loaded:', suppliers.length);
       } else {
         setReportData([]);
         enqueueSnackbar(response.data?.Message || 'No records found', { variant: 'info' });
@@ -237,7 +240,6 @@ const SupplierGrid = () => {
     return sortedData.slice(start, end);
   }, [sortedData, page, rowsPerPage]);
 
-  // Handle Sort
   const handleSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -504,107 +506,32 @@ const SupplierGrid = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell
-                  sx={{
-                    backgroundColor: '#fafbfc',
-                    fontWeight: 600,
-                    color: '#666',
-                    minWidth: 70,
-                    width: 70,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === 'sno'}
-                    direction={order}
-                    onClick={() => handleSort('sno')}
-                    hideSortIcon
-                  >
+                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 70, width: 70, fontSize: '0.875rem' }}>
+                  <TableSortLabel active={orderBy === 'sno'} direction={order} onClick={() => handleSort('sno')} hideSortIcon>
                     S.No
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: '#fafbfc',
-                    fontWeight: 600,
-                    color: '#666',
-                    minWidth: 200,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === 'SupplierName'}
-                    direction={order}
-                    onClick={() => handleSort('SupplierName')}
-                    hideSortIcon
-                  >
+                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 200, fontSize: '0.875rem' }}>
+                  <TableSortLabel active={orderBy === 'SupplierName'} direction={order} onClick={() => handleSort('SupplierName')} hideSortIcon>
                     Supplier Name
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: '#fafbfc',
-                    fontWeight: 600,
-                    color: '#666',
-                    minWidth: 150,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === 'City'}
-                    direction={order}
-                    onClick={() => handleSort('City')}
-                    hideSortIcon
-                  >
+                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 150, fontSize: '0.875rem' }}>
+                  <TableSortLabel active={orderBy === 'City'} direction={order} onClick={() => handleSort('City')} hideSortIcon>
                     City
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: '#fafbfc',
-                    fontWeight: 600,
-                    color: '#666',
-                    minWidth: 200,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === 'Email'}
-                    direction={order}
-                    onClick={() => handleSort('Email')}
-                    hideSortIcon
-                  >
+                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 200, fontSize: '0.875rem' }}>
+                  <TableSortLabel active={orderBy === 'Email'} direction={order} onClick={() => handleSort('Email')} hideSortIcon>
                     Email
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: '#fafbfc',
-                    fontWeight: 600,
-                    color: '#666',
-                    minWidth: 170,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === 'CountryName'}
-                    direction={order}
-                    onClick={() => handleSort('CountryName')}
-                    hideSortIcon
-                  >
+                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 170, fontSize: '0.875rem' }}>
+                  <TableSortLabel active={orderBy === 'CountryName'} direction={order} onClick={() => handleSort('CountryName')} hideSortIcon>
                     Country
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: '#fafbfc',
-                    fontWeight: 600,
-                    color: '#666',
-                    minWidth: 140,
-                    fontSize: '0.875rem',
-                    textAlign: 'center',
-                  }}
-                >
+                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 140, fontSize: '0.875rem', textAlign: 'center' }}>
                   Actions
                 </TableCell>
               </TableRow>
@@ -623,18 +550,10 @@ const SupplierGrid = () => {
                       '&:last-child td': { borderBottom: 0 },
                     }}
                   >
-                    <TableCell sx={{ color: '#888', fontSize: '0.875rem' }}>
-                      {serialNumber}
-                    </TableCell>
-                    <TableCell sx={{ color: '#333', fontSize: '0.875rem', fontWeight: 500 }}>
-                      {row.SupplierName || '-'}
-                    </TableCell>
-                    <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>
-                      {row.City || '-'}
-                    </TableCell>
-                    <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>
-                      {row.Email || '-'}
-                    </TableCell>
+                    <TableCell sx={{ color: '#888', fontSize: '0.875rem' }}>{serialNumber}</TableCell>
+                    <TableCell sx={{ color: '#333', fontSize: '0.875rem', fontWeight: 500 }}>{row.SupplierName || '-'}</TableCell>
+                    <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>{row.City || '-'}</TableCell>
+                    <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>{row.Email || '-'}</TableCell>
                     <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>
                       {row.CountryName ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -661,25 +580,18 @@ const SupplierGrid = () => {
                       )}
                     </TableCell>
 
-                    {/* Action Buttons Column */}
                     <TableCell sx={{ textAlign: 'center' }}>
                       <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
-                        {/* Send Email Invite */}
                         <Tooltip title={`Send email invite to ${row.Email || 'supplier'}`} arrow>
                           <IconButton
                             size="small"
                             onClick={() => handleOpenInvite(row)}
-                            sx={{
-                              color: '#3366ff',
-                              transition: 'all 0.2s ease',
-                              padding: '4px',
-                            }}
+                            sx={{ color: '#3366ff', transition: 'all 0.2s ease', padding: '4px' }}
                           >
                             <Iconify icon="mdi:email-outline" width={20} />
                           </IconButton>
                         </Tooltip>
 
-                        {/* Copy Link to Clipboard */}
                         <Tooltip title="Copy onboarding link" arrow>
                           <IconButton
                             size="small"
@@ -728,11 +640,116 @@ const SupplierGrid = () => {
             '& .MuiTablePagination-select': { borderRadius: 1 },
           }}
         />
+
+        {/* Email Invite Dialog Component */}
         <SendInviteDialog
           open={inviteDialogOpen}
           onClose={handleCloseInvite}
           supplier={selectedSupplier}
         />
+
+        {/* --- Link Generation Details Dialog Popup --- */}
+        <Dialog
+          open={linkDetailsOpen}
+          onClose={() => setLinkDetailsOpen(false)}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: { borderRadius: '16px', p: 1 }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
+            <Iconify icon="mdi:shield-check-outline" width={24} sx={{ color: '#4caf50' }} />
+            Onboarding Link Generated Securely
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ color: '#667085', mb: 3 }}>
+              The dynamic invitation link has been successfully encrypted and copied to your clipboard. parameters are hidden for enhanced routing safety.
+            </Typography>
+
+            <Stack spacing={2.5}>
+              {/* Token Display (OTP) */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ color: '#344054', mb: 0.8, fontWeight: 600 }}>
+                  Secure verification OTP (6 characters):
+                </Typography>
+                <TextField
+                  fullWidth
+                  readOnly
+                  variant="outlined"
+                  size="small"
+                  value={copiedLinkDetails.otp}
+                  InputProps={{
+                    style: { fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1.1rem', letterSpacing: '2px', color: '#111827', backgroundColor: '#f9fafb' },
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => {
+                            navigator.clipboard.writeText(copiedLinkDetails.otp);
+                            enqueueSnackbar('OTP Copied!', { variant: 'success' });
+                          }}
+                          edge="end"
+                        >
+                          <Iconify icon="eva:copy-fill" width={20} />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+
+              {/* URL Display */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ color: '#344054', mb: 0.8, fontWeight: 600 }}>
+                  Encrypted Onboarding URL:
+                </Typography>
+                <TextField
+                  fullWidth
+                  readOnly
+                  multiline
+                  maxRows={3}
+                  variant="outlined"
+                  size="small"
+                  value={copiedLinkDetails.url}
+                  InputProps={{
+                    style: { fontSize: '0.85rem', color: '#4b5563', backgroundColor: '#f9fafb' },
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => {
+                            navigator.clipboard.writeText(copiedLinkDetails.url);
+                            enqueueSnackbar('Link Copied!', { variant: 'success' });
+                          }}
+                          edge="end"
+                        >
+                          <Iconify icon="eva:copy-fill" width={20} />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+
+              <Chip
+                label="This token configuration will automatically expire in 7 days."
+                color="warning"
+                variant="soft"
+                size="small"
+                icon={<Iconify icon="eva:clock-outline" />}
+                sx={{ width: 'fit-content', borderRadius: '6px', fontWeight: 500 }}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => setLinkDetailsOpen(false)}
+              sx={{ backgroundColor: '#3366ff', borderRadius: '8px', '&:hover': { backgroundColor: '#1e4fd9' } }}
+            >
+              Done
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Box>
   );

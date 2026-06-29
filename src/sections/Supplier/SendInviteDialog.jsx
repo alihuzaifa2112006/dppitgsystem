@@ -23,10 +23,11 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
     const [generatedUrl, setGeneratedUrl] = useState('');
+    const [currentOtp, setCurrentOtp] = useState('');
     const [subjectError, setSubjectError] = useState('');
     const [bodyError, setBodyError] = useState('');
 
-    // 1. Fetch, Parse, aur Company ID ko pehle hi nikal lein safely
+    // Fetch, Parse, aur Company ID safely
     const companyID = useMemo(() => {
         try {
             const localStorageData = JSON.parse(localStorage.getItem('UserData') || '{}');
@@ -38,18 +39,22 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
         }
     }, []);
 
-    // 2. Initialize subject and layout configs explicitly when modal toggles open
+    // Single Unified Setup Effect
     useEffect(() => {
         if (open && supplier) {
             const vendorID = supplier?.InvitationId || supplier?.VendorID || 0;
 
-            // Generate Secure Cryptographic High-Entropy OTP String
+            // Generate Secure Cryptographic 6-Digit Numeric OTP
             const generateSecureOTP = () => {
-                const array = new Uint32Array(4);
+                const array = new Uint32Array(1);
                 window.crypto.getRandomValues(array);
-                return Array.from(array, (num) => num.toString(16).padStart(8, '0')).join('').substring(0, 24);
+                // Math.floor(100000 + (randomFraction * 900000)) strictly guarantees a 6-digit number
+                const secure6DigitOtp = Math.floor(100000 + (array[0] / (0xffffffff + 1)) * 900000).toString();
+                return secure6DigitOtp;
             };
+
             const secureOtp = generateSecureOTP();
+            setCurrentOtp(secureOtp);
 
             // Generate Strict 7-Day Expiry Timestamp
             const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;
@@ -62,14 +67,15 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
             setGeneratedUrl(onboardingUrl);
             setSubject(`Invitation to Onboard with DPP`);
 
+            // OTP explicitly mapped into the initial editable template state
             setBody(
-                `Hello ${supplier?.SupplierName || 'Supplier'},\n\nYou have been invited to complete your registration with DPP.\n\nPlease proceed to our secure onboarding portal to submit your profile data and official document verification details.\n\nBest regards,\nDPP Team`
+                `Hello ${supplier?.SupplierName || 'Supplier'},\n\nYou have been invited to complete your registration with DPP.\n\nYour Secure Access Passcode (OTP): ${secureOtp}\n\nPlease click the button below to access our secure onboarding portal. You will be prompted to enter the Passcode provided above before accessing the form.\n\nBest regards,\nDPP Team`
             );
 
             setSubjectError('');
             setBodyError('');
         }
-    }, [open, supplier, companyID]); // Now ESLint is completely happy!
+    }, [open, supplier, companyID]);
 
     const validateForm = () => {
         let isValid = true;
@@ -110,15 +116,15 @@ const SendInviteDialog = ({ open, onClose, supplier }) => {
                 <div style="background-color: #f8f9fa; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #334155; line-height: 1.6;">
                     <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
                        <tr>
-                <td style="background: linear-gradient(135deg, #3366ff 0%, #1e40af 100%); padding: 30px 40px; text-align: left;">
-                    <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;">
-                        Digital Product Passport
-                    </h1>
-                    <p style="margin: 4px 0 0 0; color: #93c5fd; font-size: 13px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">
-                        Powered By ITG
-                    </p>
-                </td>
-            </tr>
+                        <td style="background: linear-gradient(135deg, #3366ff 0%, #1e40af 100%); padding: 30px 40px; text-align: left;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;">
+                                Digital Product Passport
+                            </h1>
+                            <p style="margin: 4px 0 0 0; color: #93c5fd; font-size: 13px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">
+                                Powered By ITG
+                            </p>
+                        </td>
+                    </tr>
                         <tr>
                             <td style="padding: 40px; font-size: 15px; color: #334155;">
                                 ${userParagraphs}
