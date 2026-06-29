@@ -1,5 +1,4 @@
 import * as Yup from 'yup';
-
 import PropTypes from 'prop-types';
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { Controller, useForm, useWatch, useFieldArray } from 'react-hook-form';
@@ -46,6 +45,7 @@ import {
     DialogActions,
     Fade,
     Backdrop,
+    Collapse,
 } from '@mui/material';
 
 import { LoadingScreen } from 'src/components/loading-screen';
@@ -70,6 +70,7 @@ const EXPORT_MARKET_OPTIONS = ['Europe', 'USA', 'Asia', 'Middle East', 'Africa']
 const CONTACT_TYPE_OPTIONS = ['BUSINESS', 'TECHNICAL', 'FINANCE', 'LOGISTICS', 'OTHER'].map(opt => ({ label: opt, value: opt }));
 const UNIT_OPTIONS = ['KG', 'TON', 'PCS', 'MTR'].map(opt => ({ label: opt, value: opt }));
 const CURRENCY_OPTIONS = ['EURO', 'USD', 'GBP', 'PKR'].map(opt => ({ label: opt, value: opt }));
+const CERTIFICATE_OPTIONS = ['ISO 9001', 'ISO 14001', 'ISO 27001', 'API Q1', 'CE Marking', 'FDA Approval', 'GMP', 'HACCP', 'Other'];
 
 // ─── Shared Styles ────────────────────────────────────────────────────────────
 
@@ -91,54 +92,67 @@ const SECTION_CARD_SX = {
     border: '1px solid #eef0f6',
     boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
     backgroundColor: '#fff',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+    },
 };
-
-
 
 /**
  * Decrypt OTP - Replace this with your actual decryption logic
  * For demo purposes, we're just returning the OTP as-is
- * If your OTP is encrypted (e.g., base64, AES, etc.), implement decryption here
  */
 const decryptOTP = (encryptedOTP) => {
     if (!encryptedOTP) return null;
-
-    // The OTP is already extracted as plain text from the base64-decoded token.
-    // No further decryption is needed — just return it as-is.
     return encryptedOTP;
 };
 
-
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionHeader({ icon, title, subtitle }) {
+function SectionHeader({ icon, title, subtitle, badge }) {
     return (
-        <Box sx={{ mb: 2.5 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 0.5 }}>
-                <Box
-                    sx={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: '8px',
-                        bgcolor: '#eef2ff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                    }}
-                >
-                    <Iconify icon={icon} width={18} sx={{ color: '#3b5bdb' }} />
-                </Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>
-                    {title}
-                </Typography>
+        <Box sx={{ mb: 3 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Box
+                        sx={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: '10px',
+                            bgcolor: '#eef2ff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Iconify icon={icon} width={20} sx={{ color: '#3b5bdb' }} />
+                    </Box>
+                    <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>
+                            {title}
+                        </Typography>
+                        {subtitle && (
+                            <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.75rem', display: 'block' }}>
+                                {subtitle}
+                            </Typography>
+                        )}
+                    </Box>
+                </Stack>
+                {badge && (
+                    <Chip
+                        label={badge}
+                        size="small"
+                        sx={{
+                            bgcolor: '#eef2ff',
+                            color: '#3b5bdb',
+                            fontWeight: 600,
+                            fontSize: '0.7rem',
+                            border: '1px solid #c7d2fe',
+                        }}
+                    />
+                )}
             </Stack>
-            {subtitle && (
-                <Typography variant="body2" sx={{ color: '#94a3b8', fontSize: '0.8rem', pl: 0.5 }}>
-                    {subtitle}
-                </Typography>
-            )}
             <Divider sx={{ mt: 2, borderColor: '#f1f5f9' }} />
         </Box>
     );
@@ -148,10 +162,12 @@ SectionHeader.propTypes = {
     icon: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     subtitle: PropTypes.string,
+    badge: PropTypes.string,
 };
 
 SectionHeader.defaultProps = {
     subtitle: '',
+    badge: '',
 };
 
 function FieldLabel({ children }) {
@@ -214,6 +230,15 @@ const NewSupplierSchema = Yup.object().shape({
             mobileNumber: Yup.string().required('Mobile Number is required'),
             email: Yup.string().required('Email is required').email('Invalid email'),
         })
+    ).min(1, 'At least one contact is required'),
+    certificates: Yup.array().of(
+        Yup.object().shape({
+            document: Yup.string().required('Document name is required'),
+            description: Yup.string().nullable(),
+            validityFrom: Yup.date().nullable().required('Valid from date is required'),
+            validityTo: Yup.date().nullable().required('Valid to date is required'),
+            file: Yup.mixed().nullable(),
+        })
     ),
 });
 
@@ -233,10 +258,10 @@ function OTPDialog({ open, onVerify, isLoading, error }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (otp.trim()) {
-            // .toUpperCase() add karne se casing ka masla hal ho jayega agar backend/URL uppercase hai
             onVerify(otp.trim().toUpperCase());
         }
     };
+
     return (
         <Dialog
             open={open}
@@ -367,12 +392,201 @@ OTPDialog.defaultProps = {
     error: '',
 };
 
+// ─── Certificate Entry Component ─────────────────────────────────────────────
+
+function CertificateEntry({ entry, onUpdate, onRemove, index, total }) {
+    return (
+        <Box
+            sx={{
+                p: 2.5,
+                bgcolor: '#f8fafc',
+                borderRadius: '10px',
+                border: '1px solid #eef0f6',
+                mb: 2,
+                position: 'relative',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                    borderColor: '#c7d2fe',
+                    bgcolor: '#fafbff',
+                },
+            }}
+        >
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box
+                        sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '8px',
+                            bgcolor: '#eef2ff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Iconify icon="mdi:certificate-outline" width={18} sx={{ color: '#3b5bdb' }} />
+                    </Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                        Certificate #{index + 1}
+                    </Typography>
+                </Stack>
+                <IconButton
+                    size="small"
+                    onClick={() => onRemove(index)}
+                    sx={{
+                        color: '#ef4444',
+                        bgcolor: '#fff1f1',
+                        borderRadius: '6px',
+                        '&:hover': { bgcolor: '#fee2e2' },
+                    }}
+                >
+                    <Iconify icon="mdi:trash-can-outline" width={16} />
+                </IconButton>
+            </Stack>
+
+            <Grid container spacing={2}>
+                <Grid xs={12} md={6}>
+                    <RHFAutocomplete
+                        name={`certificates.${index}.document`}
+                        label="Document Name *"
+                        placeholder="Select certificate type"
+                        options={CERTIFICATE_OPTIONS}
+                        freeSolo
+                        sx={INPUT_SX}
+                    />
+                </Grid>
+
+                <Grid xs={12} md={6}>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        label="Description"
+                        placeholder="Optional description"
+                        value={entry.description || ''}
+                        onChange={(e) => onUpdate(index, 'description', e.target.value)}
+                        sx={INPUT_SX}
+                    />
+                </Grid>
+
+                <Grid xs={12} md={6}>
+                    <DatePicker
+                        label="Valid From *"
+                        value={entry.validityFrom}
+                        onChange={(val) => onUpdate(index, 'validityFrom', val)}
+                        format="DD/MM/YYYY"
+                        slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                size: 'small',
+                                sx: INPUT_SX,
+                            },
+                        }}
+                    />
+                </Grid>
+
+                <Grid xs={12} md={6}>
+                    <DatePicker
+                        label="Valid To *"
+                        value={entry.validityTo}
+                        onChange={(val) => onUpdate(index, 'validityTo', val)}
+                        format="DD/MM/YYYY"
+                        minDate={entry.validityFrom || undefined}
+                        slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                size: 'small',
+                                sx: INPUT_SX,
+                            },
+                        }}
+                    />
+                </Grid>
+
+                <Grid xs={12}>
+                    <Box
+                        component="label"
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2,
+                            p: 1.5,
+                            borderRadius: '8px',
+                            border: '1.5px dashed #c7d2fe',
+                            cursor: 'pointer',
+                            bgcolor: '#fff',
+                            transition: 'all 0.15s ease',
+                            '&:hover': { bgcolor: '#eef2ff', borderColor: '#818cf8' },
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '8px',
+                                bgcolor: entry.file ? '#eef2ff' : '#f1f5f9',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                border: '1px solid #e2e8f0',
+                            }}
+                        >
+                            <Iconify
+                                icon={entry.file ? 'mdi:file-document-outline' : 'mdi:cloud-upload-outline'}
+                                width={20}
+                                sx={{ color: entry.file ? '#3b5bdb' : '#94a3b8' }}
+                            />
+                        </Box>
+                        <Box flex={1}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+                                {entry.file ? entry.file.name : 'Upload supporting document (optional)'}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                                {entry.file
+                                    ? `${(entry.file.size / 1024).toFixed(1)} KB`
+                                    : 'PDF, JPG, PNG up to 5MB'}
+                            </Typography>
+                        </Box>
+                        {entry.file && (
+                            <Chip
+                                label="Remove"
+                                size="small"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUpdate(index, 'file', null);
+                                }}
+                                sx={{
+                                    bgcolor: '#fee2e2',
+                                    color: '#ef4444',
+                                    fontSize: '0.7rem',
+                                    '&:hover': { bgcolor: '#fecaca' },
+                                }}
+                            />
+                        )}
+                        <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            hidden
+                            onChange={(e) => onUpdate(index, 'file', e.target.files[0] || null)}
+                        />
+                    </Box>
+                </Grid>
+            </Grid>
+        </Box>
+    );
+}
+
+CertificateEntry.propTypes = {
+    entry: PropTypes.object.isRequired,
+    onUpdate: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired,
+    index: PropTypes.number.isRequired,
+    total: PropTypes.number.isRequired,
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function PublicSupplierOnboardingForm() {
-
     const location = useLocation();
-
     const { enqueueSnackbar } = useSnackbar();
     const [searchParams] = useSearchParams();
 
@@ -392,38 +606,21 @@ export default function PublicSupplierOnboardingForm() {
     const [countries, setCountries] = useState([]);
     const [isLinkValid] = useState(true);
     const [errorMessage] = useState('');
-
-    // Certificate staged entry
-    const [certEntry, setCertEntry] = useState({
-        document: '',
-        description: '',
-        validityFrom: null,
-        validityTo: null,
-        file: null,
-    });
-    const [certList, setCertList] = useState([]);
-
-    // Logo
     const [logoFile, setLogoFile] = useState(null);
 
     // ── Decrypt OTP on mount ──────────────────────────────────────────────
     useEffect(() => {
-        // 1. URL se search parameters nikalen
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
-        const directOtp = urlParams.get('otp'); // Agar koi purana link direct use kare
+        const directOtp = urlParams.get('otp');
 
         let targetEncryptedOTP = null;
 
         if (token) {
             try {
-                // 2. Base64 token ko decode karke string banayen
                 const decodedString = atob(token);
-
-                // 3. Decoded string (vendorID=4&otp=...) ko parse karen
                 const decodedParams = new URLSearchParams(decodedString);
                 targetEncryptedOTP = decodedParams.get('otp');
-
                 console.log('✅ Token decoded successfully. Found OTP hash:', targetEncryptedOTP);
             } catch (e) {
                 console.error('❌ Failed to decode token string:', e);
@@ -431,14 +628,11 @@ export default function PublicSupplierOnboardingForm() {
                 return;
             }
         } else if (directOtp) {
-            // Agar direct link chal raha ho bina token param ke
             targetEncryptedOTP = directOtp;
         }
 
-        // 4. Ab decryption ka logic chalayen jo aap pehle chala rahe thay
         if (targetEncryptedOTP) {
             try {
-                // Aapka purana decryption function yahan pass hoga
                 const decrypted = decryptOTP(targetEncryptedOTP);
                 setDecryptedOTP(decrypted);
                 console.log('🔑 OTP Decrypted successfully! Actual Code:', decrypted);
@@ -449,7 +643,6 @@ export default function PublicSupplierOnboardingForm() {
         } else {
             setOtpError('No OTP configuration found or link expired.');
         }
-        // window.location.search lagane se jab bhi URL param badlega yeh auto run hoga
     }, [location]);
 
     // ── React Hook Form ──────────────────────────────────────────────────────
@@ -483,44 +676,41 @@ export default function PublicSupplierOnboardingForm() {
             yearsEuropeanBusiness: null,
             businessType: null,
             contacts: [{ contactType: null, name: '', jobTitle: '', mobileNumber: '', email: '' }],
+            certificates: [],
         },
     });
 
-    const { reset, watch, control, setValue, handleSubmit, formState: { isSubmitting } } = methods;
+    const {
+        reset,
+        watch,
+        control,
+        setValue,
+        handleSubmit,
+        formState: { isSubmitting, errors },
+    } = methods;
     const values = watch();
 
-    const { fields: contactFields, append: appendContact, remove: removeContact } = useFieldArray({ control, name: 'contacts' });
+    const {
+        fields: contactFields,
+        append: appendContact,
+        remove: removeContact,
+    } = useFieldArray({ control, name: 'contacts' });
+
+    const {
+        fields: certificateFields,
+        append: appendCertificate,
+        remove: removeCertificate,
+    } = useFieldArray({ control, name: 'certificates' });
 
     // ── Fetch Countries ──────────────────────────────────────────────────────
     useEffect(() => {
         if (!isOTPVerified) return;
         Get('Country/GetAll')
-            .then((res) => { if (res.status === 200) setCountries(res?.data?.Data || []); })
+            .then((res) => {
+                if (res.status === 200) setCountries(res?.data?.Data || []);
+            })
             .catch((err) => console.error('Error fetching countries:', err));
     }, [isOTPVerified]);
-
-    // ── Cert Handlers ────────────────────────────────────────────────────────
-    const handleAddCert = () => {
-        if (!certEntry.document || !certEntry.validityFrom || !certEntry.validityTo) {
-            enqueueSnackbar('Please fill Document, Validity From, and Validity To', { variant: 'warning' });
-            return;
-        }
-        setCertList((prev) => [
-            ...prev,
-            {
-                id: Date.now(),
-                document: certEntry.document,
-                description: certEntry.description || '',
-                validityFrom: certEntry.validityFrom,
-                validityTo: certEntry.validityTo,
-                file: certEntry.file,
-                fileName: certEntry.file?.name || '',
-            },
-        ]);
-        setCertEntry({ document: '', description: '', validityFrom: null, validityTo: null, file: null });
-    };
-
-    const handleRemoveCert = (id) => setCertList((prev) => prev.filter((c) => c.id !== id));
 
     // ── OTP Verification Handler ────────────────────────────────────────────
     const handleVerifyOTP = useCallback(
@@ -528,21 +718,17 @@ export default function PublicSupplierOnboardingForm() {
             setIsOTPLoading(true);
             setOtpError('');
 
-            // Simulate async verification
             setTimeout(() => {
-                // Debugging ke liye console taaki inspect element -> console mein live dikhe dono values
                 console.log("--- OTP Verification Debug ---");
-                console.log("User ne entered kiya:", userEnteredOTP);
-                console.log("System ke pass decryptedOTP hai:", decryptedOTP);
+                console.log("User entered:", userEnteredOTP);
+                console.log("Decrypted OTP:", decryptedOTP);
 
-                // Bug Fix 1: Check karein ke decryptedOTP exist karta hai ya nahi
                 if (!decryptedOTP) {
                     setOtpError('❌ OTP configuration missing or link expired.');
                     setIsOTPLoading(false);
                     return;
                 }
 
-                // Bug Fix 2: Dono ko .trim().toUpperCase() karein taaki spacing ya uppercase/lowercase ka masla na aaye
                 const isMatch = userEnteredOTP.trim().toUpperCase() === decryptedOTP.trim().toUpperCase();
 
                 if (isMatch) {
@@ -555,7 +741,6 @@ export default function PublicSupplierOnboardingForm() {
                 }
             }, 800);
         },
-        // Dependency array mein decryptedOTP lazmi hona chahiye taaki jab woh change ho, function naye data ke sath update ho jaye
         [decryptedOTP, enqueueSnackbar]
     );
 
@@ -564,7 +749,7 @@ export default function PublicSupplierOnboardingForm() {
         const payload = {
             vendorID,
             companyID,
-            otp: encryptedOTP, // send encrypted OTP to backend
+            otp: encryptedOTP,
             supplierName: data.supName,
             addressLine1: data.addressLine1,
             addressLine2: data.addressLine2,
@@ -592,7 +777,13 @@ export default function PublicSupplierOnboardingForm() {
             yearsEuropeanBusiness: data.yearsEuropeanBusiness?.value || '',
             businessType: data.businessType?.value || '',
             contacts: data.contacts.map((c) => ({ ...c, contactType: c.contactType?.value || '' })),
-            certificates: certList,
+            certificates: data.certificates.map((c) => ({
+                document: c.document,
+                description: c.description || '',
+                validityFrom: c.validityFrom,
+                validityTo: c.validityTo,
+                file: c.file,
+            })),
         };
 
         try {
@@ -601,7 +792,6 @@ export default function PublicSupplierOnboardingForm() {
             if (response.status === 200 || response.status === 201) {
                 enqueueSnackbar('Profile submitted successfully!', { variant: 'success' });
                 reset();
-                setCertList([]);
                 setLogoFile(null);
             } else {
                 enqueueSnackbar(response?.data?.message || 'Failed to submit', { variant: 'error' });
@@ -614,18 +804,22 @@ export default function PublicSupplierOnboardingForm() {
         }
     });
 
-    const handleCancel = () => { reset(); setCertList([]); setLogoFile(null); };
+    const handleCancel = () => {
+        reset();
+        setLogoFile(null);
+    };
 
     // ── Guards ───────────────────────────────────────────────────────────────
     if (!isLinkValid) {
         return (
             <Container maxWidth="sm" sx={{ mt: 10 }}>
-                <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>{errorMessage}</Alert>
+                <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
+                    {errorMessage}
+                </Alert>
             </Container>
         );
     }
 
-    // If OTP is not yet verified, show only the OTP dialog
     if (!isOTPVerified) {
         return (
             <Box
@@ -652,7 +846,6 @@ export default function PublicSupplierOnboardingForm() {
     return (
         <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', py: 4 }}>
             <Container maxWidth="lg">
-
                 {/* ── Page Header ── */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
                     <Box>
@@ -665,7 +858,9 @@ export default function PublicSupplierOnboardingForm() {
                         <Stack direction="row" alignItems="center" spacing={0.75}>
                             <Typography variant="caption" sx={{ color: '#94a3b8' }}>Onboard</Typography>
                             <Iconify icon="mdi:chevron-right" width={14} sx={{ color: '#cbd5e1' }} />
-                            <Typography variant="caption" sx={{ color: '#3b5bdb', fontWeight: 600 }}>Supplier Details</Typography>
+                            <Typography variant="caption" sx={{ color: '#3b5bdb', fontWeight: 600 }}>
+                                Supplier Details
+                            </Typography>
                         </Stack>
                     </Box>
                     <Box
@@ -678,13 +873,13 @@ export default function PublicSupplierOnboardingForm() {
 
                 <FormProvider methods={methods} onSubmit={onSubmit}>
                     <Stack spacing={3}>
-
                         {/* ══════════════════ SECTION 1 — Company Information ══════════════════ */}
                         <Card sx={SECTION_CARD_SX}>
                             <SectionHeader
                                 icon="mdi:domain"
                                 title="Company Information"
                                 subtitle="Enter your company's primary details and contact address"
+                                badge="Required"
                             />
                             <Grid container spacing={2.5}>
                                 <Grid xs={12}>
@@ -885,9 +1080,9 @@ export default function PublicSupplierOnboardingForm() {
                                 icon="mdi:cog-outline"
                                 title="Setup Details"
                                 subtitle="Capacity, financials, and licensing information"
+                                badge="Required"
                             />
                             <Grid container spacing={2.5}>
-                                {/* Capacity per Month */}
                                 <Grid xs={12} md={6}>
                                     <Stack direction="row" spacing={1.5} alignItems="flex-start">
                                         <RHFTextField
@@ -909,7 +1104,6 @@ export default function PublicSupplierOnboardingForm() {
                                     </Stack>
                                 </Grid>
 
-                                {/* Turnover per Year */}
                                 <Grid xs={12} md={6}>
                                     <Stack direction="row" spacing={1.5} alignItems="flex-start">
                                         <RHFTextField
@@ -930,7 +1124,6 @@ export default function PublicSupplierOnboardingForm() {
                                     </Stack>
                                 </Grid>
 
-                                {/* Business License No */}
                                 <Grid xs={12} md={6}>
                                     <Stack direction="row" spacing={1.5} alignItems="flex-start">
                                         <RHFTextField
@@ -961,7 +1154,6 @@ export default function PublicSupplierOnboardingForm() {
                                     </Stack>
                                 </Grid>
 
-                                {/* Additional Info */}
                                 <Grid xs={12}>
                                     <RHFTextField
                                         name="additionalInfo"
@@ -981,6 +1173,7 @@ export default function PublicSupplierOnboardingForm() {
                                 icon="mdi:chart-bar"
                                 title="Business Profile"
                                 subtitle="Business metrics, experience, and operational details"
+                                badge="Required"
                             />
                             <Grid container spacing={2.5}>
                                 <Grid xs={12} md={6}>
@@ -1025,7 +1218,6 @@ export default function PublicSupplierOnboardingForm() {
                                     />
                                 </Grid>
 
-                                {/* Experience in Business — multi-select */}
                                 <Grid xs={12} md={6}>
                                     <Controller
                                         name="experienceInBusiness"
@@ -1058,7 +1250,15 @@ export default function PublicSupplierOnboardingForm() {
                                                             ))}
                                                         </Box>
                                                     )}
-                                                    MenuProps={{ PaperProps: { sx: { borderRadius: '10px', mt: 0.5, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' } } }}
+                                                    MenuProps={{
+                                                        PaperProps: {
+                                                            sx: {
+                                                                borderRadius: '10px',
+                                                                mt: 0.5,
+                                                                boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                                                            },
+                                                        },
+                                                    }}
                                                 >
                                                     {EXPERIENCE_OPTIONS.map((opt) => (
                                                         <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.875rem' }}>
@@ -1187,6 +1387,7 @@ export default function PublicSupplierOnboardingForm() {
                                 icon="mdi:contacts-outline"
                                 title="Contact Information"
                                 subtitle="Add key contacts for different departments"
+                                badge={contactFields.length > 0 ? `${contactFields.length} contacts` : 'Required'}
                             />
 
                             <TableContainer
@@ -1355,157 +1556,66 @@ export default function PublicSupplierOnboardingForm() {
                             </Box>
                         </Card>
 
-                        {/* ══════════════════ SECTION 5 — Certificates ══════════════════ */}
+                        {/* ══════════════════ SECTION 5 — Certificates (Multiple) ══════════════════ */}
                         <Card sx={SECTION_CARD_SX}>
                             <SectionHeader
                                 icon="mdi:certificate-outline"
                                 title="Certificates & Patents"
                                 subtitle="Upload all certifications and patents your company holds"
+                                badge={certificateFields.length > 0 ? `${certificateFields.length} added` : 'Optional'}
                             />
 
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                {/* Input Row */}
-                                <Box
-                                    sx={{
-                                        p: 2.5,
-                                        bgcolor: '#f8fafc',
-                                        borderRadius: '10px',
-                                        border: '1px solid #eef0f6',
-                                        mb: 2.5,
-                                    }}
-                                >
-                                    <Grid container spacing={2} alignItems="stretch">
-                                        {/* Form fields — left */}
-                                        <Grid xs={12} md={8}>
-                                            <Grid container spacing={2}>
-                                                <Grid xs={12} md={6}>
-                                                    <TextField
-                                                        fullWidth
-                                                        size="small"
-                                                        label="Document Name *"
-                                                        placeholder="e.g. ISO 9001"
-                                                        value={certEntry.document}
-                                                        onChange={(e) => setCertEntry((p) => ({ ...p, document: e.target.value }))}
-                                                        sx={INPUT_SX}
-                                                    />
-                                                </Grid>
+                                <Stack spacing={2}>
+                                    {certificateFields.map((field, index) => (
+                                        <CertificateEntry
+                                            key={field.id}
+                                            entry={field}
+                                            index={index}
+                                            total={certificateFields.length}
+                                            onUpdate={(idx, key, value) => {
+                                                const updated = [...certificateFields];
+                                                updated[idx] = { ...updated[idx], [key]: value };
+                                                setValue('certificates', updated);
+                                            }}
+                                            onRemove={removeCertificate}
+                                        />
+                                    ))}
 
-                                                <Grid xs={12} md={6}>
-                                                    <TextField
-                                                        fullWidth
-                                                        size="small"
-                                                        label="Description"
-                                                        placeholder="Optional description"
-                                                        value={certEntry.description}
-                                                        onChange={(e) => setCertEntry((p) => ({ ...p, description: e.target.value }))}
-                                                        sx={INPUT_SX}
-                                                    />
-                                                </Grid>
+                                    {certificateFields.length === 0 && (
+                                        <Box
+                                            sx={{
+                                                p: 3,
+                                                textAlign: 'center',
+                                                border: '1.5px dashed #e2e8f0',
+                                                borderRadius: '10px',
+                                                bgcolor: '#fafbff',
+                                            }}
+                                        >
+                                            <Iconify
+                                                icon="mdi:certificate-outline"
+                                                width={40}
+                                                sx={{ color: '#c7d2fe', mb: 1 }}
+                                            />
+                                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                                                No certificates added yet. Click the button below to add one.
+                                            </Typography>
+                                        </Box>
+                                    )}
 
-                                                <Grid xs={12} md={6}>
-                                                    <DatePicker
-                                                        label="Valid From *"
-                                                        value={certEntry.validityFrom}
-                                                        onChange={(val) => setCertEntry((p) => ({ ...p, validityFrom: val }))}
-                                                        format="DD/MM/YYYY"
-                                                        slotProps={{
-                                                            textField: {
-                                                                fullWidth: true,
-                                                                size: 'small',
-                                                                sx: INPUT_SX,
-                                                            },
-                                                        }}
-                                                    />
-                                                </Grid>
-
-                                                <Grid xs={12} md={6}>
-                                                    <DatePicker
-                                                        label="Valid To *"
-                                                        value={certEntry.validityTo}
-                                                        onChange={(val) => setCertEntry((p) => ({ ...p, validityTo: val }))}
-                                                        format="DD/MM/YYYY"
-                                                        minDate={certEntry.validityFrom || undefined}
-                                                        slotProps={{
-                                                            textField: {
-                                                                fullWidth: true,
-                                                                size: 'small',
-                                                                sx: INPUT_SX,
-                                                            },
-                                                        }}
-                                                    />
-                                                </Grid>
-                                            </Grid>
-                                        </Grid>
-
-                                        {/* File drop zone — right */}
-                                        <Grid xs={12} md={4} sx={{ display: 'flex' }}>
-                                            <Box
-                                                component="label"
-                                                sx={{
-                                                    border: '1.5px dashed #c7d2fe',
-                                                    borderRadius: '10px',
-                                                    p: 2,
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    width: '100%',
-                                                    bgcolor: '#fff',
-                                                    transition: 'all 0.15s ease',
-                                                    '&:hover': { bgcolor: '#eef2ff', borderColor: '#818cf8' },
-                                                }}
-                                            >
-                                                <Box
-                                                    sx={{
-                                                        width: 44,
-                                                        height: 44,
-                                                        borderRadius: '10px',
-                                                        bgcolor: '#eef2ff',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        mb: 1,
-                                                    }}
-                                                >
-                                                    <Iconify icon="mdi:cloud-upload-outline" width={24} sx={{ color: '#3b5bdb' }} />
-                                                </Box>
-                                                <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.8rem' }}>
-                                                    Drop or browse file
-                                                </Typography>
-                                                <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.25, textAlign: 'center' }}>
-                                                    PDF, JPG, PNG supported
-                                                </Typography>
-                                                {certEntry.file && (
-                                                    <Chip
-                                                        label={certEntry.file.name}
-                                                        size="small"
-                                                        onDelete={() => setCertEntry((p) => ({ ...p, file: null }))}
-                                                        sx={{
-                                                            mt: 1,
-                                                            maxWidth: '100%',
-                                                            bgcolor: '#eef2ff',
-                                                            color: '#3b5bdb',
-                                                            fontSize: '0.7rem',
-                                                            border: '1px solid #c7d2fe',
-                                                            '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' },
-                                                        }}
-                                                    />
-                                                )}
-                                                <input
-                                                    type="file"
-                                                    hidden
-                                                    onChange={(e) => setCertEntry((p) => ({ ...p, file: e.target.files[0] || null }))}
-                                                />
-                                            </Box>
-                                        </Grid>
-                                    </Grid>
-
-                                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <Button
                                             size="small"
                                             variant="contained"
-                                            onClick={handleAddCert}
+                                            onClick={() =>
+                                                appendCertificate({
+                                                    document: '',
+                                                    description: '',
+                                                    validityFrom: null,
+                                                    validityTo: null,
+                                                    file: null,
+                                                })
+                                            }
                                             startIcon={<Iconify icon="mdi:plus" width={16} />}
                                             sx={{
                                                 bgcolor: '#3b5bdb',
@@ -1521,64 +1631,7 @@ export default function PublicSupplierOnboardingForm() {
                                             Add Certificate
                                         </Button>
                                     </Box>
-                                </Box>
-
-                                {/* Certificates list */}
-                                {certList.length > 0 && (
-                                    <Stack spacing={1}>
-                                        {certList.map((cert) => (
-                                            <Box
-                                                key={cert.id}
-                                                sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'space-between',
-                                                    px: 2,
-                                                    py: 1.25,
-                                                    borderRadius: '8px',
-                                                    border: '1px solid #eef0f6',
-                                                    bgcolor: '#fff',
-                                                    '&:hover': { bgcolor: '#fafbff' },
-                                                }}
-                                            >
-                                                <Stack direction="row" alignItems="center" spacing={1.5}>
-                                                    <Box
-                                                        sx={{
-                                                            width: 34,
-                                                            height: 34,
-                                                            borderRadius: '8px',
-                                                            bgcolor: '#eef2ff',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            flexShrink: 0,
-                                                        }}
-                                                    >
-                                                        <Iconify icon="mdi:file-certificate-outline" width={18} sx={{ color: '#3b5bdb' }} />
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.85rem' }}>
-                                                            {cert.document}
-                                                        </Typography>
-                                                        <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                                                            {dayjs(cert.validityFrom).format('DD MMM YYYY')} → {dayjs(cert.validityTo).format('DD MMM YYYY')}
-                                                            {cert.fileName && ` · ${cert.fileName}`}
-                                                        </Typography>
-                                                    </Box>
-                                                </Stack>
-                                                <Tooltip title="Remove">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleRemoveCert(cert.id)}
-                                                        sx={{ color: '#ef4444', borderRadius: '6px', '&:hover': { bgcolor: '#fee2e2' } }}
-                                                    >
-                                                        <Iconify icon="mdi:close" width={16} />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Box>
-                                        ))}
-                                    </Stack>
-                                )}
+                                </Stack>
                             </LocalizationProvider>
                         </Card>
 
@@ -1641,7 +1694,12 @@ export default function PublicSupplierOnboardingForm() {
                                     <Chip
                                         label="Change"
                                         size="small"
-                                        sx={{ bgcolor: '#eef2ff', color: '#3b5bdb', fontSize: '0.72rem', border: '1px solid #c7d2fe' }}
+                                        sx={{
+                                            bgcolor: '#eef2ff',
+                                            color: '#3b5bdb',
+                                            fontSize: '0.72rem',
+                                            border: '1px solid #c7d2fe',
+                                        }}
                                     />
                                 )}
                                 <input
@@ -1700,7 +1758,6 @@ export default function PublicSupplierOnboardingForm() {
                                 Submit Onboarding
                             </LoadingButton>
                         </Box>
-
                     </Stack>
                 </FormProvider>
             </Container>

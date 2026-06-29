@@ -50,7 +50,7 @@ const SupplierGrid = () => {
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCountries, setSelectedCountries] = useState([]);
   const [countryOptions, setCountryOptions] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -184,13 +184,15 @@ const SupplierGrid = () => {
     return map;
   }, [countryOptions]);
 
-  // Filter Data based on search and country
+  // Filter Data based on search and multiple countries
   const filteredData = useMemo(() => {
     let filtered = reportData;
 
-    if (selectedCountry) {
+    // Filter by multiple countries
+    if (selectedCountries.length > 0) {
+      const selectedCountryNames = selectedCountries.map(c => c.Country_Name);
       filtered = filtered.filter(
-        (item) => item.CountryName === selectedCountry.Country_Name
+        (item) => selectedCountryNames.includes(item.CountryName)
       );
     }
 
@@ -207,7 +209,7 @@ const SupplierGrid = () => {
     }
 
     return filtered;
-  }, [reportData, searchText, selectedCountry]);
+  }, [reportData, searchText, selectedCountries]);
 
   // Sort Data
   const sortedData = useMemo(() => {
@@ -269,12 +271,13 @@ const SupplierGrid = () => {
         }}
       >
         <Grid container spacing={2} alignItems="center">
-          {/* Country Filter */}
+          {/* Country Filter - Multi Select */}
           <Grid item xs={12} md={3}>
             <Autocomplete
-              value={selectedCountry}
+              multiple // Enable multi-select
+              value={selectedCountries}
               onChange={(event, newValue) => {
-                setSelectedCountry(newValue);
+                setSelectedCountries(newValue);
                 setPage(0);
               }}
               options={countryOptions}
@@ -305,7 +308,7 @@ const SupplierGrid = () => {
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: '#ffffff',
                       borderRadius: '12px',
-                      height: '48px',
+                      minHeight: '48px',
                       '& fieldset': { borderColor: '#d0d5dd' },
                       '&:hover fieldset': { borderColor: '#3366ff' },
                       '&.Mui-focused fieldset': { borderColor: '#3366ff', borderWidth: '2px' },
@@ -315,18 +318,11 @@ const SupplierGrid = () => {
                     ...params.InputProps,
                     startAdornment: (
                       <>
-                        {selectedCountry?.Country_Code ? (
-                          <InputAdornment position="start">
-                            <Iconify
-                              icon={`circle-flags:${selectedCountry.Country_Code.toLowerCase()}`}
-                              sx={{ width: 22, height: 22, ml: 0.5 }}
-                            />
-                          </InputAdornment>
-                        ) : (
+                        {selectedCountries.length === 0 ? (
                           <InputAdornment position="start">
                             <Iconify icon="mdi:earth" width={20} sx={{ color: '#667085', ml: 0.5 }} />
                           </InputAdornment>
-                        )}
+                        ) : null}
                         {params.InputProps.startAdornment}
                       </>
                     ),
@@ -335,6 +331,37 @@ const SupplierGrid = () => {
               )}
               clearIcon={<Iconify icon="eva:close-fill" width={18} sx={{ color: '#667085' }} />}
               sx={{ width: '100%' }}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    {...getTagProps({ index })}
+                    key={option.Country_ID}
+                    icon={
+                      option.Country_Code ? (
+                        <Iconify
+                          icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
+                          sx={{ width: 16, height: 16 }}
+                        />
+                      ) : undefined
+                    }
+                    label={option.Country_Name}
+                    size="small"
+                    sx={{
+                      backgroundColor: '#e8edf5',
+                      color: '#3366ff',
+                      fontWeight: 500,
+                      borderRadius: '6px',
+                      '&:hover': {
+                        backgroundColor: '#e8edf5', // Remove hover background change
+                      },
+                      '& .MuiChip-deleteIcon': {
+                        color: '#667085',
+                        '&:hover': { color: '#344054' },
+                      },
+                    }}
+                  />
+                ))
+              }
             />
           </Grid>
 
@@ -399,20 +426,23 @@ const SupplierGrid = () => {
         </Grid>
 
         {/* Active Filters Display */}
-        {(selectedCountry || searchText) && (
+        {(selectedCountries.length > 0 || searchText) && (
           <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap', gap: 1 }}>
-            {selectedCountry && (
+            {selectedCountries.map((country) => (
               <Chip
+                key={country.Country_ID}
                 icon={
-                  selectedCountry.Country_Code ? (
+                  country.Country_Code ? (
                     <Iconify
-                      icon={`circle-flags:${selectedCountry.Country_Code.toLowerCase()}`}
+                      icon={`circle-flags:${country.Country_Code.toLowerCase()}`}
                       sx={{ width: 16, height: 16, ml: '8px !important' }}
                     />
                   ) : undefined
                 }
-                label={`Country: ${selectedCountry.Country_Name}`}
-                onDelete={() => setSelectedCountry(null)}
+                label={`Country: ${country.Country_Name}`}
+                onDelete={() => {
+                  setSelectedCountries(selectedCountries.filter(c => c.Country_ID !== country.Country_ID));
+                }}
                 deleteIcon={<Iconify icon="eva:close-fill" width={16} />}
                 size="small"
                 sx={{
@@ -420,13 +450,16 @@ const SupplierGrid = () => {
                   color: '#3366ff',
                   fontWeight: 500,
                   borderRadius: '6px',
+                  '&:hover': {
+                    backgroundColor: '#e8edf5', // Remove hover background change
+                  },
                   '& .MuiChip-deleteIcon': {
                     color: '#667085',
                     '&:hover': { color: '#344054' },
                   },
                 }}
               />
-            )}
+            ))}
             {searchText && (
               <Chip
                 label={`Search: "${searchText}"`}
@@ -438,6 +471,9 @@ const SupplierGrid = () => {
                   color: '#3366ff',
                   fontWeight: 500,
                   borderRadius: '6px',
+                  '&:hover': {
+                    backgroundColor: '#e8edf5', // Remove hover background change
+                  },
                   '& .MuiChip-deleteIcon': {
                     color: '#667085',
                     '&:hover': { color: '#344054' },
@@ -453,6 +489,9 @@ const SupplierGrid = () => {
                 color: '#667085',
                 fontWeight: 400,
                 borderRadius: '6px',
+                '&:hover': {
+                  backgroundColor: 'transparent', // Remove hover background change
+                },
               }}
             />
           </Stack>
