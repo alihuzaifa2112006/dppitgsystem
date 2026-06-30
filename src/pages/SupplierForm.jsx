@@ -98,13 +98,46 @@ const SECTION_CARD_SX = {
     },
 };
 
+// ─── Token Decoder ────────────────────────────────────────────────────────────
+
 /**
- * Decrypt OTP - Replace this with your actual decryption logic
- * For demo purposes, we're just returning the OTP as-is
+ * Decodes the base64 token from the URL and returns { vendorID, companyID, otp, expiry }
+ * URL example: ?token=dmVuZG9ySUQ9NSZvdHA9SDc3TE1VJmV4cGlyeT0xNzgzNDA5ODA4MDU5JmNvbXBhbnlJRD0xMQ==
+ * Decoded string: vendorID=5&otp=H77LMU&expiry=1783409808059&companyID=11
  */
-const decryptOTP = (encryptedOTP) => {
-    if (!encryptedOTP) return null;
-    return encryptedOTP;
+const decodeToken = (token) => {
+    if (!token) return { vendorID: null, companyID: null, otp: null, expiry: null };
+    try {
+        const decoded = atob(token);
+        const params = new URLSearchParams(decoded);
+        return {
+            vendorID: params.get('vendorID'),
+            companyID: params.get('companyID'),
+            otp: params.get('otp'),
+            expiry: params.get('expiry'),
+        };
+    } catch (e) {
+        console.error('❌ Failed to decode token:', e);
+        return { vendorID: null, companyID: null, otp: null, expiry: null };
+    }
+};
+
+// ─── File Upload Helper ───────────────────────────────────────────────────────
+
+/**
+ * Uploads a single file to the server.
+ * Returns the file path/URL string on success, throws on failure.
+ */
+const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await Post('SupplierOnboarding/UploadFile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (response.status === 200 || response.status === 201) {
+        return response.data?.Data?.filePath || response.data?.filePath || '';
+    }
+    throw new Error(response.data?.Message || 'File upload failed');
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -186,6 +219,117 @@ FieldLabel.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
+// ─── File Upload Button (reusable) ────────────────────────────────────────────
+
+function FileUploadButton({ file, onFileChange, onClear, accept = '.pdf,.jpg,.jpeg,.png', label = 'Upload file', hint = 'PDF, JPG, PNG up to 5MB' }) {
+    const [fileError, setFileError] = useState('');
+
+    const handleChange = (e) => {
+        const selected = e.target.files[0];
+        if (!selected) return;
+        const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!validTypes.includes(selected.type)) {
+            setFileError('Only PDF, JPG, or PNG files are allowed');
+            return;
+        }
+        if (selected.size > 5 * 1024 * 1024) {
+            setFileError('File size must be less than 5MB');
+            return;
+        }
+        setFileError('');
+        onFileChange(selected);
+    };
+
+    return (
+        <Box
+            component="label"
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                p: 1.5,
+                borderRadius: '8px',
+                border: `1.5px dashed ${file ? '#22c55e' : '#c7d2fe'}`,
+                cursor: 'pointer',
+                bgcolor: file ? '#f0fdf4' : '#fff',
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                    bgcolor: file ? '#dcfce7' : '#eef2ff',
+                    borderColor: file ? '#16a34a' : '#818cf8',
+                },
+            }}
+        >
+            <Box
+                sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '8px',
+                    bgcolor: file ? '#dcfce7' : '#f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    border: `1px solid ${file ? '#86efac' : '#e2e8f0'}`,
+                }}
+            >
+                <Iconify
+                    icon={file ? 'mdi:file-check-outline' : 'mdi:cloud-upload-outline'}
+                    width={20}
+                    sx={{ color: file ? '#16a34a' : '#94a3b8' }}
+                />
+            </Box>
+            <Box flex={1}>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+                    {file ? file.name : label}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                    {file ? `${(file.size / 1024).toFixed(1)} KB` : hint}
+                </Typography>
+                {fileError && (
+                    <Typography variant="caption" sx={{ color: '#ef4444', display: 'block', mt: 0.5 }}>
+                        {fileError}
+                    </Typography>
+                )}
+            </Box>
+            {file && (
+                <Chip
+                    label="Remove"
+                    size="small"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setFileError('');
+                        onClear();
+                    }}
+                    sx={{
+                        bgcolor: '#fee2e2',
+                        color: '#ef4444',
+                        fontSize: '0.7rem',
+                        '&:hover': { bgcolor: '#fecaca' },
+                    }}
+                />
+            )}
+            <input type="file" accept={accept} hidden onChange={handleChange} />
+        </Box>
+    );
+}
+
+FileUploadButton.propTypes = {
+    file: PropTypes.object,
+    onFileChange: PropTypes.func.isRequired,
+    onClear: PropTypes.func.isRequired,
+    accept: PropTypes.string,
+    label: PropTypes.string,
+    hint: PropTypes.string,
+};
+
+FileUploadButton.defaultProps = {
+    file: null,
+    accept: '.pdf,.jpg,.jpeg,.png',
+    label: 'Upload file',
+    hint: 'PDF, JPG, PNG up to 5MB',
+};
+
 // ─── Validation Schema ────────────────────────────────────────────────────────
 
 const NewSupplierSchema = Yup.object().shape({
@@ -206,12 +350,12 @@ const NewSupplierSchema = Yup.object().shape({
     fax: Yup.string().nullable(),
     zipCode: Yup.string().nullable(),
     webAddress: Yup.string().nullable(),
-    mainExportMarket: Yup.object().nullable().shape({ label: Yup.string().required(), value: Yup.string().required() }),
+    mainExportMarket: Yup.object().nullable(),
     onboardingEmail: Yup.string().required('Email is required').email('Invalid email format'),
     capacityPerMonth: Yup.string().required('Capacity is required'),
-    capacityUnit: Yup.object().nullable().required('Unit is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
+    unit: Yup.object().nullable().required('Unit is required'),
     turnoverPerYear: Yup.string().required('Turnover is required'),
-    turnoverUnit: Yup.object().nullable().required('Currency is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
+    currency: Yup.object().nullable().required('Currency is required'),
     businessLicenseNo: Yup.string().required('Business License No is required'),
     additionalInfo: Yup.string().nullable(),
     noOfEmployee: Yup.object().nullable().required('No. of Employees is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
@@ -224,7 +368,7 @@ const NewSupplierSchema = Yup.object().shape({
     businessType: Yup.object().nullable().required('Business Type is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
     contacts: Yup.array().of(
         Yup.object().shape({
-            contactType: Yup.object().nullable().required('Contact Type is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
+            contactType: Yup.object().nullable().required('Contact Type is required'),
             name: Yup.string().required('Name is required'),
             jobTitle: Yup.string().nullable(),
             mobileNumber: Yup.string().required('Mobile Number is required'),
@@ -235,11 +379,22 @@ const NewSupplierSchema = Yup.object().shape({
         Yup.object().shape({
             document: Yup.string().required('Document name is required'),
             description: Yup.string().nullable(),
-            validityFrom: Yup.date().nullable().required('Valid from date is required'),
-            validityTo: Yup.date().nullable().required('Valid to date is required'),
-            file: Yup.mixed().nullable(),
+            validityFrom: Yup.mixed().nullable().required('Valid from date is required'),
+            validityTo: Yup.mixed().nullable().required('Valid to date is required'),
+            file: Yup.mixed()
+                .nullable()
+                .required('Certificate file is required')
+                .test('fileType', 'Only PDF, JPG, or PNG files are allowed', (value) => {
+                    if (!value) return false;
+                    const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+                    return validTypes.includes(value.type);
+                })
+                .test('fileSize', 'File size must be less than 5MB', (value) => {
+                    if (!value) return false;
+                    return value.size <= 5 * 1024 * 1024;
+                }),
         })
-    ),
+    ).min(1, 'At least one certificate is required'),
 });
 
 // ─── OTP Dialog Component ────────────────────────────────────────────────────
@@ -394,7 +549,7 @@ OTPDialog.defaultProps = {
 
 // ─── Certificate Entry Component ─────────────────────────────────────────────
 
-function CertificateEntry({ entry, onUpdate, onRemove, index, total }) {
+function CertificateEntry({ entry, onUpdate, onRemove, index }) {
     return (
         <Box
             sx={{
@@ -469,106 +624,51 @@ function CertificateEntry({ entry, onUpdate, onRemove, index, total }) {
                 </Grid>
 
                 <Grid xs={12} md={6}>
-                    <DatePicker
-                        label="Valid From *"
-                        value={entry.validityFrom}
-                        onChange={(val) => onUpdate(index, 'validityFrom', val)}
-                        format="DD/MM/YYYY"
-                        slotProps={{
-                            textField: {
-                                fullWidth: true,
-                                size: 'small',
-                                sx: INPUT_SX,
-                            },
-                        }}
-                    />
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                            label="Valid From *"
+                            value={entry.validityFrom}
+                            onChange={(val) => onUpdate(index, 'validityFrom', val)}
+                            format="DD/MM/YYYY"
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                    size: 'small',
+                                    sx: INPUT_SX,
+                                },
+                            }}
+                        />
+                    </LocalizationProvider>
                 </Grid>
 
                 <Grid xs={12} md={6}>
-                    <DatePicker
-                        label="Valid To *"
-                        value={entry.validityTo}
-                        onChange={(val) => onUpdate(index, 'validityTo', val)}
-                        format="DD/MM/YYYY"
-                        minDate={entry.validityFrom || undefined}
-                        slotProps={{
-                            textField: {
-                                fullWidth: true,
-                                size: 'small',
-                                sx: INPUT_SX,
-                            },
-                        }}
-                    />
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                            label="Valid To *"
+                            value={entry.validityTo}
+                            onChange={(val) => onUpdate(index, 'validityTo', val)}
+                            format="DD/MM/YYYY"
+                            minDate={entry.validityFrom || undefined}
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                    size: 'small',
+                                    sx: INPUT_SX,
+                                },
+                            }}
+                        />
+                    </LocalizationProvider>
                 </Grid>
 
+                {/* ── File upload — stored locally until Submit ── */}
                 <Grid xs={12}>
-                    <Box
-                        component="label"
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2,
-                            p: 1.5,
-                            borderRadius: '8px',
-                            border: '1.5px dashed #c7d2fe',
-                            cursor: 'pointer',
-                            bgcolor: '#fff',
-                            transition: 'all 0.15s ease',
-                            '&:hover': { bgcolor: '#eef2ff', borderColor: '#818cf8' },
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: '8px',
-                                bgcolor: entry.file ? '#eef2ff' : '#f1f5f9',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                border: '1px solid #e2e8f0',
-                            }}
-                        >
-                            <Iconify
-                                icon={entry.file ? 'mdi:file-document-outline' : 'mdi:cloud-upload-outline'}
-                                width={20}
-                                sx={{ color: entry.file ? '#3b5bdb' : '#94a3b8' }}
-                            />
-                        </Box>
-                        <Box flex={1}>
-                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
-                                {entry.file ? entry.file.name : 'Upload supporting document (optional)'}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                                {entry.file
-                                    ? `${(entry.file.size / 1024).toFixed(1)} KB`
-                                    : 'PDF, JPG, PNG up to 5MB'}
-                            </Typography>
-                        </Box>
-                        {entry.file && (
-                            <Chip
-                                label="Remove"
-                                size="small"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onUpdate(index, 'file', null);
-                                }}
-                                sx={{
-                                    bgcolor: '#fee2e2',
-                                    color: '#ef4444',
-                                    fontSize: '0.7rem',
-                                    '&:hover': { bgcolor: '#fecaca' },
-                                }}
-                            />
-                        )}
-                        <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            hidden
-                            onChange={(e) => onUpdate(index, 'file', e.target.files[0] || null)}
-                        />
-                    </Box>
+                    <FileUploadButton
+                        file={entry.file}
+                        onFileChange={(file) => onUpdate(index, 'file', file)}
+                        onClear={() => onUpdate(index, 'file', null)}
+                        label="Upload certificate file *"
+                        hint="PDF, JPG, PNG up to 5MB (Required) — uploaded on Submit"
+                    />
                 </Grid>
             </Grid>
         </Box>
@@ -580,7 +680,6 @@ CertificateEntry.propTypes = {
     onUpdate: PropTypes.func.isRequired,
     onRemove: PropTypes.func.isRequired,
     index: PropTypes.number.isRequired,
-    total: PropTypes.number.isRequired,
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -590,60 +689,60 @@ export default function PublicSupplierOnboardingForm() {
     const { enqueueSnackbar } = useSnackbar();
     const [searchParams] = useSearchParams();
 
-    const vendorID = searchParams.get('vendorID');
-    const companyID = searchParams.get('companyID');
-    const encryptedOTP = searchParams.get('otp');
-    const expiry = searchParams.get('expiry');
+    // ── Decode token from URL ────────────────────────────────────────────────
+    // Supports both ?token=<base64> and raw ?vendorID=&companyID=&otp= params
+    const [decodedParams, setDecodedParams] = useState({
+        vendorID: null,
+        companyID: null,
+        otp: null,
+        expiry: null,
+    });
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (token) {
+            const parsed = decodeToken(token);
+            setDecodedParams(parsed);
+            console.log('✅ Token decoded:', parsed);
+        } else {
+            // Fallback: read params directly from URL
+            setDecodedParams({
+                vendorID: urlParams.get('vendorID'),
+                companyID: urlParams.get('companyID'),
+                otp: urlParams.get('otp'),
+                expiry: urlParams.get('expiry'),
+            });
+        }
+    }, [location]);
 
     // ── OTP States ──────────────────────────────────────────────────────────
     const [isOTPVerified, setIsOTPVerified] = useState(false);
     const [isOTPLoading, setIsOTPLoading] = useState(false);
     const [otpError, setOtpError] = useState('');
-    const [decryptedOTP, setDecryptedOTP] = useState(null);
 
     // ── Form States ─────────────────────────────────────────────────────────
     const [isLoading, setLoading] = useState(false);
     const [countries, setCountries] = useState([]);
-    const [isLinkValid] = useState(true);
-    const [errorMessage] = useState('');
+    const [exportMarketValue, setExportMarketValue] = useState([]);
+    const [unitValue, setUnitValue] = useState([]);
+    const [currencyValue, setCurrencyValue] = useState([]);
+    const [contactTypeValue, setContactTypeValue] = useState([]);
+
+    // ── Local file states (uploaded on Submit, not on select) ───────────────
     const [logoFile, setLogoFile] = useState(null);
+    const [businessLicenseFile, setBusinessLicenseFile] = useState(null);
 
-    // ── Decrypt OTP on mount ──────────────────────────────────────────────
+    // ── Fetch helpers ────────────────────────────────────────────────────────
+    useEffect(() => { Get('ExportMarket/GetAll').then(r => { if (r.status === 200) setExportMarketValue(r?.data?.Data || []); }).catch(console.error); }, []);
+    useEffect(() => { Get('Unit/GetAll').then(r => { if (r.status === 200) setUnitValue(r?.data?.Data || []); }).catch(console.error); }, []);
+    useEffect(() => { Get('Currency/GetAll').then(r => { if (r.status === 200) setCurrencyValue(r?.data?.Data || []); }).catch(console.error); }, []);
+    useEffect(() => { Get('ContactType/GetAll').then(r => { if (r.status === 200) setContactTypeValue(r?.data?.Data || []); }).catch(console.error); }, []);
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const directOtp = urlParams.get('otp');
-
-        let targetEncryptedOTP = null;
-
-        if (token) {
-            try {
-                const decodedString = atob(token);
-                const decodedParams = new URLSearchParams(decodedString);
-                targetEncryptedOTP = decodedParams.get('otp');
-                console.log('✅ Token decoded successfully. Found OTP hash:', targetEncryptedOTP);
-            } catch (e) {
-                console.error('❌ Failed to decode token string:', e);
-                setOtpError('Invalid or corrupted token link');
-                return;
-            }
-        } else if (directOtp) {
-            targetEncryptedOTP = directOtp;
-        }
-
-        if (targetEncryptedOTP) {
-            try {
-                const decrypted = decryptOTP(targetEncryptedOTP);
-                setDecryptedOTP(decrypted);
-                console.log('🔑 OTP Decrypted successfully! Actual Code:', decrypted);
-            } catch (error) {
-                console.error('❌ Failed to decrypt OTP:', error);
-                setOtpError('Invalid OTP format in URL');
-            }
-        } else {
-            setOtpError('No OTP configuration found or link expired.');
-        }
-    }, [location]);
+        if (!isOTPVerified) return;
+        Get('Country/GetAll').then(r => { if (r.status === 200) setCountries(r?.data?.Data || []); }).catch(console.error);
+    }, [isOTPVerified]);
 
     // ── React Hook Form ──────────────────────────────────────────────────────
     const methods = useForm({
@@ -662,9 +761,9 @@ export default function PublicSupplierOnboardingForm() {
             mainExportMarket: null,
             onboardingEmail: '',
             capacityPerMonth: '',
-            capacityUnit: UNIT_OPTIONS[0],
+            unit: null,
             turnoverPerYear: '',
-            turnoverUnit: CURRENCY_OPTIONS[0],
+            currency: null,
             businessLicenseNo: '',
             additionalInfo: '',
             noOfEmployee: null,
@@ -702,16 +801,6 @@ export default function PublicSupplierOnboardingForm() {
         remove: removeCertificate,
     } = useFieldArray({ control, name: 'certificates' });
 
-    // ── Fetch Countries ──────────────────────────────────────────────────────
-    useEffect(() => {
-        if (!isOTPVerified) return;
-        Get('Country/GetAll')
-            .then((res) => {
-                if (res.status === 200) setCountries(res?.data?.Data || []);
-            })
-            .catch((err) => console.error('Error fetching countries:', err));
-    }, [isOTPVerified]);
-
     // ── OTP Verification Handler ────────────────────────────────────────────
     const handleVerifyOTP = useCallback(
         (userEnteredOTP) => {
@@ -719,17 +808,15 @@ export default function PublicSupplierOnboardingForm() {
             setOtpError('');
 
             setTimeout(() => {
-                console.log("--- OTP Verification Debug ---");
-                console.log("User entered:", userEnteredOTP);
-                console.log("Decrypted OTP:", decryptedOTP);
+                const targetOTP = decodedParams.otp;
 
-                if (!decryptedOTP) {
-                    setOtpError('❌ OTP configuration missing or link expired.');
+                if (!targetOTP) {
+                    setOtpError('OTP configuration missing or link expired.');
                     setIsOTPLoading(false);
                     return;
                 }
 
-                const isMatch = userEnteredOTP.trim().toUpperCase() === decryptedOTP.trim().toUpperCase();
+                const isMatch = userEnteredOTP.trim().toUpperCase() === targetOTP.trim().toUpperCase();
 
                 if (isMatch) {
                     setIsOTPVerified(true);
@@ -741,64 +828,123 @@ export default function PublicSupplierOnboardingForm() {
                 }
             }, 800);
         },
-        [decryptedOTP, enqueueSnackbar]
+        [decodedParams.otp, enqueueSnackbar]
     );
 
-    // ── Submit ───────────────────────────────────────────────────────────────
+    // ── Submit — all files uploaded here, not on select ─────────────────────
     const onSubmit = handleSubmit(async (data) => {
-        const payload = {
-            vendorID,
-            companyID,
-            otp: encryptedOTP,
-            supplierName: data.supName,
-            addressLine1: data.addressLine1,
-            addressLine2: data.addressLine2,
-            province: data.province,
-            city: data.city,
-            countryID: parseInt(data.country?.Country_ID, 10) || 0,
-            phone: data.phone,
-            fax: data.fax,
-            zipCode: data.zipCode,
-            webAddress: data.webAddress,
-            mainExportMarket: data.mainExportMarket?.value || '',
-            email: data.onboardingEmail,
-            capacityPerMonth: data.capacityPerMonth,
-            capacityUnit: data.capacityUnit?.value || '',
-            turnoverPerYear: data.turnoverPerYear,
-            turnoverUnit: data.turnoverUnit?.value || '',
-            businessLicenseNo: data.businessLicenseNo,
-            additionalInfo: data.additionalInfo,
-            noOfEmployee: data.noOfEmployee?.value || '',
-            exportBusinessPct: data.exportBusinessPct?.value || '',
-            experienceInBusiness: data.experienceInBusiness,
-            businessInEuropePct: data.businessInEuropePct?.value || '',
-            shippingTerms: data.shippingTerms?.value || '',
-            yearsInBusiness: data.yearsInBusiness?.value || '',
-            yearsEuropeanBusiness: data.yearsEuropeanBusiness?.value || '',
-            businessType: data.businessType?.value || '',
-            contacts: data.contacts.map((c) => ({ ...c, contactType: c.contactType?.value || '' })),
-            certificates: data.certificates.map((c) => ({
-                document: c.document,
-                description: c.description || '',
-                validityFrom: c.validityFrom,
-                validityTo: c.validityTo,
-                file: c.file,
-            })),
-        };
-
         try {
             setLoading(true);
-            const response = await Post('Supplier/CompletePublicOnboarding', payload);
-            if (response.status === 200 || response.status === 201) {
-                enqueueSnackbar('Profile submitted successfully!', { variant: 'success' });
+
+            // 1️⃣  Upload certificate files
+            enqueueSnackbar('Uploading certificates…', { variant: 'info' });
+            const uploadedCertificates = await Promise.all(
+                data.certificates.map(async (cert, index) => {
+                    let filePath = '';
+                    if (cert.file) {
+                        try {
+                            filePath = await uploadFile(cert.file);
+                        } catch (error) {
+                            throw new Error(`Certificate ${index + 1}: ${error.message}`);
+                        }
+                    }
+                    return {
+                        Name: cert.document,
+                        FilePath: filePath,
+                        ValidFrom: cert.validityFrom ? dayjs(cert.validityFrom).format('YYYY-MM-DD') : '',
+                        ValidTo: cert.validityTo ? dayjs(cert.validityTo).format('YYYY-MM-DD') : '',
+                    };
+                })
+            );
+
+
+            let logoFilePath = '';
+            if (logoFile) {
+                enqueueSnackbar('Uploading company logo…', { variant: 'info' });
+                try {
+                    logoFilePath = await uploadFile(logoFile);
+                } catch (error) {
+                    throw new Error(`Logo upload failed: ${error.message}`);
+                }
+            }
+
+            // 3️⃣  Upload business license file
+            let businessLicenseFilePath = '';
+            if (businessLicenseFile) {
+                enqueueSnackbar('Uploading business license…', { variant: 'info' });
+                try {
+                    businessLicenseFilePath = await uploadFile(businessLicenseFile);
+                } catch (error) {
+                    throw new Error(`Business license upload failed: ${error.message}`);
+                }
+            }
+
+            // 4️⃣  Build payload — use decoded vendorID & companyID from token
+            const payload = {
+                Token: null,
+                InvitationId: decodedParams.vendorID ? parseInt(decodedParams.vendorID, 10) : null,
+                CompanyId: decodedParams.companyID ? parseInt(decodedParams.companyID, 10) : null,
+
+                SupplierName: data.supName,
+                AddressLine1: data.addressLine1,
+                AddressLine2: data.addressLine2 || '',
+                CountryID: parseInt(data.country?.Country_ID, 10) || 0,
+                Province: data.province || '',
+                City: data.city,
+                Phone: data.phone,
+                Fax: data.fax || '',
+                ZipPostalCode: data.zipCode || '',
+                Website: data.webAddress || '',
+                ExportMarketId: data.mainExportMarket?.ExportMarketId || 0,
+                OnboardingEmail: data.onboardingEmail,
+
+                CapacityPerMonth: Number(data.capacityPerMonth) || 0,
+                UnitId: data.unit?.UnitId || 0,
+                AnnualTurnover: Number(data.turnoverPerYear) || 0,
+                CurrencyId: data.currency?.CurrencyId || 0,
+                BusinessLicenseNo: data.businessLicenseNo,
+                BusinessLicenseFilePath: businessLicenseFilePath,
+                AdditionalInformation: data.additionalInfo || '',
+
+                NumberOfEmployees: data.noOfEmployee?.value || '',
+                ExportBusinessPercent: data.exportBusinessPct?.value || '',
+                ExperienceInBusiness: Array.isArray(data.experienceInBusiness)
+                    ? data.experienceInBusiness.join(', ')
+                    : (data.experienceInBusiness || ''),
+                BusinessInEuropePercent: data.businessInEuropePct?.value || '',
+                ShippingTerms: data.shippingTerms?.value || '',
+                BusinessType: data.businessType?.value || '',
+                YearsInBusiness: data.yearsInBusiness?.value || '',
+                YearsInEuropeanBusiness: data.yearsEuropeanBusiness?.value || '',
+
+                CompanyLogoPath: logoFilePath,
+
+                Contacts: data.contacts.map((c) => ({
+                    ContactTypeId: c.contactType?.ContactTypeId || '',
+                    FullName: c.name,
+                    JobTitle: c.jobTitle || '',
+                    MobileNumber: c.mobileNumber,
+                    Email: c.email,
+                })),
+
+                Certificates: uploadedCertificates,
+            };
+
+            // 5️⃣  Submit form
+            const response = await Post('SupplierOnboarding/Submit', payload);
+            const result = response?.data;
+
+            if ((response.status === 200 || response.status === 201) && result?.Success) {
+                enqueueSnackbar(result?.Message || 'Form submitted successfully!', { variant: 'success' });
                 reset();
                 setLogoFile(null);
+                setBusinessLicenseFile(null);
             } else {
-                enqueueSnackbar(response?.data?.message || 'Failed to submit', { variant: 'error' });
+                enqueueSnackbar(result?.Message || 'Failed to submit', { variant: 'error' });
             }
         } catch (error) {
-            console.error(error);
-            enqueueSnackbar(error?.response?.data?.message || 'Something went wrong', { variant: 'error' });
+            console.error('Submission error:', error);
+            enqueueSnackbar(error?.response?.data?.Message || error.message || 'Something went wrong', { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -807,19 +953,10 @@ export default function PublicSupplierOnboardingForm() {
     const handleCancel = () => {
         reset();
         setLogoFile(null);
+        setBusinessLicenseFile(null);
     };
 
-    // ── Guards ───────────────────────────────────────────────────────────────
-    if (!isLinkValid) {
-        return (
-            <Container maxWidth="sm" sx={{ mt: 10 }}>
-                <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
-                    {errorMessage}
-                </Alert>
-            </Container>
-        );
-    }
-
+    // ── Guard: OTP not yet verified ──────────────────────────────────────────
     if (!isOTPVerified) {
         return (
             <Box
@@ -1039,18 +1176,9 @@ export default function PublicSupplierOnboardingForm() {
                                         name="mainExportMarket"
                                         label="Main Export Market"
                                         placeholder="Select market"
-                                        options={EXPORT_MARKET_OPTIONS}
-                                        getOptionLabel={(option) => option?.label || ''}
-                                        isOptionEqualToValue={(option, value) => option?.value === value?.value}
-                                        TextFieldProps={{
-                                            InputProps: {
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <Iconify icon="mdi:earth" width={18} sx={{ color: '#94a3b8' }} />
-                                                    </InputAdornment>
-                                                ),
-                                            },
-                                        }}
+                                        options={exportMarketValue}
+                                        getOptionLabel={(option) => option?.Name || ''}
+                                        isOptionEqualToValue={(option, value) => option?.ExportMarketId === value?.ExportMarketId}
                                         sx={INPUT_SX}
                                     />
                                 </Grid>
@@ -1093,13 +1221,13 @@ export default function PublicSupplierOnboardingForm() {
                                             helperText="Monthly production capacity"
                                         />
                                         <RHFAutocomplete
-                                            name="capacityUnit"
+                                            name="unit"
                                             label="Unit"
-                                            options={UNIT_OPTIONS}
-                                            getOptionLabel={(option) => option?.label || ''}
-                                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
-                                            sx={{ ...INPUT_SX, width: 110 }}
-                                            disableClearable
+                                            placeholder="Select unit"
+                                            options={unitValue}
+                                            getOptionLabel={(option) => option?.Code || ''}
+                                            isOptionEqualToValue={(option, value) => option?.UnitId === value?.UnitId}
+                                            sx={INPUT_SX}
                                         />
                                     </Stack>
                                 </Grid>
@@ -1113,45 +1241,43 @@ export default function PublicSupplierOnboardingForm() {
                                             sx={{ ...INPUT_SX, flex: 1 }}
                                         />
                                         <RHFAutocomplete
-                                            name="turnoverUnit"
+                                            name="currency"
                                             label="Currency"
-                                            options={CURRENCY_OPTIONS}
-                                            getOptionLabel={(option) => option?.label || ''}
-                                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
-                                            sx={{ ...INPUT_SX, width: 115 }}
-                                            disableClearable
+                                            placeholder="Select currency"
+                                            options={currencyValue}
+                                            getOptionLabel={(option) => option?.Code || ''}
+                                            isOptionEqualToValue={(option, value) => option?.CurrencyId === value?.CurrencyId}
+                                            sx={INPUT_SX}
                                         />
                                     </Stack>
                                 </Grid>
 
+                                {/* ── Business License No. + file upload ── */}
                                 <Grid xs={12} md={6}>
-                                    <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                                        <RHFTextField
-                                            name="businessLicenseNo"
-                                            label="Business License No. *"
-                                            placeholder="e.g. BL-2001-HK"
-                                            sx={{ ...INPUT_SX, flex: 1 }}
+                                    <RHFTextField
+                                        name="businessLicenseNo"
+                                        label="Business License No. *"
+                                        placeholder="e.g. BL-2001-HK"
+                                        sx={INPUT_SX}
+                                    />
+                                </Grid>
+
+                                <Grid xs={12} md={6}>
+                                    <Box>
+                                        <Typography
+                                            variant="caption"
+                                            sx={{ color: '#475569', fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.75, display: 'block' }}
+                                        >
+                                            Business License Document
+                                        </Typography>
+                                        <FileUploadButton
+                                            file={businessLicenseFile}
+                                            onFileChange={setBusinessLicenseFile}
+                                            onClear={() => setBusinessLicenseFile(null)}
+                                            label="Upload license document"
+                                            hint="PDF, JPG, PNG up to 5MB — uploaded on Submit"
                                         />
-                                        <Tooltip title="Upload license document">
-                                            <IconButton
-                                                component="label"
-                                                sx={{
-                                                    mt: 0.5,
-                                                    width: 42,
-                                                    height: 42,
-                                                    bgcolor: '#eef2ff',
-                                                    color: '#3b5bdb',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid #c7d2fe',
-                                                    '&:hover': { bgcolor: '#dde5ff' },
-                                                    flexShrink: 0,
-                                                }}
-                                            >
-                                                <Iconify icon="mdi:upload" width={18} />
-                                                <input type="file" hidden />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Stack>
+                                    </Box>
                                 </Grid>
 
                                 <Grid xs={12}>
@@ -1429,12 +1555,11 @@ export default function PublicSupplierOnboardingForm() {
                                                 <TableCell sx={{ minWidth: 175, py: 1.5 }}>
                                                     <RHFAutocomplete
                                                         name={`contacts.${index}.contactType`}
-                                                        label="Type"
-                                                        placeholder="Select"
-                                                        options={CONTACT_TYPE_OPTIONS}
-                                                        getOptionLabel={(option) => option?.label || ''}
-                                                        isOptionEqualToValue={(option, value) => option?.value === value?.value}
-                                                        size="small"
+                                                        label="Contact Type"
+                                                        placeholder="Select contact type"
+                                                        options={contactTypeValue}
+                                                        getOptionLabel={(option) => option?.Name || ''}
+                                                        isOptionEqualToValue={(option, value) => option?.ContactTypeId === value?.ContactTypeId}
                                                         sx={INPUT_SX}
                                                     />
                                                 </TableCell>
@@ -1556,13 +1681,13 @@ export default function PublicSupplierOnboardingForm() {
                             </Box>
                         </Card>
 
-                        {/* ══════════════════ SECTION 5 — Certificates (Multiple) ══════════════════ */}
+                        {/* ══════════════════ SECTION 5 — Certificates ══════════════════ */}
                         <Card sx={SECTION_CARD_SX}>
                             <SectionHeader
                                 icon="mdi:certificate-outline"
                                 title="Certificates & Patents"
-                                subtitle="Upload all certifications and patents your company holds"
-                                badge={certificateFields.length > 0 ? `${certificateFields.length} added` : 'Optional'}
+                                subtitle="Upload all certifications and patents your company holds — files are sent on Submit"
+                                badge={certificateFields.length > 0 ? `${certificateFields.length} added` : 'Required'}
                             />
 
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -1572,7 +1697,6 @@ export default function PublicSupplierOnboardingForm() {
                                             key={field.id}
                                             entry={field}
                                             index={index}
-                                            total={certificateFields.length}
                                             onUpdate={(idx, key, value) => {
                                                 const updated = [...certificateFields];
                                                 updated[idx] = { ...updated[idx], [key]: value };
@@ -1592,13 +1716,9 @@ export default function PublicSupplierOnboardingForm() {
                                                 bgcolor: '#fafbff',
                                             }}
                                         >
-                                            <Iconify
-                                                icon="mdi:certificate-outline"
-                                                width={40}
-                                                sx={{ color: '#c7d2fe', mb: 1 }}
-                                            />
+                                            <Iconify icon="mdi:certificate-outline" width={40} sx={{ color: '#c7d2fe', mb: 1 }} />
                                             <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                                                No certificates added yet. Click the button below to add one.
+                                                At least one certificate is required. Click the button below to add one.
                                             </Typography>
                                         </Box>
                                     )}
@@ -1640,86 +1760,45 @@ export default function PublicSupplierOnboardingForm() {
                             <SectionHeader
                                 icon="mdi:image-outline"
                                 title="Company Logo"
-                                subtitle="Upload your company's logo (PNG or JPG recommended)"
+                                subtitle="Upload your company's logo — sent on Submit"
                             />
 
-                            <Box
-                                component="label"
-                                sx={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                    p: 2,
-                                    borderRadius: '10px',
-                                    border: '1.5px dashed #c7d2fe',
-                                    cursor: 'pointer',
-                                    bgcolor: '#f8fafc',
-                                    transition: 'all 0.15s ease',
-                                    '&:hover': { bgcolor: '#eef2ff', borderColor: '#818cf8' },
-                                }}
-                            >
-                                <Box
-                                    sx={{
-                                        width: 52,
-                                        height: 52,
-                                        borderRadius: '10px',
-                                        bgcolor: logoFile ? '#eef2ff' : '#f1f5f9',
-                                        border: '1px solid #e2e8f0',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        overflow: 'hidden',
-                                        flexShrink: 0,
-                                    }}
-                                >
-                                    {logoFile ? (
+                            <Stack direction="row" alignItems="center" spacing={2}>
+                                {/* Preview */}
+                                {logoFile && (
+                                    <Box
+                                        sx={{
+                                            width: 64,
+                                            height: 64,
+                                            borderRadius: '10px',
+                                            border: '1px solid #e2e8f0',
+                                            overflow: 'hidden',
+                                            flexShrink: 0,
+                                        }}
+                                    >
                                         <img
                                             src={URL.createObjectURL(logoFile)}
                                             alt="logo preview"
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
-                                    ) : (
-                                        <Iconify icon="mdi:image-plus-outline" width={24} sx={{ color: '#94a3b8' }} />
-                                    )}
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.85rem' }}>
-                                        {logoFile ? logoFile.name : 'Upload company logo'}
-                                    </Typography>
-                                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                                        {logoFile ? `${(logoFile.size / 1024).toFixed(1)} KB` : 'PNG, JPG up to 5MB'}
-                                    </Typography>
-                                </Box>
-                                {logoFile && (
-                                    <Chip
-                                        label="Change"
-                                        size="small"
-                                        sx={{
-                                            bgcolor: '#eef2ff',
-                                            color: '#3b5bdb',
-                                            fontSize: '0.72rem',
-                                            border: '1px solid #c7d2fe',
-                                        }}
-                                    />
+                                    </Box>
                                 )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    hidden
-                                    onChange={(e) => setLogoFile(e.target.files[0] || null)}
-                                />
-                            </Box>
+
+                                <Box flex={1}>
+                                    <FileUploadButton
+                                        file={logoFile}
+                                        onFileChange={setLogoFile}
+                                        onClear={() => setLogoFile(null)}
+                                        accept="image/*"
+                                        label="Upload company logo"
+                                        hint="PNG, JPG up to 5MB — uploaded on Submit"
+                                    />
+                                </Box>
+                            </Stack>
                         </Card>
 
                         {/* ══════════════════ Form Actions ══════════════════ */}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                gap: 1.5,
-                                pt: 0.5,
-                            }}
-                        >
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, pt: 0.5 }}>
                             <Button
                                 variant="outlined"
                                 onClick={handleCancel}
