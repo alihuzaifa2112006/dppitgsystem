@@ -609,7 +609,7 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
                         freeSolo
                         size="small"
                         sx={INPUT_SX}
-                        value={`certificates.${index}.document`}
+                    // value={`certificates.${index}.document `}
                     />
                 </Grid>
 
