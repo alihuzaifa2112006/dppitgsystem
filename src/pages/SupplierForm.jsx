@@ -607,7 +607,9 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
                         placeholder="Select certificate type"
                         options={CERTIFICATE_OPTIONS}
                         freeSolo
+                        size="small"
                         sx={INPUT_SX}
+                        value={`certificates.${index}.document`}
                     />
                 </Grid>
 
@@ -948,6 +950,7 @@ export default function PublicSupplierOnboardingForm() {
         } finally {
             setLoading(false);
         }
+
     });
 
     const handleCancel = () => {
@@ -1695,12 +1698,16 @@ export default function PublicSupplierOnboardingForm() {
                                     {certificateFields.map((field, index) => (
                                         <CertificateEntry
                                             key={field.id}
-                                            entry={field}
+                                            entry={values.certificates?.[index] || field}
                                             index={index}
                                             onUpdate={(idx, key, value) => {
-                                                const updated = [...certificateFields];
-                                                updated[idx] = { ...updated[idx], [key]: value };
-                                                setValue('certificates', updated);
+                                                // Patch only this single field path — never rebuild the whole array
+                                                // from `certificateFields`, which is a stale structural snapshot
+                                                // and does not contain the live RHF-controlled `document` value.
+                                                setValue(`certificates.${idx}.${key}`, value, {
+                                                    shouldValidate: true,
+                                                    shouldDirty: true,
+                                                });
                                             }}
                                             onRemove={removeCertificate}
                                         />
