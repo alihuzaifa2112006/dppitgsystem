@@ -611,6 +611,7 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
                         sx={INPUT_SX}
                     // value={`certificates.${index}.document `}
                     />
+
                 </Grid>
 
                 <Grid xs={12} md={6}>

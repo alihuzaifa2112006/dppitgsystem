@@ -650,96 +650,123 @@ const SupplierGrid = () => {
           fullWidth
           maxWidth="sm"
           PaperProps={{
-            sx: { borderRadius: '16px', p: 1 }
+            sx: { borderRadius: '16px', p: 0 }
           }}
         >
-          <DialogTitle sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
-            <Iconify icon="mdi:shield-check-outline" width={24} sx={{ color: '#4caf50' }} />
-            Onboarding Link Generated Securely
+          <DialogTitle sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, pb: 0.5, px: 3, pt: 2.5 }}>
+            <Iconify icon="mdi:shield-check-outline" width={22} sx={{ color: '#4caf50' }} />
+            Invitation Link Generated
           </DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" sx={{ color: '#667085', mb: 3 }}>
-              The dynamic invitation link has been successfully encrypted and copied to your clipboard. parameters are hidden for enhanced routing safety.
+
+          <DialogContent sx={{ px: 3, pb: 1 }}>
+            {/* Success message */}
+            <Typography variant="body2" sx={{ color: '#64748b', mb: 2.5 }}>
+              ✓ Invitation link copied to clipboard
             </Typography>
 
-            <Stack spacing={2.5}>
-              {/* Token Display (OTP) */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ color: '#344054', mb: 0.8, fontWeight: 600 }}>
-                  Secure verification OTP (6 characters):
-                </Typography>
-                <TextField
-                  fullWidth
-                  readOnly
-                  variant="outlined"
-                  size="small"
-                  value={copiedLinkDetails.otp}
-                  InputProps={{
-                    style: { fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1.1rem', letterSpacing: '2px', color: '#111827', backgroundColor: '#f9fafb' },
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => {
-                            navigator.clipboard.writeText(copiedLinkDetails.otp);
-                            enqueueSnackbar('OTP Copied!', { variant: 'success' });
-                          }}
-                          edge="end"
-                        >
-                          <Iconify icon="eva:copy-fill" width={20} />
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
-                />
+            {/* Steps - simplified */}
+            <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  bgcolor: '#3366ff',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 22,
+                  height: 22,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  flexShrink: 0
+                }}>1</Box>
+                <Typography variant="body2" sx={{ color: '#334155' }}>Share OTP</Typography>
               </Box>
-
-              {/* URL Display */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ color: '#344054', mb: 0.8, fontWeight: 600 }}>
-                  Encrypted Onboarding URL:
-                </Typography>
-                <TextField
-                  fullWidth
-                  readOnly
-                  multiline
-                  maxRows={3}
-                  variant="outlined"
-                  size="small"
-                  value={copiedLinkDetails.url}
-                  InputProps={{
-                    style: { fontSize: '0.85rem', color: '#4b5563', backgroundColor: '#f9fafb' },
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => {
-                            navigator.clipboard.writeText(copiedLinkDetails.url);
-                            enqueueSnackbar('Link Copied!', { variant: 'success' });
-                          }}
-                          edge="end"
-                        >
-                          <Iconify icon="eva:copy-fill" width={20} />
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
-                />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  bgcolor: '#3366ff',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 22,
+                  height: 22,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  flexShrink: 0
+                }}>2</Box>
+                <Typography variant="body2" sx={{ color: '#334155' }}>User enters OTP</Typography>
               </Box>
+            </Box>
 
-              <Chip
-                label="This token configuration will automatically expire in 7 days."
-                color="warning"
-                variant="soft"
-                size="small"
-                icon={<Iconify icon="eva:clock-outline" />}
-                sx={{ width: 'fit-content', borderRadius: '6px', fontWeight: 500 }}
-              />
-            </Stack>
+            {/* OTP - LARGE & CENTERED */}
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+              <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                One-Time Password
+              </Typography>
+              <Box sx={{
+                fontFamily: 'monospace',
+                fontSize: '3.5rem',
+                fontWeight: 700,
+                letterSpacing: '12px',
+                color: '#0f172a',
+                py: 1.5,
+                my: 0.5,
+                bgcolor: '#f1f5f9',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                position: 'relative'
+              }}>
+                {copiedLinkDetails.otp}
+                <IconButton
+                  onClick={() => {
+                    navigator.clipboard.writeText(copiedLinkDetails.otp);
+                    enqueueSnackbar('OTP Copied!', { variant: 'success' });
+                  }}
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    right: 12,
+                    bgcolor: 'white',
+                    '&:hover': { bgcolor: '#e2e8f0' }
+                  }}
+                >
+                  <Iconify icon="eva:copy-fill" width={18} />
+                </IconButton>
+              </Box>
+            </Box>
+
+            {/* Expiry */}
+            <Chip
+              label="Expires in 7 days"
+              size="small"
+              icon={<Iconify icon="eva:clock-outline" width={14} />}
+              sx={{
+                borderRadius: '6px',
+                fontWeight: 400,
+                bgcolor: '#fef3c7',
+                color: '#92400e',
+                '& .MuiChip-icon': { color: '#92400e' }
+              }}
+            />
           </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
+
+          <DialogActions sx={{ px: 3, pb: 2.5, pt: 1 }}>
             <Button
               variant="contained"
               onClick={() => setLinkDetailsOpen(false)}
-              sx={{ backgroundColor: '#3366ff', borderRadius: '8px', '&:hover': { backgroundColor: '#1e4fd9' } }}
+              sx={{
+                bgcolor: '#3366ff',
+                borderRadius: '8px',
+                px: 4,
+                textTransform: 'none',
+                fontWeight: 500,
+                '&:hover': { bgcolor: '#1e4fd9' }
+              }}
             >
               Done
             </Button>
