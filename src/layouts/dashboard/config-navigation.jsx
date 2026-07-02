@@ -126,7 +126,7 @@ export function useNavData() {
         items: [
           {
             title: t('Onboarding'),
-            path: paths.dashboard.Onboarding.root,
+            path: '',
             icon: ICONS.management,
             children: [
               {

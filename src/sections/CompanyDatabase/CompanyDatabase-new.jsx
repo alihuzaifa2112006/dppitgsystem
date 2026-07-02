@@ -139,20 +139,7 @@ function SectionHeader({ icon, title, subtitle, badge }) {
     <Box sx={{ mb: 2.5 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Box
-            sx={{
-              width: 34,
-              height: 34,
-              borderRadius: '9px',
-              bgcolor: '#eef2ff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Iconify icon={icon} width={18} sx={{ color: '#3b5bdb' }} />
-          </Box>
+          <Iconify icon={icon} width={20} sx={{ color: '#3b5bdb', flexShrink: 0 }} />
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b' }}>
               {title}
@@ -689,19 +676,7 @@ export default function CompanyDatabaseCreateForm() {
 
       {/* ── Minimal Page Header ── */}
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
-            bgcolor: '#eef2ff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Iconify icon="mdi:domain" width={20} sx={{ color: '#3b5bdb' }} />
-        </Box>
+        <Iconify icon="mdi:domain" width={22} sx={{ color: '#3b5bdb', flexShrink: 0 }} />
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>
             Company Profile
