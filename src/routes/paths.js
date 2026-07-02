@@ -55,5 +55,10 @@ export const paths = {
       },
     },
 
+    CompanyDatabase: {
+      root: `${ROOTS.DASHBOARD}/company-database`,
+      new: `${ROOTS.DASHBOARD}/company-database/new`,
+    },
+
   },
 };

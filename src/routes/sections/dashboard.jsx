@@ -17,6 +17,7 @@ import SupplierEditPage from 'src/pages/dashboard/Supplier/edit';
 // Lazy-loaded components
 const SupplierPublicOnboardingPage = lazy(() => import('src/pages/SupplierForm'));
 const IndexPage = lazy(() => import('src/pages/dashboard/app'));
+const CompanyDatabaseNewPage = lazy(() => import('src/pages/dashboard/CompanyDatabase/new'));
 
 // const UserAccountPage = lazy(() => import('src/pages/dashboard/user/account'));
 
@@ -81,6 +82,19 @@ export const dashboardRoutes = [
             ),
           },
 
+        ],
+      },
+      {
+        path: 'company-database',
+        children: [
+          {
+            path: 'new',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CompanyDatabaseNewPage />
+              </Suspense>
+            ),
+          },
         ],
       },
 

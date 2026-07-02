@@ -104,6 +104,11 @@ export function useNavData() {
             path: paths.dashboard.root,
             icon: ICONS.dashboard,
           },
+          {
+            title: t('Company Database'),
+            path: paths.dashboard.CompanyDatabase.new,
+            icon: ICONS.database,
+          },
         ],
       },
       {
