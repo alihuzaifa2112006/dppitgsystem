@@ -107,7 +107,7 @@ export function useNavData() {
         ],
       },
       {
-        subheader: t('application'),
+        // subheader: t('application'),
         items: [
           {
             title: t('Onboarding'),
