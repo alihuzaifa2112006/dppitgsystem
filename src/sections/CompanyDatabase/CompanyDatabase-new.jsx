@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { Controller, useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -13,6 +13,8 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import {
   Button,
   Typography,
@@ -36,9 +38,6 @@ import {
   Divider,
   InputAdornment,
   Tooltip,
-  Stepper,
-  Step,
-  StepLabel,
 } from '@mui/material';
 
 import { LoadingScreen } from 'src/components/loading-screen';
@@ -60,6 +59,16 @@ const BUSINESS_TYPE_OPTIONS = ['Manufacturer', 'Trader', 'Agent', 'Distributor']
 const EXPERIENCE_OPTIONS = ['Whole Sale', 'Retail', 'Export', 'Import', 'E-Commerce'].map(opt => ({ label: opt, value: opt }));
 const CERTIFICATE_OPTIONS = ['ISO 9001', 'ISO 14001', 'ISO 27001', 'API Q1', 'CE Marking', 'FDA Approval', 'GMP', 'HACCP', 'Other'];
 
+const TABS = [
+  { label: 'Company Info', icon: 'mdi:domain' },
+  { label: 'Setup Details', icon: 'mdi:cog-outline' },
+  { label: 'Business Profile', icon: 'mdi:chart-bar' },
+  { label: 'Supply Chain', icon: 'mdi:truck-delivery-outline' },
+  { label: 'Contacts', icon: 'mdi:contacts-outline' },
+  { label: 'Certificates', icon: 'mdi:certificate-outline' },
+  { label: 'Logo', icon: 'mdi:image-outline' },
+];
+
 // ─── Shared Styles ────────────────────────────────────────────────────────────
 
 const INPUT_SX = {
@@ -75,16 +84,38 @@ const INPUT_SX = {
 };
 
 const SECTION_CARD_SX = {
-  p: 3.5,
+  p: 3,
   borderRadius: '12px',
   border: '1px solid #eef0f6',
   boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
   backgroundColor: '#fff',
-  transition: 'all 0.2s ease',
-  minHeight: 400,
-  '&:hover': {
-    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-  },
+};
+
+// ─── Animated Tab Panel ───────────────────────────────────────────────────────
+
+function TabPanel({ children, value, index }) {
+  const isActive = value === index;
+  return (
+    <Box
+      role="tabpanel"
+      hidden={!isActive}
+      sx={{
+        animation: isActive ? 'slideIn 0.28s cubic-bezier(0.4,0,0.2,1)' : 'none',
+        '@keyframes slideIn': {
+          from: { opacity: 0, transform: 'translateY(10px)' },
+          to:   { opacity: 1, transform: 'translateY(0)' },
+        },
+      }}
+    >
+      {isActive && children}
+    </Box>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  value: PropTypes.number.isRequired,
+  index: PropTypes.number.isRequired,
 };
 
 // ─── File Upload Helper ───────────────────────────────────────────────────────
@@ -105,14 +136,14 @@ const uploadFile = async (file) => {
 
 function SectionHeader({ icon, title, subtitle, badge }) {
   return (
-    <Box sx={{ mb: 3 }}>
+    <Box sx={{ mb: 2.5 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <Box
             sx={{
-              width: 38,
-              height: 38,
-              borderRadius: '10px',
+              width: 34,
+              height: 34,
+              borderRadius: '9px',
               bgcolor: '#eef2ff',
               display: 'flex',
               alignItems: 'center',
@@ -120,14 +151,14 @@ function SectionHeader({ icon, title, subtitle, badge }) {
               flexShrink: 0,
             }}
           >
-            <Iconify icon={icon} width={20} sx={{ color: '#3b5bdb' }} />
+            <Iconify icon={icon} width={18} sx={{ color: '#3b5bdb' }} />
           </Box>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b' }}>
               {title}
             </Typography>
             {subtitle && (
-              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.75rem', display: 'block' }}>
+              <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>
                 {subtitle}
               </Typography>
             )}
@@ -141,13 +172,13 @@ function SectionHeader({ icon, title, subtitle, badge }) {
               bgcolor: '#eef2ff',
               color: '#3b5bdb',
               fontWeight: 600,
-              fontSize: '0.7rem',
+              fontSize: '0.68rem',
               border: '1px solid #c7d2fe',
             }}
           />
         )}
       </Stack>
-      <Divider sx={{ mt: 2, borderColor: '#f1f5f9' }} />
+      <Divider sx={{ mt: 1.5, borderColor: '#f1f5f9' }} />
     </Box>
   );
 }
@@ -169,7 +200,7 @@ function FileUploadButton({ file, onFileChange, onClear, accept = '.pdf,.jpg,.jp
     if (!accept.includes('pdf') && !['image/jpeg', 'image/png'].includes(selected.type)) {
       setFileError('Only JPG or PNG files are allowed');
       return;
-    } 
+    }
     if (accept.includes('pdf') && !validTypes.includes(selected.type)) {
       setFileError('Only PDF, JPG, or PNG files are allowed');
       return;
@@ -203,8 +234,8 @@ function FileUploadButton({ file, onFileChange, onClear, accept = '.pdf,.jpg,.jp
     >
       <Box
         sx={{
-          width: 40,
-          height: 40,
+          width: 36,
+          height: 36,
           borderRadius: '8px',
           bgcolor: file ? '#dcfce7' : '#f1f5f9',
           display: 'flex',
@@ -216,7 +247,7 @@ function FileUploadButton({ file, onFileChange, onClear, accept = '.pdf,.jpg,.jp
       >
         <Iconify
           icon={file ? 'mdi:file-check-outline' : 'mdi:cloud-upload-outline'}
-          width={20}
+          width={18}
           sx={{ color: file ? '#16a34a' : '#94a3b8' }}
         />
       </Box>
@@ -269,35 +300,37 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
   return (
     <Box
       sx={{
-        p: 2.5,
+        p: 2,
         bgcolor: '#f8fafc',
         borderRadius: '10px',
         border: '1px solid #eef0f6',
-        mb: 2,
+        mb: 1.5,
         position: 'relative',
         transition: 'all 0.2s ease',
+        animation: 'fadeIn 0.25s ease',
+        '@keyframes fadeIn': { from: { opacity: 0, transform: 'translateY(6px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
         '&:hover': {
           borderColor: '#c7d2fe',
           bgcolor: '#fafbff',
         },
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
           <Box
             sx={{
-              width: 32,
-              height: 32,
-              borderRadius: '8px',
+              width: 28,
+              height: 28,
+              borderRadius: '7px',
               bgcolor: '#eef2ff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Iconify icon="mdi:certificate-outline" width={18} sx={{ color: '#3b5bdb' }} />
+            <Iconify icon="mdi:certificate-outline" width={16} sx={{ color: '#3b5bdb' }} />
           </Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+          <Typography variant="caption" sx={{ fontWeight: 600, color: '#1e293b' }}>
             Certificate #{index + 1}
           </Typography>
         </Stack>
@@ -308,10 +341,12 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
             color: '#ef4444',
             bgcolor: '#fff1f1',
             borderRadius: '6px',
+            width: 26,
+            height: 26,
             '&:hover': { bgcolor: '#fee2e2' },
           }}
         >
-          <Iconify icon="mdi:trash-can-outline" width={16} />
+          <Iconify icon="mdi:trash-can-outline" width={14} />
         </IconButton>
       </Stack>
 
@@ -412,6 +447,18 @@ const NewCompanySchema = Yup.object().shape({
   webAddress: Yup.string().nullable(),
   mainExportMarket: Yup.object().nullable(),
   onboardingEmail: Yup.string().required('Email is required').email('Invalid email format'),
+  // Supply Chain
+  scSupplierName: Yup.string().required('Supplier Name is required'),
+  scCity: Yup.string().required('City is required'),
+  scCountry: Yup.object()
+    .nullable()
+    .required('Country is required')
+    .shape({
+      Country_ID: Yup.string().required(),
+      Country_Name: Yup.string().required(),
+      Country_Code: Yup.string().nullable(),
+    }),
+  scEmail: Yup.string().required('Email is required').email('Invalid email format'),
   capacityPerMonth: Yup.string().required('Capacity is required'),
   unit: Yup.object().nullable().required('Unit is required'),
   turnoverPerYear: Yup.string().required('Turnover is required'),
@@ -448,23 +495,14 @@ const NewCompanySchema = Yup.object().shape({
   ).min(1, 'At least one certificate is required'),
 });
 
-const STEPS = [
-  'Company Information',
-  'Setup Details',
-  'Business Profile',
-  'Contacts',
-  'Certificates',
-  'Company Logo'
-];
-
-// Fields to validate per step
-const STEP_FIELDS = {
+// Fields to validate per tab
+const TAB_FIELDS = {
   0: ['supName', 'addressLine1', 'addressLine2', 'country', 'province', 'city', 'phone', 'fax', 'zipCode', 'webAddress', 'mainExportMarket', 'onboardingEmail'],
   1: ['capacityPerMonth', 'unit', 'turnoverPerYear', 'currency', 'businessLicenseNo', 'additionalInfo'],
   2: ['noOfEmployee', 'exportBusinessPct', 'experienceInBusiness', 'businessInEuropePct', 'shippingTerms', 'yearsInBusiness', 'yearsEuropeanBusiness', 'businessType'],
   3: ['contacts'],
   4: ['certificates'],
-  5: [] // logo validated manually if required
+  5: [],
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -473,7 +511,7 @@ export default function CompanyDatabaseCreateForm() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setLoading] = useState(false);
   const [countries, setCountries] = useState([]);
   const [exportMarketValue, setExportMarketValue] = useState([]);
@@ -481,11 +519,9 @@ export default function CompanyDatabaseCreateForm() {
   const [currencyValue, setCurrencyValue] = useState([]);
   const [contactTypeValue, setContactTypeValue] = useState([]);
 
-  // Local file states
   const [logoFile, setLogoFile] = useState(null);
   const [businessLicenseFile, setBusinessLicenseFile] = useState(null);
 
-  // Fetch helpers
   useEffect(() => {
     Get('ExportMarket/GetAll').then(r => { if (r.status === 200) setExportMarketValue(r?.data?.Data || []); }).catch(console.error);
     Get('Unit/GetAll').then(r => { if (r.status === 200) setUnitValue(r?.data?.Data || []); }).catch(console.error);
@@ -523,6 +559,11 @@ export default function CompanyDatabaseCreateForm() {
       yearsInBusiness: null,
       yearsEuropeanBusiness: null,
       businessType: null,
+      // Supply Chain
+      scSupplierName: '',
+      scCity: '',
+      scCountry: null,
+      scEmail: '',
       contacts: [{ contactType: null, name: '', jobTitle: '', mobileNumber: '', email: '' }],
       certificates: [],
     },
@@ -535,46 +576,34 @@ export default function CompanyDatabaseCreateForm() {
   const { fields: contactFields, append: appendContact, remove: removeContact } = useFieldArray({ control, name: 'contacts' });
   const { fields: certificateFields, append: appendCertificate, remove: removeCertificate } = useFieldArray({ control, name: 'certificates' });
 
-  const handleNext = async () => {
-    // Validate current step fields
-    const fieldsToValidate = STEP_FIELDS[activeStep];
-    let isValid = true;
-    
-    if (fieldsToValidate && fieldsToValidate.length > 0) {
-      isValid = await trigger(fieldsToValidate);
-    }
-    
-    // Custom logic for file fields on step 1 (businessLicenseFile) if we wanted to enforce it here
-    if (activeStep === 1 && !businessLicenseFile) {
-      enqueueSnackbar('Business license document is required', { variant: 'error' });
-      isValid = false;
-    }
+  const handleTabChange = (_, newValue) => {
+    setActiveTab(newValue);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-    if (isValid) {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
-      window.scrollTo(0, 0);
-    }
+  const handleNext = () => {
+    setActiveTab((prev) => prev + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-    window.scrollTo(0, 0);
+    setActiveTab((prev) => prev - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       setLoading(true);
 
-      // Upload files similar to SupplierForm.jsx
       let businessLicenseFilePath = '';
       if (businessLicenseFile) {
         businessLicenseFilePath = await uploadFile(businessLicenseFile);
       } else {
-        throw new Error("Business license file is missing");
+        throw new Error('Business license file is missing');
       }
 
       const uploadedCertificates = await Promise.all(
-        data.certificates.map(async (cert, index) => {
+        data.certificates.map(async (cert) => {
           let filePath = '';
           if (cert.file) {
             filePath = await uploadFile(cert.file);
@@ -593,7 +622,6 @@ export default function CompanyDatabaseCreateForm() {
         logoFilePath = await uploadFile(logoFile);
       }
 
-      // Payload mock or actual API
       const payload = {
         SupplierName: data.supName,
         AddressLine1: data.addressLine1,
@@ -607,7 +635,6 @@ export default function CompanyDatabaseCreateForm() {
         Website: data.webAddress || '',
         ExportMarketId: data.mainExportMarket?.ExportMarketId || 0,
         OnboardingEmail: data.onboardingEmail,
-
         CapacityPerMonth: Number(data.capacityPerMonth) || 0,
         UnitId: data.unit?.UnitId || 0,
         AnnualTurnover: Number(data.turnoverPerYear) || 0,
@@ -615,7 +642,6 @@ export default function CompanyDatabaseCreateForm() {
         BusinessLicenseNo: data.businessLicenseNo,
         BusinessLicenseFilePath: businessLicenseFilePath,
         AdditionalInformation: data.additionalInfo || '',
-
         NumberOfEmployees: data.noOfEmployee?.value || '',
         ExportBusinessPercent: data.exportBusinessPct?.value || '',
         ExperienceInBusiness: Array.isArray(data.experienceInBusiness) ? data.experienceInBusiness.join(', ') : (data.experienceInBusiness || ''),
@@ -624,9 +650,7 @@ export default function CompanyDatabaseCreateForm() {
         BusinessType: data.businessType?.value || '',
         YearsInBusiness: data.yearsInBusiness?.value || '',
         YearsInEuropeanBusiness: data.yearsEuropeanBusiness?.value || '',
-
         CompanyLogoPath: logoFilePath,
-
         Contacts: data.contacts.map((c) => ({
           ContactTypeId: c.contactType?.ContactTypeId || '',
           FullName: c.name,
@@ -634,14 +658,10 @@ export default function CompanyDatabaseCreateForm() {
           MobileNumber: c.mobileNumber,
           Email: c.email,
         })),
-
         Certificates: uploadedCertificates,
       };
 
-      // In real scenario we'd call a submit API here
       console.log('Final Payload:', payload);
-      // const response = await Post('SupplierOnboarding/Submit', payload);
-      
       enqueueSnackbar('Company Database Entry created successfully!', { variant: 'success' });
       reset();
       setLogoFile(null);
@@ -656,49 +676,108 @@ export default function CompanyDatabaseCreateForm() {
     }
   });
 
-  const renderLoading = (
-    <LoadingScreen
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '70vh',
-      }}
-    />
-  );
+  if (isLoading) {
+    return (
+      <LoadingScreen
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}
+      />
+    );
+  }
 
-  return isLoading ? (
-    renderLoading
-  ) : (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 5, textAlign: 'center' }}>
-        <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 2 }}>
-          Company Database
-        </Typography>
-        <Typography sx={{ color: 'text.secondary' }}>
-          Add comprehensive company information using the wizard below.
-        </Typography>
-      </Box>
+  return (
+    <Container maxWidth="lg" sx={{ py: 3 }}>
 
-      <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 5 }}>
-        {STEPS.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+      {/* ── Minimal Page Header ── */}
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: '10px',
+            bgcolor: '#eef2ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Iconify icon="mdi:domain" width={20} sx={{ color: '#3b5bdb' }} />
+        </Box>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>
+            Company Profile
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+            Fill in your company details across all sections
+          </Typography>
+        </Box>
+        <Box flex={1} />
+        <Chip
+          label={`Step ${activeTab + 1} / ${TABS.length}`}
+          size="small"
+          sx={{ bgcolor: '#eef2ff', color: '#3b5bdb', fontWeight: 600, fontSize: '0.72rem', border: '1px solid #c7d2fe' }}
+        />
+      </Stack>
 
+      {/* ── Tabs ── */}
+      <Card
+        sx={{
+          mb: 2,
+          borderRadius: '12px',
+          border: '1px solid #eef0f6',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            px: 1,
+            minHeight: 48,
+            '& .MuiTab-root': {
+              minHeight: 48,
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              color: '#64748b',
+              textTransform: 'none',
+              gap: 0.75,
+              px: 2,
+              transition: 'color 0.2s ease',
+              '&.Mui-selected': { color: '#3b5bdb' },
+            },
+            '& .MuiTabs-indicator': {
+              bgcolor: '#3b5bdb',
+              height: 2,
+              borderRadius: '2px 2px 0 0',
+              transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+            },
+          }}
+        >
+          {TABS.map((tab, i) => (
+            <Tab
+              key={tab.label}
+              label={tab.label}
+              icon={<Iconify icon={tab.icon} width={16} />}
+              iconPosition="start"
+            />
+          ))}
+        </Tabs>
+      </Card>
+
+      {/* ── Form ── */}
       <FormProvider methods={methods} onSubmit={onSubmit}>
-        <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {/* Step 0: Company Information */}
-          <Card sx={{ ...SECTION_CARD_SX, width: '100%', display: activeStep === 0 ? 'block' : 'none' }}>
+
+        {/* Tab 0: Company Information */}
+        <TabPanel value={activeTab} index={0}>
+          <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:domain"
               title="Company Information"
-              subtitle="Enter your company's primary details and contact address"
+              subtitle="Primary details and contact address"
               badge="Required"
             />
-            <Grid container spacing={2.5}>
+            <Grid container spacing={2}>
               <Grid xs={12}>
                 <RHFTextField name="supName" label="Supplier Name *" placeholder="e.g. IVT International Ltd" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
@@ -737,16 +816,18 @@ export default function CompanyDatabaseCreateForm() {
               </Grid>
             </Grid>
           </Card>
+        </TabPanel>
 
-          {/* Step 1: Setup Details */}
-          <Card sx={{ ...SECTION_CARD_SX, width: '100%', display: activeStep === 1 ? 'block' : 'none' }}>
+        {/* Tab 1: Setup Details */}
+        <TabPanel value={activeTab} index={1}>
+          <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:cog-outline"
               title="Setup Details"
-              subtitle="Capacity, financials, and licensing information"
+              subtitle="Capacity, financials, and licensing"
               badge="Required"
             />
-            <Grid container spacing={2.5}>
+            <Grid container spacing={2}>
               <Grid xs={12} md={6}>
                 <Stack direction="row" spacing={1.5} alignItems="flex-start">
                   <RHFTextField name="capacityPerMonth" label="Capacity per Month *" placeholder="100" sx={{ ...INPUT_SX, flex: 1 }} helperText="Monthly production capacity" />
@@ -775,16 +856,18 @@ export default function CompanyDatabaseCreateForm() {
               </Grid>
             </Grid>
           </Card>
+        </TabPanel>
 
-          {/* Step 2: Business Profile */}
-          <Card sx={{ ...SECTION_CARD_SX, width: '100%', display: activeStep === 2 ? 'block' : 'none' }}>
+        {/* Tab 2: Business Profile */}
+        <TabPanel value={activeTab} index={2}>
+          <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:chart-bar"
               title="Business Profile"
               subtitle="Business metrics, experience, and operational details"
               badge="Required"
             />
-            <Grid container spacing={2.5}>
+            <Grid container spacing={2}>
               <Grid xs={12} md={6}>
                 <RHFAutocomplete name="noOfEmployee" label="Number of Employees *" options={EMPLOYEE_OPTIONS} getOptionLabel={(o) => o?.label || ''} isOptionEqualToValue={(o, v) => o?.value === v?.value} sx={INPUT_SX} />
               </Grid>
@@ -823,9 +906,115 @@ export default function CompanyDatabaseCreateForm() {
               </Grid>
             </Grid>
           </Card>
+        </TabPanel>
 
-          {/* Step 3: Contacts */}
-          <Card sx={{ ...SECTION_CARD_SX, width: '100%', display: activeStep === 3 ? 'block' : 'none' }}>
+        {/* Tab 3: Supply Chain */}
+        <TabPanel value={activeTab} index={3}>
+          <Card sx={SECTION_CARD_SX}>
+            <SectionHeader
+              icon="mdi:truck-delivery-outline"
+              title="Supply Chain"
+              subtitle="Primary supplier details for the supply chain"
+              badge="Required"
+            />
+            <Grid container spacing={2}>
+              <Grid xs={12}>
+                <RHFTextField
+                  name="scSupplierName"
+                  label="Supplier Name *"
+                  placeholder="Enter Supplier Name"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={INPUT_SX}
+                />
+              </Grid>
+              <Grid xs={12} md={6}>
+                <RHFTextField
+                  name="scCity"
+                  label="City *"
+                  placeholder="Enter City"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Iconify icon="mdi:city" width={18} sx={{ color: '#94a3b8' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={INPUT_SX}
+                />
+              </Grid>
+              <Grid xs={12} md={6}>
+                <RHFAutocomplete
+                  name="scCountry"
+                  label="Country *"
+                  placeholder="Select Country"
+                  options={countries}
+                  getOptionLabel={(o) => o?.Country_Name || ''}
+                  isOptionEqualToValue={(o, v) => o?.Country_ID === v?.Country_ID}
+                  renderOption={(props, option) => (
+                    <Box
+                      component="li"
+                      {...props}
+                      sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1, px: 2 }}
+                    >
+                      {option?.Country_Code && (
+                        <Iconify
+                          icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
+                          sx={{ width: 26, height: 26, flexShrink: 0 }}
+                        />
+                      )}
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {option?.Country_Name}
+                      </Typography>
+                    </Box>
+                  )}
+                  TextFieldProps={{
+                    InputProps: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {values?.scCountry?.Country_Code ? (
+                            <Iconify
+                              icon={`circle-flags:${values.scCountry.Country_Code.toLowerCase()}`}
+                              sx={{ width: 26, height: 26, mr: -0.5, ml: 0.5 }}
+                            />
+                          ) : (
+                            <Iconify icon="mdi:flag" width={18} sx={{ color: '#94a3b8' }} />
+                          )}
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                  sx={INPUT_SX}
+                />
+              </Grid>
+              <Grid xs={12} md={6}>
+                <RHFTextField
+                  name="scEmail"
+                  label="Email *"
+                  placeholder="Enter Email"
+                  type="email"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Iconify icon="mdi:email-outline" width={18} sx={{ color: '#94a3b8' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={INPUT_SX}
+                />
+              </Grid>
+            </Grid>
+          </Card>
+        </TabPanel>
+
+        {/* Tab 4: Contacts */}
+        <TabPanel value={activeTab} index={4}>
+          <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:contacts-outline"
               title="Contact Information"
@@ -869,22 +1058,24 @@ export default function CompanyDatabaseCreateForm() {
                 </TableBody>
               </Table>
             </TableContainer>
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'flex-end' }}>
               <Button size="small" variant="outlined" startIcon={<Iconify icon="mdi:plus" width={16} />} onClick={() => appendContact({ contactType: null, name: '', jobTitle: '', mobileNumber: '', email: '' })}>
                 Add Contact
               </Button>
             </Box>
           </Card>
+        </TabPanel>
 
-          {/* Step 4: Certificates */}
-          <Card sx={{ ...SECTION_CARD_SX, width: '100%', display: activeStep === 4 ? 'block' : 'none' }}>
+        {/* Tab 5: Certificates */}
+        <TabPanel value={activeTab} index={5}>
+          <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:certificate-outline"
               title="Certificates & Patents"
               subtitle="Upload all certifications and patents your company holds"
               badge={certificateFields.length > 0 ? `${certificateFields.length} added` : 'Required'}
             />
-            <Stack spacing={2}>
+            <Stack spacing={0}>
               {certificateFields.map((field, index) => (
                 <CertificateEntry
                   key={field.id}
@@ -896,16 +1087,18 @@ export default function CompanyDatabaseCreateForm() {
                   onRemove={removeCertificate}
                 />
               ))}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
                 <Button size="small" variant="contained" onClick={() => appendCertificate({ document: '', description: '', validityFrom: null, validityTo: null, file: null })} startIcon={<Iconify icon="mdi:plus" width={16} />}>
                   Add Certificate
                 </Button>
               </Box>
             </Stack>
           </Card>
+        </TabPanel>
 
-          {/* Step 5: Company Logo */}
-          <Card sx={{ ...SECTION_CARD_SX, width: '100%', display: activeStep === 5 ? 'block' : 'none' }}>
+        {/* Tab 6: Company Logo */}
+        <TabPanel value={activeTab} index={6}>
+          <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:image-outline"
               title="Company Logo"
@@ -913,7 +1106,7 @@ export default function CompanyDatabaseCreateForm() {
             />
             <Stack direction="row" alignItems="center" spacing={2}>
               {logoFile && (
-                <Box sx={{ width: 64, height: 64, borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                <Box sx={{ width: 56, height: 56, borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
                   <img src={URL.createObjectURL(logoFile)} alt="logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </Box>
               )}
@@ -922,32 +1115,30 @@ export default function CompanyDatabaseCreateForm() {
               </Box>
             </Stack>
           </Card>
+        </TabPanel>
 
-        </Box>
-
-        <Divider sx={{ my: 4, borderStyle: 'dashed' }} />
-
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        {/* ── Navigation Buttons ── */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
           <Button
             color="inherit"
-            disabled={activeStep === 0 || isSubmitting || isLoading}
+            disabled={activeTab === 0 || isSubmitting || isLoading}
             onClick={handleBack}
             startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, fontSize: '0.82rem' }}
           >
             Back
           </Button>
 
-          {activeStep === STEPS.length - 1 ? (
+          {activeTab === TABS.length - 1 ? (
             <LoadingButton
               type="submit"
               variant="contained"
               color="primary"
               loading={isSubmitting || isLoading}
               endIcon={<Iconify icon="eva:checkmark-fill" />}
-              sx={{ borderRadius: 2, px: 4 }}
+              sx={{ borderRadius: 2, px: 3, fontSize: '0.82rem' }}
             >
-              Submit Database Entry
+              Submit Entry
             </LoadingButton>
           ) : (
             <Button
@@ -955,12 +1146,13 @@ export default function CompanyDatabaseCreateForm() {
               color="primary"
               onClick={handleNext}
               endIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
-              sx={{ borderRadius: 2, px: 4 }}
+              sx={{ borderRadius: 2, px: 3, fontSize: '0.82rem' }}
             >
               Next
             </Button>
           )}
         </Stack>
+
       </FormProvider>
     </Container>
   );

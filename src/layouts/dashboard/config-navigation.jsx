@@ -97,17 +97,27 @@ export function useNavData() {
   const data = useMemo(() => {
     const navItems = [
       {
-        subheader: t('overview'),
+        // Dashboard — no subheader
         items: [
           {
             title: t('Dashboard'),
             path: paths.dashboard.root,
             icon: ICONS.dashboard,
           },
+        ],
+      },
+      {
+        items: [
           {
-            title: t('Company Database'),
+            title: t('Company'),
             path: paths.dashboard.CompanyDatabase.new,
             icon: ICONS.database,
+            children: [
+              {
+                title: t('Company Profile'),
+                path: paths.dashboard.CompanyDatabase.new,
+              },
+            ],
           },
         ],
       },

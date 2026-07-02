@@ -5,7 +5,9 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
-import { Box } from '@mui/material';
+import InputBase from '@mui/material/InputBase';
+import InputAdornment from '@mui/material/InputAdornment';
+import { Box, alpha } from '@mui/material';
 
 import { useOffSetTop } from 'src/hooks/use-off-set-top';
 import { useResponsive } from 'src/hooks/use-responsive';
@@ -14,6 +16,7 @@ import { bgBlur } from 'src/theme/css';
 
 import Logo from 'src/components/logo';
 import SvgColor from 'src/components/svg-color';
+import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
 
 import Searchbar from '../common/searchbar';
@@ -59,10 +62,19 @@ export default function Header({ onOpenNav }) {
         </IconButton>
       )}
 
-      <Searchbar />
+      {/* VSCode-style inline search bar — always visible, centered */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          px: 2,
+        }}
+      >
+        <Searchbar />
+      </Box>
 
       <Stack
-        flexGrow={1}
         direction="row"
         alignItems="center"
         justifyContent="flex-end"
@@ -70,11 +82,11 @@ export default function Header({ onOpenNav }) {
       >
         {/* <LanguagePopover />  */}
 
-        <NotificationsPopover />
+        {/* <NotificationsPopover /> */}
 
         {/* <ContactsPopover /> */}
 
-        <SettingsButton />
+        {/* <SettingsButton /> */}
 
         <AccountPopover />
       </Stack>

@@ -5,9 +5,8 @@ import { memo, useState, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
-import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Dialog, { dialogClasses } from '@mui/material/Dialog';
 
@@ -106,17 +105,54 @@ function Searchbar() {
       ));
   };
 
-  const renderButton = (
-    <Stack direction="row" alignItems="center">
-      <IconButton onClick={search.onTrue}>
-        <Iconify icon="eva:search-fill" />
-      </IconButton>
-    </Stack>
+  // VSCode-style inline search bar — always visible in the header
+  const renderInlineBar = (
+    <Box
+      onClick={search.onTrue}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        width: { xs: 180, sm: 280, md: 380 },
+        height: 32,
+        px: 1.5,
+        gap: 1,
+        borderRadius: 0.75,
+        cursor: 'text',
+        border: `1px solid ${alpha(theme.palette.grey[500], 0.2)}`,
+        bgcolor: alpha(theme.palette.grey[500], 0.08),
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          bgcolor: alpha(theme.palette.grey[500], 0.14),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.4)}`,
+        },
+      }}
+    >
+      <Iconify
+        icon="eva:search-fill"
+        width={16}
+        sx={{ color: 'text.disabled', flexShrink: 0 }}
+      />
+      <Box
+        component="span"
+        sx={{
+          flexGrow: 1,
+          typography: 'body2',
+          fontSize: 13,
+          color: 'text.disabled',
+          userSelect: 'none',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        Search...
+      </Box>
+    </Box>
   );
 
   return (
     <>
-      {renderButton}
+      {renderInlineBar}
 
       <Dialog
         fullWidth

@@ -8,7 +8,7 @@ export default function CompanyDatabaseNewPage() {
   return (
     <>
       <Helmet>
-        <title> Dashboard: Create Company Database</title>
+        <title> Dashboard: Create Company Profile</title>
       </Helmet>
 
       <CompanyDatabaseCreateForm />
