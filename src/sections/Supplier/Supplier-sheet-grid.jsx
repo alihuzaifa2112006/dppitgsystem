@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSnackbar } from 'src/components/snackbar';
 import { LoadingScreen } from 'src/components/loading-screen';
-import { Get } from 'src/api/apibasemethods';
+import { Get, Post } from 'src/api/apibasemethods';
 import { useSettingsContext } from 'src/components/settings';
 import SendInviteDialog from './SendInviteDialog';
 import {
@@ -64,6 +64,81 @@ const SupplierGrid = () => {
   // --- Copy Link Dialog States ---
   const [linkDetailsOpen, setLinkDetailsOpen] = useState(false);
   const [copiedLinkDetails, setCopiedLinkDetails] = useState({ url: '', otp: '' });
+
+  // --- Edit Dialog States ---
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editRow, setEditRow] = useState(null);
+  const [editForm, setEditForm] = useState({ supplierName: '', city: '', email: '', country: null });
+  const [editSaving, setEditSaving] = useState(false);
+
+  // --- Delete Dialog States ---
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteRow, setDeleteRow] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleOpenEdit = (row) => {
+    setEditRow(row);
+    const matchedCountry = countryOptions.find(
+      (c) => c.Country_Name === row.CountryName || String(c.Country_ID) === String(row.CountryID)
+    ) || null;
+    setEditForm({
+      supplierName: row.SupplierName || '',
+      city: row.City || '',
+      email: row.Email || '',
+      country: matchedCountry,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editRow) return;
+    try {
+      setEditSaving(true);
+      const payload = {
+        InvitationId: editRow.InvitationId,
+        supplierName: editForm.supplierName,
+        city: editForm.city,
+        email: editForm.email,
+        countryID: editForm.country ? parseInt(editForm.country.Country_ID, 10) : (editRow.CountryID || 0),
+      };
+      const response = await Post('Supplier/Update', payload);
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar('Supplier updated successfully!', { variant: 'success' });
+        setEditDialogOpen(false);
+        fetchSupplierData();
+      } else {
+        enqueueSnackbar(response?.data?.Message || 'Update failed', { variant: 'error' });
+      }
+    } catch (error) {
+      enqueueSnackbar(error?.response?.data?.Message || 'Error updating supplier', { variant: 'error' });
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const handleOpenDelete = (row) => {
+    setDeleteRow(row);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteRow) return;
+    try {
+      setDeleteLoading(true);
+      const response = await Post('Supplier/Delete', { InvitationId: deleteRow.InvitationId });
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar('Supplier deleted successfully!', { variant: 'success' });
+        setDeleteDialogOpen(false);
+        fetchSupplierData();
+      } else {
+        enqueueSnackbar(response?.data?.Message || 'Delete failed', { variant: 'error' });
+      }
+    } catch (error) {
+      enqueueSnackbar(error?.response?.data?.Message || 'Error deleting supplier', { variant: 'error' });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const handleOpenInvite = (supplier) => {
     setSelectedSupplier(supplier);
@@ -465,34 +540,18 @@ const SupplierGrid = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 70, width: 70, fontSize: '0.875rem' }}>
-                  <TableSortLabel active={orderBy === 'sno'} direction={order} onClick={() => handleSort('sno')} hideSortIcon>
-                    S.No
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 60, width: 60, fontSize: '0.875rem' }}>S.No</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 180, fontSize: '0.875rem' }}>
                   <TableSortLabel active={orderBy === 'SupplierName'} direction={order} onClick={() => handleSort('SupplierName')} hideSortIcon>
                     Supplier Name
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 150, fontSize: '0.875rem' }}>
-                  <TableSortLabel active={orderBy === 'City'} direction={order} onClick={() => handleSort('City')} hideSortIcon>
-                    City
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>
-                  <TableSortLabel active={orderBy === 'Email'} direction={order} onClick={() => handleSort('Email')} hideSortIcon>
-                    Email
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 170, fontSize: '0.875rem' }}>
-                  <TableSortLabel active={orderBy === 'CountryName'} direction={order} onClick={() => handleSort('CountryName')} hideSortIcon>
-                    Country
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 140, fontSize: '0.875rem', textAlign: 'center' }}>
-                  Actions
-                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 120, fontSize: '0.875rem' }}>City</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>Email</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 150, fontSize: '0.875rem' }}>Country</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 90, fontSize: '0.875rem', textAlign: 'center' }}>Invite Link</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 80, fontSize: '0.875rem', textAlign: 'center' }}>Send Invite</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 100, fontSize: '0.875rem', textAlign: 'center' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -504,53 +563,60 @@ const SupplierGrid = () => {
                   <TableRow
                     key={row.InvitationId || index}
                     hover
-                    sx={{
-                      '&:last-child td': { borderBottom: 0 },
-                    }}
+                    sx={{ '&:last-child td': { borderBottom: 0 } }}
                   >
                     <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{serialNumber}</TableCell>
                     <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>{row.SupplierName || '-'}</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{row.City || '-'}</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{row.Email || '-'}</TableCell>
-                    <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>
+                    <TableCell sx={{ fontSize: '0.875rem' }}>
                       {row.CountryName ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {countryCode && (
-                            <Iconify
-                              icon={`circle-flags:${countryCode.toLowerCase()}`}
-                              sx={{ width: 22, height: 22, flexShrink: 0 }}
-                            />
+                            <Iconify icon={`circle-flags:${countryCode.toLowerCase()}`} sx={{ width: 22, height: 22, flexShrink: 0 }} />
                           )}
-                          <span>{row.CountryName}</span>
+                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>{row.CountryName}</Typography>
                         </Box>
-                      ) : (
-                        '-'
-                      )}
+                      ) : '-'}
                     </TableCell>
 
+                    {/* ── Invite Link column ── */}
                     <TableCell sx={{ textAlign: 'center' }}>
-                      <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
-                        <Tooltip title={`Send email invite to ${row.Email || 'supplier'}`} arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenInvite(row)}
-                            sx={{ color: 'primary.main', transition: 'all 0.2s ease', padding: '4px' }}
+                      <Tooltip title="Copy onboarding link" arrow>
+                        <IconButton size="small" onClick={() => handleCopyLink(row)}
+                          sx={{ color: 'success.main', padding: '4px' }}
+                        >
+                          <Iconify icon="mdi:link-variant" width={20} />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+
+                    {/* ── Send Invite column ── */}
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <Tooltip title={`Send invite to ${row.Email || 'supplier'}`} arrow>
+                        <IconButton size="small" onClick={() => handleOpenInvite(row)}
+                          sx={{ color: 'primary.main', padding: '4px' }}
+                        >
+                          <Iconify icon="mdi:email-arrow-right-outline" width={20} />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+
+                    {/* ── Actions: Edit + Delete ── */}
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
+                        <Tooltip title="Edit supplier" arrow>
+                          <IconButton size="small" onClick={() => handleOpenEdit(row)}
+                            sx={{ color: 'info.main', padding: '4px' }}
                           >
-                            <Iconify icon="mdi:email-outline" width={20} />
+                            <Iconify icon="solar:pen-bold" width={18} />
                           </IconButton>
                         </Tooltip>
-
-                        <Tooltip title="Copy onboarding link" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCopyLink(row)}
-                            sx={{
-                              color: 'success.main',
-                              transition: 'all 0.2s ease',
-                              padding: '4px',
-                            }}
+                        <Tooltip title="Delete supplier" arrow>
+                          <IconButton size="small" onClick={() => handleOpenDelete(row)}
+                            sx={{ color: 'error.main', padding: '4px' }}
                           >
-                            <Iconify icon="mdi:link-variant" width={20} />
+                            <Iconify icon="solar:trash-bin-trash-bold" width={18} />
                           </IconButton>
                         </Tooltip>
                       </Stack>
@@ -725,6 +791,189 @@ const SupplierGrid = () => {
           </DialogActions>
         </Dialog>
       </Paper>
+
+      {/* ── Edit Supplier Dialog ── */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '16px' } }}
+      >
+        <DialogTitle sx={{ px: 3, pt: 3, pb: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box sx={{
+              width: 38, height: 38, borderRadius: '10px',
+              bgcolor: (th) => `${th.palette.info.main}18`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <Iconify icon="solar:pen-bold" width={20} sx={{ color: 'info.main' }} />
+            </Box>
+            <Box>
+              <Typography variant="h6" fontWeight={700} lineHeight={1.2}>Edit Supplier</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Update supplier information below
+              </Typography>
+            </Box>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, pt: '20px !important', pb: 2 }}>
+          <Stack spacing={2.5}>
+
+            {/* Supplier Name — full width */}
+            <TextField
+              label="Supplier Name"
+              fullWidth
+              value={editForm.supplierName}
+              onChange={(e) => setEditForm((f) => ({ ...f, supplierName: e.target.value }))}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Iconify icon="mdi:domain" width={18} sx={{ color: 'text.secondary', mr: 0.5 }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {/* City + Country — side by side */}
+            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+              <TextField
+                label="City"
+                fullWidth
+                value={editForm.city}
+                onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Iconify icon="mdi:city-variant-outline" width={18} sx={{ color: 'text.secondary', mr: 0.5 }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Autocomplete
+                value={editForm.country}
+                onChange={(_, newVal) => setEditForm((f) => ({ ...f, country: newVal }))}
+                options={countryOptions}
+                getOptionLabel={(o) => o.Country_Name || ''}
+                isOptionEqualToValue={(o, v) => o.Country_ID === v?.Country_ID}
+                renderOption={(props, option) => (
+                  <Box component="li" sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75 }} {...props}>
+                    {option.Country_Code && (
+                      <Iconify icon={`circle-flags:${option.Country_Code.toLowerCase()}`} sx={{ width: 20, height: 20, flexShrink: 0 }} />
+                    )}
+                    <Typography variant="body2">{option.Country_Name}</Typography>
+                  </Box>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Country"
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <>
+                          <InputAdornment position="start">
+                            {editForm.country?.Country_Code ? (
+                              <Iconify
+                                icon={`circle-flags:${editForm.country.Country_Code.toLowerCase()}`}
+                                sx={{ width: 20, height: 20, ml: 0.5 }}
+                              />
+                            ) : (
+                              <Iconify icon="mdi:earth" width={18} sx={{ color: 'text.secondary', ml: 0.5 }} />
+                            )}
+                          </InputAdornment>
+                          {params.InputProps.startAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+
+            {/* Email — full width */}
+            <TextField
+              label="Email"
+              fullWidth
+              type="email"
+              value={editForm.email}
+              onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Iconify icon="mdi:email-outline" width={18} sx={{ color: 'text.secondary', mr: 0.5 }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Stack>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1.5, gap: 1.5 }}>
+          <Button
+            variant="outlined" color="inherit"
+            onClick={() => setEditDialogOpen(false)}
+            sx={{ borderRadius: 2, flex: 1, fontWeight: 600, py: 1.2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained" color="primary"
+            onClick={handleSaveEdit}
+            disabled={editSaving}
+            startIcon={<Iconify icon="solar:disk-bold" width={18} />}
+            sx={{ borderRadius: 2, flex: 1, fontWeight: 600, py: 1.2 }}
+          >
+            {editSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Delete Confirm Dialog ── */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '16px', p: 0.5 } }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box sx={{
+              width: 40, height: 40, borderRadius: '10px',
+              bgcolor: (th) => `${th.palette.error.main}1a`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Iconify icon="solar:trash-bin-trash-bold" width={22} sx={{ color: 'error.main' }} />
+            </Box>
+            <Typography variant="h6" fontWeight={700}>Delete Supplier</Typography>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent sx={{ pb: 1.5 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Are you sure you want to delete{' '}
+            <strong>{deleteRow?.SupplierName}</strong>? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button variant="outlined" color="inherit" onClick={() => setDeleteDialogOpen(false)}
+            sx={{ borderRadius: 2, flex: 1, fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button variant="contained" color="error" onClick={handleConfirmDelete}
+            disabled={deleteLoading}
+            startIcon={<Iconify icon="solar:trash-bin-trash-bold" width={18} />}
+            sx={{ borderRadius: 2, flex: 1, fontWeight: 600 }}
+          >
+            {deleteLoading ? 'Deleting...' : 'Yes, Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Box>
   );
 };

@@ -100,7 +100,7 @@ function TabPanel({ children, value, index }) {
         animation: isActive ? 'slideIn 0.28s cubic-bezier(0.4,0,0.2,1)' : 'none',
         '@keyframes slideIn': {
           from: { opacity: 0, transform: 'translateY(10px)' },
-          to:   { opacity: 1, transform: 'translateY(0)' },
+          to: { opacity: 1, transform: 'translateY(0)' },
         },
       }}
     >
@@ -749,7 +749,7 @@ export default function CompanyDatabaseCreateForm() {
             />
             <Grid container spacing={2}>
               <Grid xs={12}>
-                <RHFTextField name="supName" label="Supplier Name *" placeholder="e.g. IVT International Ltd" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="supName" label="Company Name *" placeholder="e.g. IVT International Ltd" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12}>
                 <RHFTextField name="addressLine1" label="Address Line 1 *" placeholder="Flat A, 10/F, Lockhart Centre" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:map-marker-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
