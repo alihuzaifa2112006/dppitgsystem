@@ -75,10 +75,7 @@ const INPUT_SX = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '8px',
     fontSize: '0.875rem',
-    backgroundColor: '#fff',
-    '& fieldset': { borderColor: '#e2e8f0' },
-    '&:hover fieldset': { borderColor: '#94a3b8' },
-    '&.Mui-focused fieldset': { borderColor: '#3b5bdb', borderWidth: '1.5px' },
+    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '1.5px' },
   },
   '& .MuiInputLabel-root': { fontSize: '0.875rem' },
 };
@@ -86,9 +83,9 @@ const INPUT_SX = {
 const SECTION_CARD_SX = {
   p: 3,
   borderRadius: '12px',
-  border: '1px solid #eef0f6',
+  border: '1px solid',
+  borderColor: 'divider',
   boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-  backgroundColor: '#fff',
 };
 
 // ─── Animated Tab Panel ───────────────────────────────────────────────────────
@@ -139,13 +136,13 @@ function SectionHeader({ icon, title, subtitle, badge }) {
     <Box sx={{ mb: 2.5 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Iconify icon={icon} width={20} sx={{ color: '#3b5bdb', flexShrink: 0 }} />
+          <Iconify icon={icon} width={20} sx={{ color: 'primary.main', flexShrink: 0 }} />
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
               {title}
             </Typography>
             {subtitle && (
-              <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                 {subtitle}
               </Typography>
             )}
@@ -155,17 +152,13 @@ function SectionHeader({ icon, title, subtitle, badge }) {
           <Chip
             label={badge}
             size="small"
-            sx={{
-              bgcolor: '#eef2ff',
-              color: '#3b5bdb',
-              fontWeight: 600,
-              fontSize: '0.68rem',
-              border: '1px solid #c7d2fe',
-            }}
+            color="primary"
+            variant="outlined"
+            sx={{ fontWeight: 600, fontSize: '0.68rem' }}
           />
         )}
       </Stack>
-      <Divider sx={{ mt: 1.5, borderColor: '#f1f5f9' }} />
+      <Divider sx={{ mt: 1.5 }} />
     </Box>
   );
 }
@@ -209,13 +202,14 @@ function FileUploadButton({ file, onFileChange, onClear, accept = '.pdf,.jpg,.jp
         gap: 2,
         p: 1.5,
         borderRadius: '8px',
-        border: `1.5px dashed ${file ? '#22c55e' : '#c7d2fe'}`,
+        border: '1.5px dashed',
+        borderColor: file ? 'success.light' : 'primary.light',
         cursor: 'pointer',
-        bgcolor: file ? '#f0fdf4' : '#fff',
+        bgcolor: file ? 'success.lighter' : 'background.neutral',
         transition: 'all 0.15s ease',
         '&:hover': {
-          bgcolor: file ? '#dcfce7' : '#eef2ff',
-          borderColor: file ? '#16a34a' : '#818cf8',
+          bgcolor: file ? 'success.light' : 'action.hover',
+          borderColor: file ? 'success.main' : 'primary.main',
         },
       }}
     >
@@ -224,29 +218,30 @@ function FileUploadButton({ file, onFileChange, onClear, accept = '.pdf,.jpg,.jp
           width: 36,
           height: 36,
           borderRadius: '8px',
-          bgcolor: file ? '#dcfce7' : '#f1f5f9',
+          bgcolor: 'action.selected',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
-          border: `1px solid ${file ? '#86efac' : '#e2e8f0'}`,
+          border: '1px solid',
+          borderColor: 'divider',
         }}
       >
         <Iconify
           icon={file ? 'mdi:file-check-outline' : 'mdi:cloud-upload-outline'}
           width={18}
-          sx={{ color: file ? '#16a34a' : '#94a3b8' }}
+          sx={{ color: file ? 'success.main' : 'text.secondary' }}
         />
       </Box>
       <Box flex={1}>
-        <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b', fontSize: '0.8rem' }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '0.8rem' }}>
           {file ? file.name : label}
         </Typography>
-        <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           {file ? `${(file.size / 1024).toFixed(1)} KB` : hint}
         </Typography>
         {fileError && (
-          <Typography variant="caption" sx={{ color: '#ef4444', display: 'block', mt: 0.5 }}>
+          <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mt: 0.5 }}>
             {fileError}
           </Typography>
         )}
@@ -255,18 +250,15 @@ function FileUploadButton({ file, onFileChange, onClear, accept = '.pdf,.jpg,.jp
         <Chip
           label="Remove"
           size="small"
+          color="error"
+          variant="soft"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             setFileError('');
             onClear();
           }}
-          sx={{
-            bgcolor: '#fee2e2',
-            color: '#ef4444',
-            fontSize: '0.7rem',
-            '&:hover': { bgcolor: '#fecaca' },
-          }}
+          sx={{ fontSize: '0.7rem' }}
         />
       )}
       <input type="file" accept={accept} hidden onChange={handleChange} />
@@ -676,12 +668,12 @@ export default function CompanyDatabaseCreateForm() {
 
       {/* ── Minimal Page Header ── */}
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
-        <Iconify icon="mdi:domain" width={22} sx={{ color: '#3b5bdb', flexShrink: 0 }} />
+        <Iconify icon="mdi:domain" width={22} sx={{ color: 'primary.main', flexShrink: 0 }} />
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2 }}>
             Company Profile
           </Typography>
-          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Fill in your company details across all sections
           </Typography>
         </Box>
@@ -689,7 +681,9 @@ export default function CompanyDatabaseCreateForm() {
         <Chip
           label={`Step ${activeTab + 1} / ${TABS.length}`}
           size="small"
-          sx={{ bgcolor: '#eef2ff', color: '#3b5bdb', fontWeight: 600, fontSize: '0.72rem', border: '1px solid #c7d2fe' }}
+          color="primary"
+          variant="outlined"
+          sx={{ fontWeight: 600, fontSize: '0.72rem' }}
         />
       </Stack>
 
@@ -698,7 +692,8 @@ export default function CompanyDatabaseCreateForm() {
         sx={{
           mb: 2,
           borderRadius: '12px',
-          border: '1px solid #eef0f6',
+          border: '1px solid',
+          borderColor: 'divider',
           boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
         }}
       >
@@ -714,15 +709,15 @@ export default function CompanyDatabaseCreateForm() {
               minHeight: 48,
               fontSize: '0.78rem',
               fontWeight: 600,
-              color: '#64748b',
+              color: 'text.secondary',
               textTransform: 'none',
               gap: 0.75,
               px: 2,
               transition: 'color 0.2s ease',
-              '&.Mui-selected': { color: '#3b5bdb' },
+              '&.Mui-selected': { color: 'primary.main' },
             },
             '& .MuiTabs-indicator': {
-              bgcolor: '#3b5bdb',
+              bgcolor: 'primary.main',
               height: 2,
               borderRadius: '2px 2px 0 0',
               transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',

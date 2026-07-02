@@ -266,8 +266,8 @@ const SupplierGrid = () => {
           p: 2.5,
           mb: 3,
           borderRadius: 3,
-          border: '1px solid #eef2f6',
-          backgroundColor: '#fafbfc',
+          border: '1px solid',
+          borderColor: 'divider',
         }}
       >
         <Grid container spacing={2} alignItems="center">
@@ -293,7 +293,7 @@ const SupplierGrid = () => {
                       sx={{ width: 22, height: 22, flexShrink: 0 }}
                     />
                   )}
-                  <Typography variant="body2" sx={{ color: '#344054' }}>
+                  <Typography variant="body2" sx={{ color: 'text.primary' }}>
                     {option.Country_Name}
                   </Typography>
                 </Box>
@@ -306,12 +306,10 @@ const SupplierGrid = () => {
                   size="small"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#ffffff',
                       borderRadius: '12px',
                       minHeight: '48px',
-                      '& fieldset': { borderColor: '#d0d5dd' },
-                      '&:hover fieldset': { borderColor: '#3366ff' },
-                      '&.Mui-focused fieldset': { borderColor: '#3366ff', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'primary.main' },
+                      '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' },
                     },
                   }}
                   InputProps={{
@@ -320,7 +318,7 @@ const SupplierGrid = () => {
                       <>
                         {selectedCountries.length === 0 ? (
                           <InputAdornment position="start">
-                            <Iconify icon="mdi:earth" width={20} sx={{ color: '#667085', ml: 0.5 }} />
+                            <Iconify icon="mdi:earth" width={20} sx={{ color: 'text.secondary', ml: 0.5 }} />
                           </InputAdornment>
                         ) : null}
                         {params.InputProps.startAdornment}
@@ -329,7 +327,7 @@ const SupplierGrid = () => {
                   }}
                 />
               )}
-              clearIcon={<Iconify icon="eva:close-fill" width={18} sx={{ color: '#667085' }} />}
+              clearIcon={<Iconify icon="eva:close-fill" width={18} sx={{ color: 'text.secondary' }} />}
               sx={{ width: '100%' }}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => (
@@ -346,19 +344,9 @@ const SupplierGrid = () => {
                     }
                     label={option.Country_Name}
                     size="small"
-                    sx={{
-                      backgroundColor: '#e8edf5',
-                      color: '#3366ff',
-                      fontWeight: 500,
-                      borderRadius: '6px',
-                      '&:hover': {
-                        backgroundColor: '#e8edf5', // Remove hover background change
-                      },
-                      '& .MuiChip-deleteIcon': {
-                        color: '#667085',
-                        '&:hover': { color: '#344054' },
-                      },
-                    }}
+                    color="primary"
+                    variant="soft"
+                    sx={{ fontWeight: 500, borderRadius: '6px' }}
                   />
                 ))
               }
@@ -379,30 +367,24 @@ const SupplierGrid = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#ffffff',
                   borderRadius: '12px',
                   height: '48px',
                   transition: 'box-shadow 0.2s ease',
-                  '& fieldset': { borderColor: '#d0d5dd' },
-                  '&:hover fieldset': { borderColor: '#3366ff' },
-                  '&.Mui-focused fieldset': { borderColor: '#3366ff', borderWidth: '2px' },
+                  '&:hover fieldset': { borderColor: 'primary.main' },
+                  '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' },
                   '&.Mui-focused': {
-                    boxShadow: '0 0 0 3px rgba(51, 102, 255, 0.08)',
+                    boxShadow: (th) => `0 0 0 3px ${th.palette.primary.main}14`,
                   },
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '0.95rem',
                   padding: '8px 14px',
-                  '&::placeholder': {
-                    color: '#9aa5b4',
-                    opacity: 1,
-                  },
                 },
               }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start" sx={{ ml: 0.5 }}>
-                    <Iconify icon="eva:search-fill" width={22} sx={{ color: '#667085' }} />
+                    <Iconify icon="eva:search-fill" width={22} sx={{ color: 'text.secondary' }} />
                   </InputAdornment>
                 ),
                 endAdornment: searchText && (
@@ -412,8 +394,8 @@ const SupplierGrid = () => {
                       onClick={() => setSearchText('')}
                       sx={{
                         padding: '4px',
-                        color: '#667085',
-                        '&:hover': { color: '#344054', backgroundColor: 'transparent' },
+                        color: 'text.secondary',
+                        '&:hover': { color: 'text.primary', backgroundColor: 'transparent' },
                       }}
                     >
                       <Iconify icon="eva:close-fill" width={20} />
@@ -445,19 +427,9 @@ const SupplierGrid = () => {
                 }}
                 deleteIcon={<Iconify icon="eva:close-fill" width={16} />}
                 size="small"
-                sx={{
-                  backgroundColor: '#e8edf5',
-                  color: '#3366ff',
-                  fontWeight: 500,
-                  borderRadius: '6px',
-                  '&:hover': {
-                    backgroundColor: '#e8edf5', // Remove hover background change
-                  },
-                  '& .MuiChip-deleteIcon': {
-                    color: '#667085',
-                    '&:hover': { color: '#344054' },
-                  },
-                }}
+                color="primary"
+                variant="soft"
+                sx={{ fontWeight: 500, borderRadius: '6px' }}
               />
             ))}
             {searchText && (
@@ -466,33 +438,15 @@ const SupplierGrid = () => {
                 onDelete={() => setSearchText('')}
                 deleteIcon={<Iconify icon="eva:close-fill" width={16} />}
                 size="small"
-                sx={{
-                  backgroundColor: '#e8edf5',
-                  color: '#3366ff',
-                  fontWeight: 500,
-                  borderRadius: '6px',
-                  '&:hover': {
-                    backgroundColor: '#e8edf5', // Remove hover background change
-                  },
-                  '& .MuiChip-deleteIcon': {
-                    color: '#667085',
-                    '&:hover': { color: '#344054' },
-                  },
-                }}
+                color="primary"
+                variant="soft"
+                sx={{ fontWeight: 500, borderRadius: '6px' }}
               />
             )}
             <Chip
               label={`${filteredData.length} results`}
               size="small"
-              sx={{
-                backgroundColor: 'transparent',
-                color: '#667085',
-                fontWeight: 400,
-                borderRadius: '6px',
-                '&:hover': {
-                  backgroundColor: 'transparent', // Remove hover background change
-                },
-              }}
+              sx={{ fontWeight: 400, borderRadius: '6px', color: 'text.secondary' }}
             />
           </Stack>
         )}
@@ -511,32 +465,32 @@ const SupplierGrid = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 70, width: 70, fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 70, width: 70, fontSize: '0.875rem' }}>
                   <TableSortLabel active={orderBy === 'sno'} direction={order} onClick={() => handleSort('sno')} hideSortIcon>
                     S.No
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 200, fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>
                   <TableSortLabel active={orderBy === 'SupplierName'} direction={order} onClick={() => handleSort('SupplierName')} hideSortIcon>
                     Supplier Name
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 150, fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 150, fontSize: '0.875rem' }}>
                   <TableSortLabel active={orderBy === 'City'} direction={order} onClick={() => handleSort('City')} hideSortIcon>
                     City
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 200, fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>
                   <TableSortLabel active={orderBy === 'Email'} direction={order} onClick={() => handleSort('Email')} hideSortIcon>
                     Email
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 170, fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 170, fontSize: '0.875rem' }}>
                   <TableSortLabel active={orderBy === 'CountryName'} direction={order} onClick={() => handleSort('CountryName')} hideSortIcon>
                     Country
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: '#fafbfc', fontWeight: 600, color: '#666', minWidth: 140, fontSize: '0.875rem', textAlign: 'center' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 140, fontSize: '0.875rem', textAlign: 'center' }}>
                   Actions
                 </TableCell>
               </TableRow>
@@ -551,14 +505,13 @@ const SupplierGrid = () => {
                     key={row.InvitationId || index}
                     hover
                     sx={{
-                      '&:hover': { backgroundColor: '#f8fafc' },
                       '&:last-child td': { borderBottom: 0 },
                     }}
                   >
-                    <TableCell sx={{ color: '#888', fontSize: '0.875rem' }}>{serialNumber}</TableCell>
-                    <TableCell sx={{ color: '#333', fontSize: '0.875rem', fontWeight: 500 }}>{row.SupplierName || '-'}</TableCell>
-                    <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>{row.City || '-'}</TableCell>
-                    <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>{row.Email || '-'}</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{serialNumber}</TableCell>
+                    <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>{row.SupplierName || '-'}</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{row.City || '-'}</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{row.Email || '-'}</TableCell>
                     <TableCell sx={{ color: '#555', fontSize: '0.875rem' }}>
                       {row.CountryName ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -581,7 +534,7 @@ const SupplierGrid = () => {
                           <IconButton
                             size="small"
                             onClick={() => handleOpenInvite(row)}
-                            sx={{ color: '#3366ff', transition: 'all 0.2s ease', padding: '4px' }}
+                            sx={{ color: 'primary.main', transition: 'all 0.2s ease', padding: '4px' }}
                           >
                             <Iconify icon="mdi:email-outline" width={20} />
                           </IconButton>
@@ -592,10 +545,9 @@ const SupplierGrid = () => {
                             size="small"
                             onClick={() => handleCopyLink(row)}
                             sx={{
-                              color: '#4caf50',
+                              color: 'success.main',
                               transition: 'all 0.2s ease',
                               padding: '4px',
-                              '&:hover': { backgroundColor: 'rgba(76, 175, 80, 0.08)' }
                             }}
                           >
                             <Iconify icon="mdi:link-variant" width={20} />
@@ -610,8 +562,8 @@ const SupplierGrid = () => {
               {paginatedData.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
-                    <Iconify icon="mdi:inbox" width={48} sx={{ color: '#ccc', mb: 1 }} />
-                    <Typography variant="body1" sx={{ color: '#999' }}>
+                    <Iconify icon="mdi:inbox" width={48} sx={{ color: 'text.disabled', mb: 1 }} />
+                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                       No records found
                     </Typography>
                   </TableCell>
@@ -630,8 +582,8 @@ const SupplierGrid = () => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           sx={{
-            borderTop: '1px solid #f0f0f0',
-            color: '#666',
+            borderTop: '1px solid',
+            borderColor: 'divider',
             '& .MuiTablePagination-select': { borderRadius: 1 },
           }}
         />

@@ -199,7 +199,7 @@ export default function SupplierCreateForm() {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <Typography
                 sx={{
-                  color: "#1a1a2e",
+                  color: 'text.primary',
                   fontWeight: 700,
                   fontSize: '1.5rem',
                   letterSpacing: '0.5px',
@@ -225,7 +225,7 @@ export default function SupplierCreateForm() {
                       <Iconify
                         icon="mdi:domain"
                         width={20}
-                        sx={{ color: '#666', mr: 1 }}
+                        sx={{ color: 'text.secondary', mr: 1 }}
                       />
                     ),
                   }}
@@ -233,7 +233,7 @@ export default function SupplierCreateForm() {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       '&:hover fieldset': {
-                        borderColor: '#3366ff',
+                        borderColor: 'primary.main',
                       },
                     },
                   }}
@@ -254,7 +254,7 @@ export default function SupplierCreateForm() {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       '&:hover fieldset': {
-                        borderColor: '#3366ff',
+                        borderColor: 'primary.main',
                       },
                     },
                   },

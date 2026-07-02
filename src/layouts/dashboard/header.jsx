@@ -80,13 +80,27 @@ export default function Header({ onOpenNav }) {
         justifyContent="flex-end"
         spacing={{ xs: 0.5, sm: 1 }}
       >
-        {/* <LanguagePopover />  */}
+        {/* {<LanguagePopover />}  */}
 
-        {/* <NotificationsPopover /> */}
+        {/* {<NotificationsPopover />} */}
 
-        {/* <ContactsPopover /> */}
+        {/* {<ContactsPopover />} */}
 
-        {/* <SettingsButton /> */}
+        {/* {<SettingsButton />} */}
+
+        {/* ── Theme Toggle (Light / Dark) ── */}
+        <IconButton
+          onClick={() =>
+            settings.onUpdate('themeMode', settings.themeMode === 'light' ? 'dark' : 'light')
+          }
+          sx={{ width: 38, height: 38, borderRadius: '10px' }}
+        >
+          <Iconify
+            icon={settings.themeMode === 'light' ? 'solar:moon-bold-duotone' : 'solar:sun-2-bold-duotone'}
+            width={22}
+            sx={{ color: settings.themeMode === 'light' ? 'text.secondary' : '#f59e0b' }}
+          />
+        </IconButton>
 
         <AccountPopover />
       </Stack>
