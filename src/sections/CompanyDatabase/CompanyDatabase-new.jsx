@@ -7,6 +7,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { alpha } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -38,6 +39,7 @@ import {
   Divider,
   InputAdornment,
   Tooltip,
+  LinearProgress,
 } from '@mui/material';
 
 import { LoadingScreen } from 'src/components/loading-screen';
@@ -508,6 +510,7 @@ export default function CompanyDatabaseCreateForm() {
     companyLogoPath: '',
   });
 
+
   // Get companyId from localStorage
   const companyId = useMemo(() => {
     try {
@@ -693,6 +696,48 @@ export default function CompanyDatabaseCreateForm() {
   const { fields: contactFields, append: appendContact, remove: removeContact } = useFieldArray({ control, name: 'contacts' });
   const { fields: certificateFields, append: appendCertificate, remove: removeCertificate } = useFieldArray({ control, name: 'certificates' });
 
+  // ── Profile Completion (reactive) ──
+  const hasValue = (v) => v !== null && v !== undefined && v !== '' && v !== 0;
+  const profileCompletion = useMemo(() => {
+    const fields = [
+      // Company Info
+      values.supName,
+      values.addressLine1,
+      values.country,
+      values.onboardingEmail,
+      values.city,
+      values.phone,
+      values.webAddress,
+      values.province,
+      values.zipCode,
+      values.mainExportMarket,
+      // Setup Details
+      values.capacityPerMonth,
+      values.unit,
+      values.turnoverPerYear,
+      values.currency,
+      values.businessLicenseNo,
+      businessLicenseFile || storedPaths.businessLicenseFilePath || null,
+      // Business Profile
+      values.noOfEmployee,
+      values.exportBusinessPct,
+      values.experienceInBusiness?.length > 0 ? true : null,
+      values.businessInEuropePct,
+      values.shippingTerms,
+      values.businessType,
+      values.yearsInBusiness,
+      values.yearsEuropeanBusiness,
+      // Contacts — at least 1 with name filled
+      values.contacts?.some(c => c.name) ? true : null,
+      // Certificates — at least 1 with document filled
+      values.certificates?.some(c => c.document) ? true : null,
+      // Logo
+      logoFile || storedPaths.companyLogoPath || null,
+    ];
+    const filled = fields.filter(hasValue).length;
+    return Math.round((filled / fields.length) * 100);
+  }, [values, logoFile, businessLicenseFile, storedPaths]);
+
   const handleTabChange = (_, newValue) => {
     setActiveTab(newValue);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -867,7 +912,7 @@ export default function CompanyDatabaseCreateForm() {
     <Container maxWidth="lg" sx={{ py: 3 }}>
 
       {/* ── Minimal Page Header ── */}
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
         <Iconify icon="mdi:domain" width={22} sx={{ color: 'primary.main', flexShrink: 0 }} />
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2 }}>
@@ -886,6 +931,51 @@ export default function CompanyDatabaseCreateForm() {
           sx={{ fontWeight: 600, fontSize: '0.72rem' }}
         />
       </Stack>
+
+      {/* ── Profile Completion Bar ── */}
+      <Card
+        sx={{
+          mb: 2,
+          p: 2,
+          borderRadius: '12px',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Iconify icon="mdi:chart-donut" width={18} sx={{ color: profileCompletion === 100 ? 'success.main' : 'primary.main' }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
+              Profile Completion
+            </Typography>
+          </Stack>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              color: profileCompletion === 100 ? 'success.main' : profileCompletion >= 70 ? 'warning.main' : 'primary.main',
+            }}
+          >
+            {profileCompletion}%
+          </Typography>
+        </Stack>
+        <LinearProgress
+          variant="determinate"
+          value={profileCompletion}
+          sx={{
+            height: 8,
+            borderRadius: 0,
+            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+            '& .MuiLinearProgress-bar': {
+              borderRadius: 0,
+              bgcolor: profileCompletion === 100 ? 'success.main' : profileCompletion >= 70 ? 'warning.main' : 'primary.main',
+              transition: 'width 0.6s ease',
+            },
+          }}
+        />
+      </Card>
 
       {/* ── Tabs ── */}
       <Card

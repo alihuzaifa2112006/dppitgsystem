@@ -1,9 +1,9 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
-import { Typography, Box, Card, CardContent, LinearProgress } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Typography, Box, Card, CardContent, LinearProgress, Stack } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import {
   LineChart, Line, BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis,
   PolarRadiusAxis, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
@@ -11,6 +11,8 @@ import {
 } from 'recharts';
 
 import { useSettingsContext } from 'src/components/settings';
+import { Get } from 'src/api/apibasemethods';
+import { useRouter } from 'src/routes/hooks';
 
 // ─── Colour tokens ────────────────────────────────────────────────────────────
 const CLR = {
@@ -314,8 +316,56 @@ PctTooltip.defaultProps = { active: false, payload: [], label: '' };
 export default function OverviewAppView() {
   const settings = useSettingsContext();
   const theme = useTheme();
+  const router = useRouter();
   const currentYear = new Date().getFullYear();
   const maxCountry = COUNTRIES[0].count;
+
+  // ── Profile Completion from API ──
+  const [profileCompletion, setProfileCompletion] = useState(0);
+  const [companyName, setCompanyName] = useState('');
+
+  useEffect(() => {
+    const fetchCompanyProfile = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('UserData') || '{}');
+        const cid = userData?.Data?.company?.CompanyId || userData?.Data?.CompanyId;
+        if (!cid) return;
+        setCompanyName(userData?.Data?.company?.OrganizationName || '');
+
+        const res = await Get(`Company/GetByCompanyId?companyId=${cid}`);
+        const d = res?.data?.Data;
+        if (!d) return;
+
+        const hasVal = (v) => v !== null && v !== undefined && v !== '' && v !== 0;
+        const fields = [
+          d.OrganizationName, d.AddressLine1, d.CountryID,
+          d.Email || d.OnboardingEmail, d.City, d.Phone,
+          d.Website, d.Province, d.ZipPostalCode, d.ExportMarketId,
+          d.CapacityPerMonth, d.UnitId, d.AnnualTurnover, d.CurrencyId,
+          d.BusinessLicenseNo, d.BusinessLicenseFilePath,
+          d.NumberOfEmployees, d.ExportBusinessPercent,
+          d.ExperienceInBusiness, d.BusinessInEuropePercent,
+          d.ShippingTerms, d.BusinessType, d.YearsInBusiness,
+          d.YearsInEuropeanBusiness,
+          d.Contacts?.length > 0 ? true : null,
+          d.Certificates?.length > 0 ? true : null,
+          d.CompanyLogoPath,
+        ];
+        const filled = fields.filter(hasVal).length;
+        setProfileCompletion(Math.round((filled / fields.length) * 100));
+      } catch (err) {
+        console.error('Profile completion fetch error:', err);
+      }
+    };
+    fetchCompanyProfile();
+  }, []);
+
+  // Donut chart data for profile completion
+  const completionColor = profileCompletion === 100 ? CLR.green : profileCompletion >= 70 ? CLR.amber : CLR.blue;
+  const completionData = [
+    { name: 'Completed', value: profileCompletion, color: completionColor },
+    { name: 'Remaining', value: 100 - profileCompletion, color: theme.palette.action.hover },
+  ];
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'xl'}>
@@ -333,6 +383,80 @@ export default function OverviewAppView() {
         </Grid>
         <Grid xs={12} sm={6} md={3}>
           <KpiCard label="Pending approval" value="318" sub="↑ 24 from last week" subColor={CLR.red} />
+        </Grid>
+
+        {/* ── Profile Completion Circle ── */}
+        <Grid xs={12} md={4}>
+          <Card
+            elevation={0}
+            sx={{
+              border: '0.5px solid', borderColor: 'divider', borderRadius: 2,
+              height: '100%', cursor: 'pointer', transition: 'box-shadow 0.2s',
+              '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)' },
+            }}
+            onClick={() => router.push('/app/company-profile')}
+          >
+            <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+              <Typography variant="subtitle2" fontWeight={500} mb={0.25}>Profile Completion</Typography>
+              <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+                {companyName || 'Your company'} profile status
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Box sx={{ position: 'relative', width: 130, height: 130 }}>
+                  <ResponsiveContainer width={130} height={130}>
+                    <PieChart>
+                      <Pie
+                        data={completionData}
+                        cx="50%" cy="50%"
+                        innerRadius={42} outerRadius={60}
+                        dataKey="value" strokeWidth={0}
+                        startAngle={90} endAngle={-270}
+                      >
+                        {completionData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {/* Center text */}
+                  <Box
+                    sx={{
+                      position: 'absolute', top: '50%', left: '50%',
+                      transform: 'translate(-50%, -50%)', textAlign: 'center',
+                    }}
+                  >
+                    <Typography variant="h5" fontWeight={700} sx={{ color: completionColor, lineHeight: 1 }}>
+                      {profileCompletion}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                      Complete
+                    </Typography>
+                  </Box>
+                </Box>
+                <Stack spacing={1} flex={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: completionColor }} />
+                    <Typography variant="caption" color="text.secondary">Filled fields</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: theme.palette.action.hover }} />
+                    <Typography variant="caption" color="text.secondary">Remaining</Typography>
+                  </Box>
+                  {profileCompletion < 100 && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        mt: 0.5, color: 'primary.main', fontWeight: 600,
+                        cursor: 'pointer', '&:hover': { textDecoration: 'underline' },
+                      }}
+                    >
+                      Complete Profile →
+                    </Typography>
+                  )}
+                </Stack>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
 
         {/* ── Trend line ── */}
