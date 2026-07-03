@@ -408,7 +408,7 @@ CertificateEntry.propTypes = {
 
 const NewCompanySchema = Yup.object().shape({
   supName: Yup.string().required('Company Name is required'),
-  addressLine1: Yup.string().required('Address Line 1 is required'),
+  addressLine1: Yup.string().nullable(),
   addressLine2: Yup.string().nullable(),
   country: Yup.object()
     .nullable()
@@ -420,68 +420,65 @@ const NewCompanySchema = Yup.object().shape({
     }),
   province: Yup.string().nullable(),
   city: Yup.string().required('City is required'),
-  phone: Yup.string().required('Phone number is required'),
+  phone: Yup.string().nullable(),
   fax: Yup.string().nullable(),
   zipCode: Yup.string().nullable(),
   webAddress: Yup.string().nullable(),
   mainExportMarket: Yup.object().nullable(),
   onboardingEmail: Yup.string().required('Email is required').email('Invalid email format'),
   // Supply Chain
-  scSupplierName: Yup.string().required('Supplier Name is required'),
-  scCity: Yup.string().required('City is required'),
-  scCountry: Yup.object()
-    .nullable()
-    .required('Country is required')
-    .shape({
-      Country_ID: Yup.string().required(),
-      Country_Name: Yup.string().required(),
-      Country_Code: Yup.string().nullable(),
-    }),
-  scEmail: Yup.string().required('Email is required').email('Invalid email format'),
-  capacityPerMonth: Yup.string().required('Capacity is required'),
-  unit: Yup.object().nullable().required('Unit is required'),
-  turnoverPerYear: Yup.string().required('Turnover is required'),
-  currency: Yup.object().nullable().required('Currency is required'),
-  businessLicenseNo: Yup.string().required('Business License No is required'),
+  supplyChain: Yup.array().of(
+    Yup.object().shape({
+      supplierName: Yup.string().nullable(),
+      city: Yup.string().nullable(),
+      country: Yup.object().nullable(),
+      email: Yup.string().nullable().email('Invalid email'),
+    })
+  ),
+  capacityPerMonth: Yup.string().nullable(),
+  unit: Yup.object().nullable(),
+  turnoverPerYear: Yup.string().nullable(),
+  currency: Yup.object().nullable(),
+  businessLicenseNo: Yup.string().nullable(),
   additionalInfo: Yup.string().nullable(),
-  noOfEmployee: Yup.object().nullable().required('No. of Employees is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
-  exportBusinessPct: Yup.object().nullable().required('% of Export Business is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
-  experienceInBusiness: Yup.array().min(1, 'Select at least one experience type').required('Experience in Business is required'),
-  businessInEuropePct: Yup.object().nullable().required('% of Business in Europe is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
-  shippingTerms: Yup.object().nullable().required('Shipping Terms is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
-  yearsInBusiness: Yup.object().nullable().required('Years in Business is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
-  yearsEuropeanBusiness: Yup.object().nullable().required('Years in European Business is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
-  businessType: Yup.object().nullable().required('Business Type is required').shape({ label: Yup.string().required(), value: Yup.string().required() }),
+  noOfEmployee: Yup.object().nullable(),
+  exportBusinessPct: Yup.object().nullable(),
+  experienceInBusiness: Yup.array().nullable(),
+  businessInEuropePct: Yup.object().nullable(),
+  shippingTerms: Yup.object().nullable(),
+  yearsInBusiness: Yup.object().nullable(),
+  yearsEuropeanBusiness: Yup.object().nullable(),
+  businessType: Yup.object().nullable(),
   contacts: Yup.array().of(
     Yup.object().shape({
-      contactType: Yup.object().nullable().required('Contact Type is required'),
-      name: Yup.string().required('Name is required'),
+      contactType: Yup.object().nullable(),
+      name: Yup.string().nullable(),
       jobTitle: Yup.string().nullable(),
-      mobileNumber: Yup.string().required('Mobile Number is required'),
-      email: Yup.string().required('Email is required').email('Invalid email'),
+      mobileNumber: Yup.string().nullable(),
+      email: Yup.string().nullable().email('Invalid email'),
     })
-  ).min(1, 'At least one contact is required'),
+  ),
   certificates: Yup.array().of(
     Yup.object().shape({
-      document: Yup.string().required('Document name is required'),
+      document: Yup.string().nullable(),
       description: Yup.string().nullable(),
-      validityFrom: Yup.mixed().nullable().required('Valid from date is required'),
-      validityTo: Yup.mixed().nullable().required('Valid to date is required'),
-      file: Yup.mixed()
-        .nullable()
-        .required('Certificate file is required')
+      validityFrom: Yup.mixed().nullable(),
+      validityTo: Yup.mixed().nullable(),
+      file: Yup.mixed().nullable(),
     })
-  ).min(1, 'At least one certificate is required'),
+  ),
 });
+
 
 // Fields to validate per tab
 const TAB_FIELDS = {
   0: ['supName', 'addressLine1', 'addressLine2', 'country', 'province', 'city', 'phone', 'fax', 'zipCode', 'webAddress', 'mainExportMarket', 'onboardingEmail'],
   1: ['capacityPerMonth', 'unit', 'turnoverPerYear', 'currency', 'businessLicenseNo', 'additionalInfo'],
   2: ['noOfEmployee', 'exportBusinessPct', 'experienceInBusiness', 'businessInEuropePct', 'shippingTerms', 'yearsInBusiness', 'yearsEuropeanBusiness', 'businessType'],
-  3: ['contacts'],
-  4: ['certificates'],
-  5: [],
+  3: ['supplyChain'],
+  4: ['contacts'],
+  5: ['certificates'],
+  6: [],
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -501,13 +498,138 @@ export default function CompanyDatabaseCreateForm() {
   const [logoFile, setLogoFile] = useState(null);
   const [businessLicenseFile, setBusinessLicenseFile] = useState(null);
 
-  useEffect(() => {
-    Get('ExportMarket/GetAll').then(r => { if (r.status === 200) setExportMarketValue(r?.data?.Data || []); }).catch(console.error);
-    Get('Unit/GetAll').then(r => { if (r.status === 200) setUnitValue(r?.data?.Data || []); }).catch(console.error);
-    Get('Currency/GetAll').then(r => { if (r.status === 200) setCurrencyValue(r?.data?.Data || []); }).catch(console.error);
-    Get('ContactType/GetAll').then(r => { if (r.status === 200) setContactTypeValue(r?.data?.Data || []); }).catch(console.error);
-    Get('Country/GetAll').then(r => { if (r.status === 200) setCountries(r?.data?.Data || []); }).catch(console.error);
+  // Get companyId from localStorage
+  const companyId = useMemo(() => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('UserData') || '{}');
+      return userData?.Data?.company?.CompanyId || userData?.Data?.CompanyId || null;
+    } catch { return null; }
   }, []);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        // Fetch all dropdown data in parallel
+        const [exportRes, unitRes, currencyRes, contactTypeRes, countryRes] = await Promise.all([
+          Get('ExportMarket/GetAll'),
+          Get('Unit/GetAll'),
+          Get('Currency/GetAll'),
+          Get('ContactType/GetAll'),
+          Get('Country/GetAll'),
+        ]);
+
+        const exportMarkets = exportRes?.data?.Data || [];
+        const units         = unitRes?.data?.Data || [];
+        const currencies    = currencyRes?.data?.Data || [];
+        const contactTypes  = contactTypeRes?.data?.Data || [];
+        const countriesList = countryRes?.data?.Data || [];
+
+        if (exportRes.status === 200) setExportMarketValue(exportMarkets);
+        if (unitRes.status === 200) setUnitValue(units);
+        if (currencyRes.status === 200) setCurrencyValue(currencies);
+        if (contactTypeRes.status === 200) setContactTypeValue(contactTypes);
+        if (countryRes.status === 200) setCountries(countriesList);
+
+        // Fetch company data and populate form
+        if (companyId) {
+          const companyRes = await Get(`Company/GetByCompanyId?companyId=${companyId}`);
+          if (companyRes.status === 200 && companyRes.data?.Success) {
+            const d = companyRes.data.Data;
+
+            // Helper: find option by id or value
+            const findById  = (arr, idKey, val) => arr.find(o => String(o[idKey]) === String(val)) || null;
+            const findByVal = (arr, val) => arr.find(o => o.value === val) || null;
+
+            // Map experience string to array
+            const expArr = d.ExperienceInBusiness
+              ? d.ExperienceInBusiness.split(',').map(s => s.trim()).filter(Boolean)
+              : [];
+
+            // Map contacts
+            const mappedContacts = d.Contacts?.length
+              ? d.Contacts.map(c => ({
+                  contactType: findById(contactTypes, 'ContactTypeId', c.ContactTypeId) || null,
+                  name: c.FullName || '',
+                  jobTitle: c.JobTitle || '',
+                  mobileNumber: c.MobileNumber || '',
+                  email: c.Email || '',
+                }))
+              : [{ contactType: null, name: '', jobTitle: '', mobileNumber: '', email: '' }];
+
+            // Map certificates
+            const mappedCerts = d.Certificates?.length
+              ? d.Certificates.map(cert => ({
+                  document: cert.Name || '',
+                  description: cert.Description || '',
+                  validityFrom: cert.ValidFrom ? dayjs(cert.ValidFrom) : null,
+                  validityTo: cert.ValidTo ? dayjs(cert.ValidTo) : null,
+                  file: null,
+                }))
+              : [];
+
+            // Map supply chain entries
+            const mappedSupplyChain = d.SupplyChain?.length
+              ? d.SupplyChain.map(sc => ({
+                  supplierName: sc.SupplierName || '',
+                  city: sc.City || '',
+                  country: findById(countriesList, 'Country_ID', sc.CountryID) || null,
+                  email: sc.Email || '',
+                }))
+              : [{ supplierName: '', city: '', country: null, email: '' }];
+
+            const populated = {
+              // Company Info
+              ...(d.OrganizationName   && { supName: d.OrganizationName }),
+              ...(d.AddressLine1       && { addressLine1: d.AddressLine1 }),
+              ...(d.AddressLine2       && { addressLine2: d.AddressLine2 }),
+              ...(d.Province           && { province: d.Province }),
+              ...(d.City               && { city: d.City }),
+              ...(d.Phone              && { phone: d.Phone }),
+              ...(d.Fax                && { fax: d.Fax }),
+              ...(d.ZipPostalCode      && { zipCode: d.ZipPostalCode }),
+              ...(d.Website            && { webAddress: d.Website }),
+              ...(d.OnboardingEmail    && { onboardingEmail: d.OnboardingEmail }),
+              ...(d.Email && !d.OnboardingEmail && { onboardingEmail: d.Email }),
+              ...(d.CountryID          && { country: findById(countriesList, 'Country_ID', d.CountryID) }),
+              ...(d.ExportMarketId     && { mainExportMarket: findById(exportMarkets, 'ExportMarketId', d.ExportMarketId) }),
+              // Setup Details
+              ...(d.CapacityPerMonth   && { capacityPerMonth: String(d.CapacityPerMonth) }),
+              ...(d.UnitId             && { unit: findById(units, 'UnitId', d.UnitId) }),
+              ...(d.AnnualTurnover     && { turnoverPerYear: String(d.AnnualTurnover) }),
+              ...(d.CurrencyId         && { currency: findById(currencies, 'CurrencyId', d.CurrencyId) }),
+              ...(d.BusinessLicenseNo  && { businessLicenseNo: d.BusinessLicenseNo }),
+              ...(d.AdditionalInformation && { additionalInfo: d.AdditionalInformation }),
+              // Business Profile
+              ...(d.NumberOfEmployees  && { noOfEmployee: findByVal(EMPLOYEE_OPTIONS, d.NumberOfEmployees) }),
+              ...(d.ExportBusinessPercent && { exportBusinessPct: findByVal(EXPORT_BUSINESS_OPTIONS, d.ExportBusinessPercent) }),
+              ...(expArr.length        && { experienceInBusiness: expArr }),
+              ...(d.BusinessInEuropePercent && { businessInEuropePct: findByVal(EUROPE_BUSINESS_OPTIONS, d.BusinessInEuropePercent) }),
+              ...(d.ShippingTerms      && { shippingTerms: findByVal(SHIPPING_TERMS_OPTIONS, d.ShippingTerms) }),
+              ...(d.BusinessType       && { businessType: findByVal(BUSINESS_TYPE_OPTIONS, d.BusinessType) }),
+              ...(d.YearsInBusiness    && { yearsInBusiness: findByVal(YEARS_OPTIONS, d.YearsInBusiness) }),
+              ...(d.YearsInEuropeanBusiness && { yearsEuropeanBusiness: findByVal(YEARS_OPTIONS, d.YearsInEuropeanBusiness) }),
+              // Supply Chain (all entries)
+              supplyChain: mappedSupplyChain,
+              // Contacts & Certificates
+              contacts: mappedContacts,
+              ...(mappedCerts.length   && { certificates: mappedCerts }),
+            };
+
+            // Reset form with populated values merged over defaults
+            reset((prev) => ({ ...prev, ...populated }));
+          }
+        }
+      } catch (err) {
+        console.error('Error loading data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId]);
 
   const methods = useForm({
     resolver: yupResolver(NewCompanySchema),
@@ -539,10 +661,7 @@ export default function CompanyDatabaseCreateForm() {
       yearsEuropeanBusiness: null,
       businessType: null,
       // Supply Chain
-      scSupplierName: '',
-      scCity: '',
-      scCountry: null,
-      scEmail: '',
+      supplyChain: [{ supplierName: '', city: '', country: null, email: '' }],
       contacts: [{ contactType: null, name: '', jobTitle: '', mobileNumber: '', email: '' }],
       certificates: [],
     },
@@ -552,6 +671,7 @@ export default function CompanyDatabaseCreateForm() {
   const { reset, watch, control, setValue, trigger, handleSubmit, formState: { isSubmitting } } = methods;
   const values = watch();
 
+  const { fields: supplyChainFields, append: appendSupplyChain, remove: removeSupplyChain } = useFieldArray({ control, name: 'supplyChain' });
   const { fields: contactFields, append: appendContact, remove: removeContact } = useFieldArray({ control, name: 'contacts' });
   const { fields: certificateFields, append: appendCertificate, remove: removeCertificate } = useFieldArray({ control, name: 'certificates' });
 
@@ -570,17 +690,18 @@ export default function CompanyDatabaseCreateForm() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+
   const onSubmit = handleSubmit(async (data) => {
     try {
       setLoading(true);
 
+      // Upload business license file if a new one is selected
       let businessLicenseFilePath = '';
       if (businessLicenseFile) {
         businessLicenseFilePath = await uploadFile(businessLicenseFile);
-      } else {
-        throw new Error('Business license file is missing');
       }
 
+      // Upload certificates (only if new file selected for each)
       const uploadedCertificates = await Promise.all(
         data.certificates.map(async (cert) => {
           let filePath = '';
@@ -590,62 +711,93 @@ export default function CompanyDatabaseCreateForm() {
           return {
             Name: cert.document,
             FilePath: filePath,
-            ValidFrom: cert.validityFrom ? dayjs(cert.validityFrom).format('YYYY-MM-DD') : '',
-            ValidTo: cert.validityTo ? dayjs(cert.validityTo).format('YYYY-MM-DD') : '',
+            IssueDate: cert.validityFrom ? dayjs(cert.validityFrom).format('YYYY-MM-DD') : '',
+            ExpiryDate: cert.validityTo ? dayjs(cert.validityTo).format('YYYY-MM-DD') : '',
           };
         })
       );
 
+      // Upload logo if new one selected
       let logoFilePath = '';
       if (logoFile) {
         logoFilePath = await uploadFile(logoFile);
       }
 
       const payload = {
-        SupplierName: data.supName,
+        CompanyId: companyId,
+
+        // Company Info
+        OrganizationName: data.supName,
+        Email: data.onboardingEmail,
+        OnboardingEmail: data.onboardingEmail,
+        Website: data.webAddress || '',
+        CountryID: data.country?.Country_ID ? String(data.country.Country_ID) : '',
         AddressLine1: data.addressLine1,
         AddressLine2: data.addressLine2 || '',
-        CountryID: parseInt(data.country?.Country_ID, 10) || 0,
         Province: data.province || '',
         City: data.city,
         Phone: data.phone,
         Fax: data.fax || '',
         ZipPostalCode: data.zipCode || '',
-        Website: data.webAddress || '',
-        ExportMarketId: data.mainExportMarket?.ExportMarketId || 0,
-        OnboardingEmail: data.onboardingEmail,
+        ExportMarketId: data.mainExportMarket?.ExportMarketId || null,
+
+        // Setup Details
         CapacityPerMonth: Number(data.capacityPerMonth) || 0,
-        UnitId: data.unit?.UnitId || 0,
+        UnitId: data.unit?.UnitId || null,
         AnnualTurnover: Number(data.turnoverPerYear) || 0,
-        CurrencyId: data.currency?.CurrencyId || 0,
+        CurrencyId: data.currency?.CurrencyId || null,
         BusinessLicenseNo: data.businessLicenseNo,
-        BusinessLicenseFilePath: businessLicenseFilePath,
+        ...(businessLicenseFilePath && { BusinessLicenseFilePath: businessLicenseFilePath }),
         AdditionalInformation: data.additionalInfo || '',
+
+        // Business Profile
         NumberOfEmployees: data.noOfEmployee?.value || '',
         ExportBusinessPercent: data.exportBusinessPct?.value || '',
-        ExperienceInBusiness: Array.isArray(data.experienceInBusiness) ? data.experienceInBusiness.join(', ') : (data.experienceInBusiness || ''),
+        ExperienceInBusiness: Array.isArray(data.experienceInBusiness)
+          ? data.experienceInBusiness.join(', ')
+          : (data.experienceInBusiness || ''),
         BusinessInEuropePercent: data.businessInEuropePct?.value || '',
         ShippingTerms: data.shippingTerms?.value || '',
         BusinessType: data.businessType?.value || '',
         YearsInBusiness: data.yearsInBusiness?.value || '',
         YearsInEuropeanBusiness: data.yearsEuropeanBusiness?.value || '',
-        CompanyLogoPath: logoFilePath,
+
+        // Logo
+        ...(logoFilePath && { CompanyLogoPath: logoFilePath }),
+        ProfileCompleted: true,
+
+        // Supply Chain
+        SupplyChain: data.supplyChain.map((sc) => ({
+          SupplierName: sc.supplierName,
+          City: sc.city,
+          CountryID: sc.country ? parseInt(sc.country.Country_ID, 10) : 0,
+          Email: sc.email,
+        })),
+
+        // Contacts
         Contacts: data.contacts.map((c) => ({
-          ContactTypeId: c.contactType?.ContactTypeId || '',
+          ContactTypeId: c.contactType?.ContactTypeId || null,
           FullName: c.name,
           JobTitle: c.jobTitle || '',
           MobileNumber: c.mobileNumber,
           Email: c.email,
         })),
+
+        // Certificates
         Certificates: uploadedCertificates,
       };
 
-      console.log('Final Payload:', payload);
-      enqueueSnackbar('Company Database Entry created successfully!', { variant: 'success' });
-      reset();
-      setLogoFile(null);
-      setBusinessLicenseFile(null);
-      router.push(paths.dashboard.root);
+      console.log('Update Payload:', payload);
+
+      const response = await Post('Company/UpdateProfile', payload);
+
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar('Company profile updated successfully!', { variant: 'success' });
+        setActiveTab(0);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        throw new Error(response?.data?.Message || 'Update failed');
+      }
 
     } catch (error) {
       console.error('Submission error:', error);
@@ -654,6 +806,7 @@ export default function CompanyDatabaseCreateForm() {
       setLoading(false);
     }
   });
+
 
   if (isLoading) {
     return (
@@ -885,101 +1038,130 @@ export default function CompanyDatabaseCreateForm() {
             <SectionHeader
               icon="mdi:truck-delivery-outline"
               title="Supply Chain"
-              subtitle="Primary supplier details for the supply chain"
-              badge="Required"
+              subtitle="Add one or multiple supplier entries for the supply chain"
+              badge={supplyChainFields.length > 0 ? `${supplyChainFields.length} supplier${supplyChainFields.length > 1 ? 's' : ''}` : 'Required'}
             />
-            <Grid container spacing={2}>
-              <Grid xs={12}>
-                <RHFTextField
-                  name="scSupplierName"
-                  label="Supplier Name *"
-                  placeholder="Enter Supplier Name"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={INPUT_SX}
-                />
-              </Grid>
-              <Grid xs={12} md={6}>
-                <RHFTextField
-                  name="scCity"
-                  label="City *"
-                  placeholder="Enter City"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Iconify icon="mdi:city" width={18} sx={{ color: '#94a3b8' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={INPUT_SX}
-                />
-              </Grid>
-              <Grid xs={12} md={6}>
-                <RHFAutocomplete
-                  name="scCountry"
-                  label="Country *"
-                  placeholder="Select Country"
-                  options={countries}
-                  getOptionLabel={(o) => o?.Country_Name || ''}
-                  isOptionEqualToValue={(o, v) => o?.Country_ID === v?.Country_ID}
-                  renderOption={(props, option) => (
-                    <Box
-                      component="li"
-                      {...props}
-                      sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1, px: 2 }}
-                    >
-                      {option?.Country_Code && (
-                        <Iconify
-                          icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
-                          sx={{ width: 26, height: 26, flexShrink: 0 }}
-                        />
-                      )}
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {option?.Country_Name}
-                      </Typography>
-                    </Box>
-                  )}
-                  TextFieldProps={{
-                    InputProps: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          {values?.scCountry?.Country_Code ? (
-                            <Iconify
-                              icon={`circle-flags:${values.scCountry.Country_Code.toLowerCase()}`}
-                              sx={{ width: 26, height: 26, mr: -0.5, ml: 0.5 }}
+
+            {/* ── Supply Chain Table ── */}
+            <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '10px', border: '1px solid #eef0f6', boxShadow: 'none', mb: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                    {['Supplier Name', 'City', 'Country', 'Email', ''].map((h) => (
+                      <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', py: 1.5, whiteSpace: 'nowrap' }}>{h}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {supplyChainFields.map((field, index) => (
+                    <TableRow key={field.id} sx={{ '&:last-child td': { border: 0 }, '&:hover': { bgcolor: '#fafbff' } }}>
+                      <TableCell sx={{ minWidth: 180, py: 1.5 }}>
+                        <Controller
+                          name={`supplyChain.${index}.supplierName`}
+                          control={control}
+                          render={({ field: f, fieldState }) => (
+                            <TextField
+                              {...f}
+                              size="small"
+                              fullWidth
+                              placeholder="Supplier Name"
+                              error={!!fieldState.error}
+                              helperText={fieldState.error?.message}
+                              sx={INPUT_SX}
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <Iconify icon="mdi:domain" width={16} sx={{ color: '#94a3b8' }} />
+                                  </InputAdornment>
+                                ),
+                              }}
                             />
-                          ) : (
-                            <Iconify icon="mdi:flag" width={18} sx={{ color: '#94a3b8' }} />
                           )}
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
-                  sx={INPUT_SX}
-                />
-              </Grid>
-              <Grid xs={12} md={6}>
-                <RHFTextField
-                  name="scEmail"
-                  label="Email *"
-                  placeholder="Enter Email"
-                  type="email"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Iconify icon="mdi:email-outline" width={18} sx={{ color: '#94a3b8' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={INPUT_SX}
-                />
-              </Grid>
-            </Grid>
+                        />
+                      </TableCell>
+                      <TableCell sx={{ minWidth: 130, py: 1.5 }}>
+                        <Controller
+                          name={`supplyChain.${index}.city`}
+                          control={control}
+                          render={({ field: f, fieldState }) => (
+                            <TextField
+                              {...f}
+                              size="small"
+                              fullWidth
+                              placeholder="City"
+                              error={!!fieldState.error}
+                              helperText={fieldState.error?.message}
+                              sx={INPUT_SX}
+                            />
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ minWidth: 175, py: 1.5 }}>
+                        <RHFAutocomplete
+                          name={`supplyChain.${index}.country`}
+                          label="Country"
+                          options={countries}
+                          getOptionLabel={(o) => o?.Country_Name || ''}
+                          isOptionEqualToValue={(o, v) => o?.Country_ID === v?.Country_ID}
+                          renderOption={(props, option) => (
+                            <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75 }}>
+                              {option?.Country_Code && (
+                                <Iconify icon={`circle-flags:${option.Country_Code.toLowerCase()}`} sx={{ width: 20, height: 20, flexShrink: 0 }} />
+                              )}
+                              <Typography variant="body2">{option?.Country_Name}</Typography>
+                            </Box>
+                          )}
+                          sx={INPUT_SX}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ minWidth: 190, py: 1.5 }}>
+                        <Controller
+                          name={`supplyChain.${index}.email`}
+                          control={control}
+                          render={({ field: f, fieldState }) => (
+                            <TextField
+                              {...f}
+                              size="small"
+                              fullWidth
+                              placeholder="Email"
+                              type="email"
+                              error={!!fieldState.error}
+                              helperText={fieldState.error?.message}
+                              sx={INPUT_SX}
+                            />
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ py: 1.5, pr: 2 }}>
+                        <Tooltip title="Remove" arrow>
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={() => removeSupplyChain(index)}
+                              disabled={supplyChainFields.length === 1}
+                              sx={{ color: '#ef4444', bgcolor: '#fff1f1', borderRadius: '6px' }}
+                            >
+                              <Iconify icon="mdi:trash-can-outline" width={16} />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<Iconify icon="mdi:plus" width={16} />}
+                onClick={() => appendSupplyChain({ supplierName: '', city: '', country: null, email: '' })}
+              >
+                Add Supplier
+              </Button>
+            </Box>
           </Card>
         </TabPanel>
 
