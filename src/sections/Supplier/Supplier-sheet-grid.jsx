@@ -503,25 +503,27 @@ const SupplierGrid = () => {
                 deleteIcon={<Iconify icon="eva:close-fill" width={16} />}
                 size="small"
                 color="primary"
-                variant="soft"
-                sx={{ fontWeight: 500, borderRadius: '6px' }}
+                variant="filled"
+                sx={{ fontWeight: 500, borderRadius: '6px', color: 'white' }}
               />
             ))}
             {searchText && (
               <Chip
                 label={`Search: "${searchText}"`}
                 onDelete={() => setSearchText('')}
-                deleteIcon={<Iconify icon="eva:close-fill" width={16} />}
+                deleteIcon={<Iconify icon="eva:close-fill" width={16} sx={{ color: 'white !important' }} />}
                 size="small"
                 color="primary"
-                variant="soft"
-                sx={{ fontWeight: 500, borderRadius: '6px' }}
+                variant="filled"
+                sx={{ fontWeight: 500, borderRadius: '6px', color: 'white' }}
               />
             )}
             <Chip
               label={`${filteredData.length} results`}
               size="small"
-              sx={{ fontWeight: 400, borderRadius: '6px', color: 'text.secondary' }}
+              color="primary"
+              variant="outlined"
+              sx={{ fontWeight: 500, borderRadius: '6px' }}
             />
           </Stack>
         )}
@@ -536,7 +538,7 @@ const SupplierGrid = () => {
           boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
         }}
       >
-        <TableContainer sx={{ maxHeight: '70vh' }}>
+        <TableContainer sx={{ maxHeight: 340, overflowY: 'auto' }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
