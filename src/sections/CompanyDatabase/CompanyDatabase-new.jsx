@@ -282,17 +282,18 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
     <Box
       sx={{
         p: 2,
-        bgcolor: '#f8fafc',
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : '#f8fafc',
         borderRadius: '10px',
-        border: '1px solid #eef0f6',
+        border: '1px solid',
+        borderColor: 'divider',
         mb: 1.5,
         position: 'relative',
         transition: 'all 0.2s ease',
         animation: 'fadeIn 0.25s ease',
         '@keyframes fadeIn': { from: { opacity: 0, transform: 'translateY(6px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
         '&:hover': {
-          borderColor: '#c7d2fe',
-          bgcolor: '#fafbff',
+          borderColor: 'primary.light',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.04) : '#fafbff',
         },
       }}
     >
@@ -303,15 +304,15 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
               width: 28,
               height: 28,
               borderRadius: '7px',
-              bgcolor: '#eef2ff',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.12) : '#eef2ff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Iconify icon="mdi:certificate-outline" width={16} sx={{ color: '#3b5bdb' }} />
+            <Iconify icon="mdi:certificate-outline" width={16} sx={{ color: 'primary.main' }} />
           </Box>
-          <Typography variant="caption" sx={{ fontWeight: 600, color: '#1e293b' }}>
+          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
             Certificate #{index + 1}
           </Typography>
         </Stack>
@@ -319,12 +320,12 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
           size="small"
           onClick={() => onRemove(index)}
           sx={{
-            color: '#ef4444',
-            bgcolor: '#fff1f1',
+            color: 'error.main',
+            bgcolor: (theme) => alpha(theme.palette.error.main, 0.08),
             borderRadius: '6px',
             width: 26,
             height: 26,
-            '&:hover': { bgcolor: '#fee2e2' },
+            '&:hover': { bgcolor: (theme) => alpha(theme.palette.error.main, 0.16) },
           }}
         >
           <Iconify icon="mdi:trash-can-outline" width={14} />
@@ -1039,10 +1040,10 @@ export default function CompanyDatabaseCreateForm() {
             />
             <Grid container spacing={2}>
               <Grid xs={12}>
-                <RHFTextField name="supName" label="Company Name *" placeholder="e.g. ABC Textiles" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="supName" label="Company Name *" placeholder="e.g. ABC Textiles" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:domain" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12}>
-                <RHFTextField name="addressLine1" label="Address Line 1 *" placeholder="Flat A, 10/F, Lockhart Centre" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:map-marker-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="addressLine1" label="Address Line 1 *" placeholder="Flat A, 10/F, Lockhart Centre" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:map-marker-outline" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12}>
                 <RHFTextField name="addressLine2" label="Address Line 2" placeholder="Building, Street, Suite etc." sx={INPUT_SX} />
@@ -1051,25 +1052,25 @@ export default function CompanyDatabaseCreateForm() {
                 <RHFAutocomplete name="country" label="Country *" placeholder="Select Country" options={countries} getOptionLabel={(o) => o?.Country_Name || ''} isOptionEqualToValue={(o, v) => o?.Country_ID === v?.Country_ID} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
-                <RHFTextField name="onboardingEmail" label="Email *" placeholder="contact@company.com" type="email" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:email-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="onboardingEmail" label="Email *" placeholder="contact@company.com" type="email" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:email-outline" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
                 <RHFTextField name="province" label="Province / State" placeholder="Province" sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
-                <RHFTextField name="city" label="City *" placeholder="Hong Kong" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:city-variant-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="city" label="City *" placeholder="Hong Kong" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:city-variant-outline" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
-                <RHFTextField name="phone" label="Phone *" placeholder="+852 2369-4734" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:phone-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="phone" label="Phone *" placeholder="+852 2369-4734" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:phone-outline" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
-                <RHFTextField name="fax" label="Fax" placeholder="Fax number" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:fax" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="fax" label="Fax" placeholder="Fax number" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:fax" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
                 <RHFTextField name="zipCode" label="Zip / Postal Code" placeholder="78121" sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
-                <RHFTextField name="webAddress" label="Website" placeholder="https://www.example.com" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:web" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="webAddress" label="Website" placeholder="https://www.example.com" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:web" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
                 <RHFAutocomplete name="mainExportMarket" label="Main Export Market" placeholder="Select market" options={exportMarketValue} getOptionLabel={(o) => o?.Name || ''} isOptionEqualToValue={(o, v) => o?.ExportMarketId === v?.ExportMarketId} sx={INPUT_SX} />
@@ -1106,7 +1107,7 @@ export default function CompanyDatabaseCreateForm() {
               </Grid>
               <Grid xs={12} md={6}>
                 <Box>
-                  <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.75, display: 'block' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.75, display: 'block' }}>
                     Business License Document *
                   </Typography>
                   {storedPaths.businessLicenseFilePath && !businessLicenseFile && (
@@ -1260,18 +1261,18 @@ export default function CompanyDatabaseCreateForm() {
               subtitle="Add key contacts for different departments"
               badge={contactFields.length > 0 ? `${contactFields.length} contacts` : 'Required'}
             />
-            <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '10px', border: '1px solid #eef0f6', boxShadow: 'none' }}>
+            <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '10px', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  <TableRow sx={{ bgcolor: 'background.neutral' }}>
                     {['Contact Type', 'Full Name', 'Job Title', 'Mobile Number', 'Email', ''].map((h) => (
-                      <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', py: 1.5, whiteSpace: 'nowrap' }}>{h}</TableCell>
+                      <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.72rem', color: 'text.secondary', textTransform: 'uppercase', py: 1.5, whiteSpace: 'nowrap' }}>{h}</TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {contactFields.map((field, index) => (
-                    <TableRow key={field.id} sx={{ '&:last-child td': { border: 0 }, '&:hover': { bgcolor: '#fafbff' } }}>
+                    <TableRow key={field.id} sx={{ '&:last-child td': { border: 0 }, '&:hover': { bgcolor: 'action.hover' } }}>
                       <TableCell sx={{ minWidth: 175, py: 1.5 }}>
                         <RHFAutocomplete name={`contacts.${index}.contactType`} label="Contact Type" options={contactTypeValue} getOptionLabel={(o) => o?.Name || ''} isOptionEqualToValue={(o, v) => o?.ContactTypeId === v?.ContactTypeId} sx={INPUT_SX} />
                       </TableCell>
@@ -1288,7 +1289,7 @@ export default function CompanyDatabaseCreateForm() {
                         <Controller name={`contacts.${index}.email`} control={control} render={({ field: f, fieldState }) => (<TextField {...f} size="small" fullWidth placeholder="Email" error={!!fieldState.error} helperText={fieldState.error?.message} sx={INPUT_SX} />)} />
                       </TableCell>
                       <TableCell sx={{ py: 1.5, pr: 2 }}>
-                        <IconButton size="small" onClick={() => removeContact(index)} disabled={contactFields.length === 1} sx={{ color: '#ef4444', bgcolor: '#fff1f1', borderRadius: '6px' }}>
+                        <IconButton size="small" onClick={() => removeContact(index)} disabled={contactFields.length === 1} sx={{ color: 'error.main', bgcolor: (theme) => alpha(theme.palette.error.main, 0.08), borderRadius: '6px' }}>
                           <Iconify icon="mdi:trash-can-outline" width={16} />
                         </IconButton>
                       </TableCell>
@@ -1347,7 +1348,7 @@ export default function CompanyDatabaseCreateForm() {
               {/* Show existing logo from API */}
               {storedPaths.companyLogoPath && !logoFile && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ width: 120, height: 120, borderRadius: '14px', border: '2px solid #e2e8f0', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', bgcolor: '#fff' }}>
+                  <Box sx={{ width: 120, height: 120, borderRadius: '14px', border: '2px solid', borderColor: 'divider', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', bgcolor: 'background.paper' }}>
                     <img src={storedPaths.companyLogoPath} alt="company logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </Box>
                   <Stack spacing={0.5}>
@@ -1359,7 +1360,7 @@ export default function CompanyDatabaseCreateForm() {
               {/* Show new logo preview */}
               {logoFile && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ width: 120, height: 120, borderRadius: '14px', border: '2px solid', borderColor: 'primary.main', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 12px rgba(51,102,255,0.12)', bgcolor: '#fff' }}>
+                  <Box sx={{ width: 120, height: 120, borderRadius: '14px', border: '2px solid', borderColor: 'primary.main', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 12px rgba(51,102,255,0.12)', bgcolor: 'background.paper' }}>
                     <img src={URL.createObjectURL(logoFile)} alt="logo preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </Box>
                   <Stack spacing={0.5}>

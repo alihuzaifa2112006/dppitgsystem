@@ -125,18 +125,21 @@ export function palette(mode) {
     ...base,
     mode: 'dark',
     text: {
-      primary: '#FFFFFF',
-      secondary: grey[500],
-      disabled: grey[600],
+      primary: '#E8EAED',
+      secondary: '#9AA0A6',
+      disabled: '#5F6368',
     },
     background: {
-      paper: grey[800],
-      default: grey[900],
-      neutral: alpha(grey[500], 0.12),
+      paper: '#1a1d27',
+      default: '#0f1117',
+      neutral: alpha(grey[500], 0.08),
     },
+    divider: alpha(grey[500], 0.12),
     action: {
       ...base.action,
-      active: grey[500],
+      active: grey[400],
+      hover: alpha(grey[500], 0.06),
+      selected: alpha(grey[500], 0.1),
     },
   };
 
