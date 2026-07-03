@@ -260,3 +260,40 @@
 .fc .fc-event .fc-event-main:before {
   background-color: unset !important;
 }
+
+/* ── Custom Scrollbar ── */
+
+/* Width */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: rgba(51, 102, 255, 0.06);
+  border-radius: 0;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(51, 102, 255, 0.55);
+  border-radius: 0;
+  transition: background 0.2s ease;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(51, 102, 255, 0.85);
+}
+
+/* Corner */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(51, 102, 255, 0.55) rgba(51, 102, 255, 0.06);
+}
