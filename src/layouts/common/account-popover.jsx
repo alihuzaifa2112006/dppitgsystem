@@ -44,8 +44,9 @@ export default function AccountPopover() {
   // Aapke data structure ke mutabik keys extract ho rahi hain
   const organizationName = userData?.Data?.company?.OrganizationName || 'User';
   const emailAddress = userData?.Data?.company?.Email || '';
+  const companyLogoPath = userData?.Data?.company?.CompanyLogoPath || '';
 
-  // Pehla letter profile icon par dikhane ke liye
+  // Pehla letter profile icon par dikhane ke liye (fallback)
   const firstLetter = organizationName.charAt(0).toUpperCase();
 
   const handleLogout = async () => {
@@ -85,17 +86,19 @@ export default function AccountPopover() {
         }}
       >
         <Avatar
+          src={companyLogoPath || undefined}
           alt={organizationName}
           sx={{
             width: 36,
             height: 36,
             border: (theme) => `solid 2px ${theme.palette.background.default}`,
-            bgcolor: 'primary.main', // Avatar ka background fill karne ke liye
-            color: 'common.white',   // Letter ka color white karne ke liye
+            bgcolor: 'primary.main',
+            color: 'common.white',
             fontWeight: 'fontWeightBold',
+            fontSize: '0.875rem',
           }}
         >
-          {firstLetter}
+          {!companyLogoPath && firstLetter}
         </Avatar>
       </IconButton>
 

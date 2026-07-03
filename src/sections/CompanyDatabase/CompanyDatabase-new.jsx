@@ -342,17 +342,6 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
           />
         </Grid>
 
-        <Grid xs={12} md={6}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Description"
-            placeholder="Optional description"
-            value={entry.description || ''}
-            onChange={(e) => onUpdate(index, 'description', e.target.value)}
-            sx={INPUT_SX}
-          />
-        </Grid>
 
         <Grid xs={12} md={6}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -384,6 +373,21 @@ function CertificateEntry({ entry, onUpdate, onRemove, index }) {
         </Grid>
 
         <Grid xs={12}>
+          {entry.filePath && (
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+              <Iconify icon="mdi:file-check-outline" width={18} sx={{ color: 'primary.main' }} />
+              <Typography
+                variant="caption"
+                component="a"
+                href={entry.filePath}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 500, cursor: 'pointer' }}
+              >
+                View Uploaded File
+              </Typography>
+            </Stack>
+          )}
           <FileUploadButton
             file={entry.file}
             onFileChange={(file) => onUpdate(index, 'file', file)}
@@ -498,6 +502,12 @@ export default function CompanyDatabaseCreateForm() {
   const [logoFile, setLogoFile] = useState(null);
   const [businessLicenseFile, setBusinessLicenseFile] = useState(null);
 
+  // Store file paths from API (to send back in update)
+  const [storedPaths, setStoredPaths] = useState({
+    businessLicenseFilePath: '',
+    companyLogoPath: '',
+  });
+
   // Get companyId from localStorage
   const companyId = useMemo(() => {
     try {
@@ -561,9 +571,11 @@ export default function CompanyDatabaseCreateForm() {
             const mappedCerts = d.Certificates?.length
               ? d.Certificates.map(cert => ({
                   document: cert.Name || '',
-                  description: cert.Description || '',
-                  validityFrom: cert.ValidFrom ? dayjs(cert.ValidFrom) : null,
-                  validityTo: cert.ValidTo ? dayjs(cert.ValidTo) : null,
+                  description: cert.IssuingBody || '',
+                  certificateNo: cert.CertificateNo || '',
+                  validityFrom: cert.IssueDate ? dayjs(cert.IssueDate) : null,
+                  validityTo: cert.ExpiryDate ? dayjs(cert.ExpiryDate) : null,
+                  filePath: cert.FilePath || '',
                   file: null,
                 }))
               : [];
@@ -615,6 +627,12 @@ export default function CompanyDatabaseCreateForm() {
               contacts: mappedContacts,
               ...(mappedCerts.length   && { certificates: mappedCerts }),
             };
+
+            // Store file paths from API response
+            setStoredPaths({
+              businessLicenseFilePath: d.BusinessLicenseFilePath || '',
+              companyLogoPath: d.CompanyLogoPath || '',
+            });
 
             // Reset form with populated values merged over defaults
             reset((prev) => ({ ...prev, ...populated }));
@@ -695,33 +713,62 @@ export default function CompanyDatabaseCreateForm() {
     try {
       setLoading(true);
 
-      // Upload business license file if a new one is selected
-      let businessLicenseFilePath = '';
-      if (businessLicenseFile) {
-        businessLicenseFilePath = await uploadFile(businessLicenseFile);
-      }
+      // ─── Upload all files via Company/UploadFile ───
+      let logoPath = storedPaths.companyLogoPath || '';
+      let businessLicensePath = storedPaths.businessLicenseFilePath || '';
 
-      // Upload certificates (only if new file selected for each)
-      const uploadedCertificates = await Promise.all(
-        data.certificates.map(async (cert) => {
-          let filePath = '';
-          if (cert.file) {
-            filePath = await uploadFile(cert.file);
+      // Helper: upload a single file and return the path
+      const uploadSingleFile = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await Post(`Company/UploadFile?companyId=${companyId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        console.log('File upload response:', res?.data);
+        if (res?.data?.Success && res?.data?.FilePath) {
+          return res.data.FilePath;
+        }
+        return '';
+      };
+
+      try {
+        // Upload logo
+        if (logoFile) {
+          const path = await uploadSingleFile(logoFile);
+          if (path) logoPath = path;
+        }
+
+        // Upload business license
+        if (businessLicenseFile) {
+          const path = await uploadSingleFile(businessLicenseFile);
+          if (path) businessLicensePath = path;
+        }
+
+        // Upload certificate files (all in parallel)
+        const certUploadPromises = data.certificates.map((cert, i) => {
+          if (cert.file && typeof cert.file !== 'string') {
+            return uploadSingleFile(cert.file).then((path) => { if (path) data.certificates[i].filePath = path; });
           }
-          return {
-            Name: cert.document,
-            FilePath: filePath,
-            IssueDate: cert.validityFrom ? dayjs(cert.validityFrom).format('YYYY-MM-DD') : '',
-            ExpiryDate: cert.validityTo ? dayjs(cert.validityTo).format('YYYY-MM-DD') : '',
-          };
-        })
-      );
-
-      // Upload logo if new one selected
-      let logoFilePath = '';
-      if (logoFile) {
-        logoFilePath = await uploadFile(logoFile);
+          return Promise.resolve();
+        });
+        await Promise.all(certUploadPromises);
+      } catch (uploadErr) {
+        console.error('File upload error:', uploadErr);
+        enqueueSnackbar('File upload failed, continuing with saved paths', { variant: 'warning' });
       }
+
+
+      // Build certificates payload
+      const uploadedCertificates = data.certificates.map((cert) => ({
+        Name: cert.document || '',
+        FilePath: cert.filePath || '',
+        IssuingBody: cert.description || '',
+        CertificateNo: cert.certificateNo || '',
+        IssueDate: cert.validityFrom ? dayjs(cert.validityFrom).format('YYYY-MM-DD') : '',
+        ExpiryDate: cert.validityTo ? dayjs(cert.validityTo).format('YYYY-MM-DD') : '',
+        Status: 'Active',
+      }));
+
 
       const payload = {
         CompanyId: companyId,
@@ -746,8 +793,8 @@ export default function CompanyDatabaseCreateForm() {
         UnitId: data.unit?.UnitId || null,
         AnnualTurnover: Number(data.turnoverPerYear) || 0,
         CurrencyId: data.currency?.CurrencyId || null,
-        BusinessLicenseNo: data.businessLicenseNo,
-        ...(businessLicenseFilePath && { BusinessLicenseFilePath: businessLicenseFilePath }),
+        BusinessLicenseNo: data.businessLicenseNo || '',
+        BusinessLicenseFilePath: businessLicensePath,
         AdditionalInformation: data.additionalInfo || '',
 
         // Business Profile
@@ -763,7 +810,7 @@ export default function CompanyDatabaseCreateForm() {
         YearsInEuropeanBusiness: data.yearsEuropeanBusiness?.value || '',
 
         // Logo
-        ...(logoFilePath && { CompanyLogoPath: logoFilePath }),
+        CompanyLogoPath: logoPath,
         ProfileCompleted: true,
 
         // Supply Chain
@@ -972,6 +1019,21 @@ export default function CompanyDatabaseCreateForm() {
                   <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.75, display: 'block' }}>
                     Business License Document *
                   </Typography>
+                  {storedPaths.businessLicenseFilePath && !businessLicenseFile && (
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                      <Iconify icon="mdi:file-check-outline" width={18} sx={{ color: 'primary.main' }} />
+                      <Typography
+                        variant="caption"
+                        component="a"
+                        href={storedPaths.businessLicenseFilePath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ color: 'primary.main', textDecoration: 'underline', fontWeight: 500, cursor: 'pointer' }}
+                      >
+                        View Uploaded File
+                      </Typography>
+                    </Stack>
+                  )}
                   <FileUploadButton file={businessLicenseFile} onFileChange={setBusinessLicenseFile} onClear={() => setBusinessLicenseFile(null)} label="Upload license document" hint="PDF, JPG, PNG up to 5MB" />
                 </Box>
               </Grid>
@@ -1191,13 +1253,32 @@ export default function CompanyDatabaseCreateForm() {
               title="Company Logo"
               subtitle="Upload your company's logo"
             />
-            <Stack direction="row" alignItems="center" spacing={2}>
-              {logoFile && (
-                <Box sx={{ width: 56, height: 56, borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
-                  <img src={URL.createObjectURL(logoFile)} alt="logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <Stack spacing={2}>
+              {/* Show existing logo from API */}
+              {storedPaths.companyLogoPath && !logoFile && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 120, height: 120, borderRadius: '14px', border: '2px solid #e2e8f0', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', bgcolor: '#fff' }}>
+                    <img src={storedPaths.companyLogoPath} alt="company logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </Box>
+                  <Stack spacing={0.5}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary' }}>Current Logo</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Upload a new logo below to replace</Typography>
+                  </Stack>
                 </Box>
               )}
-              <Box flex={1}>
+              {/* Show new logo preview */}
+              {logoFile && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 120, height: 120, borderRadius: '14px', border: '2px solid', borderColor: 'primary.main', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 12px rgba(51,102,255,0.12)', bgcolor: '#fff' }}>
+                    <img src={URL.createObjectURL(logoFile)} alt="logo preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </Box>
+                  <Stack spacing={0.5}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>New Logo</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{logoFile.name}</Typography>
+                  </Stack>
+                </Box>
+              )}
+              <Box>
                 <FileUploadButton file={logoFile} onFileChange={setLogoFile} onClear={() => setLogoFile(null)} accept="image/*" label="Upload company logo" hint="PNG, JPG up to 5MB" />
               </Box>
             </Stack>
