@@ -1,100 +1,89 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Container from '@mui/material/Container';
 
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Stack, IconButton, Typography } from '@mui/material';
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Stack, IconButton, Typography, CircularProgress } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { RouterLink } from 'src/routes/components';
-// import RptDialog from '../ReportDialog';
 import { Box } from '@mui/system';
+import { useSnackbar } from 'src/components/snackbar';
+import { Get, Post } from 'src/api/apibasemethods';
 import SupplierGrid from '../Supplier-sheet-grid';
-
-
 
 // ----------------------------------------------------------------------
 
 export default function SupplierGridView() {
   const settings = useSettingsContext();
+  const { enqueueSnackbar } = useSnackbar();
+  const gridRefreshRef = useRef(null);
 
-  const [isSuperSearchEnabled, setIsSuperSearchEnabled] = useState(
-    () => JSON.parse(localStorage.getItem('isSuperSearchEnabled')) || true
-  );
+  // --- Bulk Upload Dialog ---
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkFile, setBulkFile] = useState(null);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [templateDownloading, setTemplateDownloading] = useState(false);
 
-  // Handle toggle change
-  const handleToggleChange = (event) => {
-    const newValue = event.target.checked;
-    setIsSuperSearchEnabled(newValue);
-    localStorage.setItem('isSuperSearchEnabled', JSON.stringify(newValue));
-  };
+  const handleDownloadTemplate = useCallback(async () => {
+    try {
+      setTemplateDownloading(true);
+      const response = await Get('Supplier/BulkTemplate', { responseType: 'blob' });
 
-  useEffect(() => {
-    // Sync state with localStorage on mount
-    const storedValue = JSON.parse(localStorage.getItem('isSuperSearchEnabled'));
-    if (storedValue !== null) {
-      setIsSuperSearchEnabled(storedValue);
+      // Create download link
+      const blob = new Blob([response.data], {
+        type: response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'Supplier_Bulk_Template.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      enqueueSnackbar('Template downloaded successfully!', { variant: 'success' });
+    } catch (err) {
+      console.error('Template download error:', err);
+      enqueueSnackbar('Failed to download template', { variant: 'error' });
+    } finally {
+      setTemplateDownloading(false);
     }
-  }, []);
+  }, [enqueueSnackbar]);
 
-  //  Dialog Functions
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const handleBulkUpload = useCallback(async () => {
+    if (!bulkFile) {
+      enqueueSnackbar('Please select an Excel file first', { variant: 'warning' });
+      return;
+    }
+    try {
+      setBulkUploading(true);
+      const formData = new FormData();
+      formData.append('file', bulkFile);
 
-  const handleDialogOpen = () => {
-    setDialogOpen(true);
-  };
+      const response = await Post('Supplier/BulkUpload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
-
-  // Transfer Stock Excel Dialog Functions
-  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
-
-  const handleTransferDialogOpen = () => {
-    setTransferDialogOpen(true);
-  };
-
-  const handleTransferDialogClose = () => {
-    setTransferDialogOpen(false);
-  };
-
-  // Download Excel Options Dialog Functions
-  const [downloadOptionsDialogOpen, setDownloadOptionsDialogOpen] = useState(false);
-
-  const handleDownloadOptionsDialogOpen = () => {
-    setDownloadOptionsDialogOpen(true);
-  };
-
-  const handleDownloadOptionsDialogClose = () => {
-    setDownloadOptionsDialogOpen(false);
-  };
-
-  const handleStockReportClick = () => {
-    handleDownloadOptionsDialogClose();
-    handleDialogOpen();
-  };
-
-  const handleMargasaTransferReportClick = () => {
-    handleDownloadOptionsDialogClose();
-    handleTransferDialogOpen();
-  };
-
-  // Item Report Dialog Functions (Summary Report)
-  const [itemDialogOpen, setItemDialogOpen] = useState(false);
-
-  const handleItemDialogOpen = () => {
-    setItemDialogOpen(true);
-  };
-
-  const handleItemDialogClose = () => {
-    setItemDialogOpen(false);
-  };
-
-  const handleSummaryReportClick = () => {
-    handleDownloadOptionsDialogClose();
-    handleItemDialogOpen();
-  };
+      if (response?.data?.Success) {
+        enqueueSnackbar(response.data.Message || 'Bulk upload successful!', { variant: 'success' });
+        setBulkDialogOpen(false);
+        setBulkFile(null);
+        // Refresh grid
+        if (gridRefreshRef.current) {
+          gridRefreshRef.current();
+        }
+      } else {
+        enqueueSnackbar(response?.data?.Message || 'Upload failed', { variant: 'error' });
+      }
+    } catch (err) {
+      console.error('Bulk upload error:', err);
+      enqueueSnackbar(err?.response?.data?.Message || 'Bulk upload failed', { variant: 'error' });
+    } finally {
+      setBulkUploading(false);
+    }
+  }, [bulkFile, enqueueSnackbar]);
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -120,14 +109,14 @@ export default function SupplierGridView() {
               gap: 1,
             }}
           >
-            {/* <Button
-              variant="contained"
-              startIcon={<Iconify icon="uiw:file-excel" />}
+            <Button
+              variant="outlined"
+              startIcon={<Iconify icon="mdi:file-upload-outline" />}
               color="primary"
-              onClick={handleDownloadOptionsDialogOpen}
+              onClick={() => setBulkDialogOpen(true)}
             >
-              Download Excel
-            </Button> */}
+              Bulk Upload
+            </Button>
 
             <Button
               component={RouterLink}
@@ -143,63 +132,127 @@ export default function SupplierGridView() {
         }
       />
 
-      <SupplierGrid />
-      {/* <RptDialog uploadClose={handleDialogClose} uploadOpen={dialogOpen} /> */}
-      {/* <RptDialog uploadClose={handleDialogClose} uploadOpen={dialogOpen} /> */}
-      {/* <RptDialogTransfer uploadClose={handleTransferDialogClose} uploadOpen={transferDialogOpen} /> */}
-      {/* <ItemReportDialog uploadClose={handleItemDialogClose} uploadOpen={itemDialogOpen} /> */}
+      <SupplierGrid onRefreshRef={gridRefreshRef} />
 
-      {/* Download Options Dialog */}
-      <Dialog open={downloadOptionsDialogOpen} onClose={handleDownloadOptionsDialogClose} maxWidth="sm" fullWidth>
+      {/* ── Bulk Upload Dialog ── */}
+      <Dialog open={bulkDialogOpen} onClose={() => { setBulkDialogOpen(false); setBulkFile(null); }} maxWidth="sm" fullWidth>
         <DialogTitle>
           <Stack direction="row" alignItems="center">
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              Select Report Type
-            </Typography>
-            <IconButton onClick={handleDownloadOptionsDialogClose}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
+              <Iconify icon="mdi:file-upload-outline" width={22} sx={{ color: 'primary.main' }} />
+              <Typography variant="h6">Bulk Upload Suppliers</Typography>
+            </Stack>
+            <IconButton onClick={() => { setBulkDialogOpen(false); setBulkFile(null); }}>
               <Iconify icon="mingcute:close-line" />
             </IconButton>
           </Stack>
         </DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 2 }}>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<Iconify icon="uiw:file-excel" />}
-              onClick={handleStockReportClick}
-              sx={{ py: 1.5, justifyContent: 'flex-start' }}
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            {/* Step 1: Download Template */}
+            <Box
+              sx={{
+                p: 2, borderRadius: 2, border: '1px dashed', borderColor: 'divider',
+                bgcolor: 'background.neutral',
+              }}
             >
-              Stock Report
-            </Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<Iconify icon="uiw:file-excel" />}
-              onClick={handleMargasaTransferReportClick}
-              sx={{ py: 1.5, justifyContent: 'flex-start' }}
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Box
+                  sx={{
+                    width: 40, height: 40, borderRadius: '10px', bgcolor: 'primary.lighter',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}
+                >
+                  <Iconify icon="mdi:file-download-outline" width={22} sx={{ color: 'primary.main' }} />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Step 1: Download Template</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Download the Excel template, fill in your supplier data
+                  </Typography>
+                </Box>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={templateDownloading ? <CircularProgress size={14} /> : <Iconify icon="mdi:download" width={16} />}
+                  onClick={handleDownloadTemplate}
+                  disabled={templateDownloading}
+                  sx={{ flexShrink: 0 }}
+                >
+                  {templateDownloading ? 'Downloading...' : 'Download'}
+                </Button>
+              </Stack>
+            </Box>
+
+            {/* Step 2: Upload File */}
+            <Box
+              sx={{
+                p: 2, borderRadius: 2, border: '1px dashed', borderColor: bulkFile ? 'primary.main' : 'divider',
+                bgcolor: bulkFile ? 'primary.lighter' : 'background.neutral',
+                transition: 'all 0.2s',
+              }}
             >
-              Margasa Transfer Report
-            </Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<Iconify icon="uiw:file-excel" />}
-              onClick={handleSummaryReportClick}
-              sx={{ py: 1.5, justifyContent: 'flex-start' }}
-            >
-              Summary Report
-            </Button>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Box
+                  sx={{
+                    width: 40, height: 40, borderRadius: '10px', bgcolor: bulkFile ? 'primary.main' : 'primary.lighter',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}
+                >
+                  <Iconify icon="mdi:file-excel-outline" width={22} sx={{ color: bulkFile ? '#fff' : 'primary.main' }} />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Step 2: Upload Filled Template</Typography>
+                  {bulkFile ? (
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 500 }}>
+                        {bulkFile.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        ({(bulkFile.size / 1024).toFixed(1)} KB)
+                      </Typography>
+                    </Stack>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">
+                      Select your filled Excel file (.xlsx, .xls)
+                    </Typography>
+                  )}
+                </Box>
+                <Button
+                  variant={bulkFile ? 'text' : 'outlined'}
+                  size="small"
+                  component="label"
+                  startIcon={<Iconify icon={bulkFile ? 'mdi:swap-horizontal' : 'mdi:upload'} width={16} />}
+                  sx={{ flexShrink: 0 }}
+                >
+                  {bulkFile ? 'Change' : 'Browse'}
+                  <input
+                    type="file"
+                    hidden
+                    accept=".xlsx,.xls"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) setBulkFile(e.target.files[0]);
+                    }}
+                  />
+                </Button>
+              </Stack>
+            </Box>
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDownloadOptionsDialogClose} variant="outlined">
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => { setBulkDialogOpen(false); setBulkFile(null); }} variant="outlined" color="inherit">
             Cancel
+          </Button>
+          <Button
+            onClick={handleBulkUpload}
+            variant="contained"
+            disabled={!bulkFile || bulkUploading}
+            startIcon={bulkUploading ? <CircularProgress size={16} color="inherit" /> : <Iconify icon="mdi:cloud-upload" width={18} />}
+          >
+            {bulkUploading ? 'Uploading...' : 'Upload'}
           </Button>
         </DialogActions>
       </Dialog>
     </Container>
   );
 }
-
-// superSearch={isSuperSearchEnabled} 

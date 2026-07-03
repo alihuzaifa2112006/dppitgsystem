@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useSnackbar } from 'src/components/snackbar';
 import { LoadingScreen } from 'src/components/loading-screen';
 import { Get, Post } from 'src/api/apibasemethods';
@@ -38,7 +39,7 @@ import { paths } from 'src/routes/paths';
 
 
 
-const SupplierGrid = () => {
+const SupplierGrid = ({ onRefreshRef }) => {
   const settings = useSettingsContext();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -247,6 +248,13 @@ const SupplierGrid = () => {
     fetchSupplierData();
     fetchCountryData();
   }, [fetchSupplierData, fetchCountryData]);
+
+  // Expose refresh method via ref callback
+  useEffect(() => {
+    if (onRefreshRef) {
+      onRefreshRef.current = fetchSupplierData;
+    }
+  }, [onRefreshRef, fetchSupplierData]);
 
   // Build a lookup map: Country_Name -> Country_Code
   const countryCodeMap = useMemo(() => {
@@ -978,6 +986,10 @@ const SupplierGrid = () => {
 
     </Box>
   );
+};
+
+SupplierGrid.propTypes = {
+  onRefreshRef: PropTypes.object,
 };
 
 export default SupplierGrid;
