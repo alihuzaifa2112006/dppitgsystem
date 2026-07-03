@@ -13,6 +13,7 @@ import {
 import { useSettingsContext } from 'src/components/settings';
 import { Get } from 'src/api/apibasemethods';
 import { useRouter } from 'src/routes/hooks';
+import { paths } from 'src/routes/paths';
 
 // ─── Colour tokens ────────────────────────────────────────────────────────────
 const CLR = {
@@ -394,7 +395,7 @@ export default function OverviewAppView() {
               height: '100%', cursor: 'pointer', transition: 'box-shadow 0.2s',
               '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)' },
             }}
-            onClick={() => router.push('/app/company-profile')}
+            onClick={() => router.push(paths.dashboard.CompanyDatabase.new)}
           >
             <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
               <Typography variant="subtitle2" fontWeight={500} mb={0.25}>Profile Completion</Typography>
