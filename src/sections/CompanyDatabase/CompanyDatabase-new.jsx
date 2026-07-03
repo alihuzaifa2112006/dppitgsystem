@@ -63,7 +63,7 @@ const TABS = [
   { label: 'Company Info', icon: 'mdi:domain' },
   { label: 'Setup Details', icon: 'mdi:cog-outline' },
   { label: 'Business Profile', icon: 'mdi:chart-bar' },
-  { label: 'Supply Chain', icon: 'mdi:truck-delivery-outline' },
+  // { label: 'Supply Chain', icon: 'mdi:truck-delivery-outline' },
   { label: 'Contacts', icon: 'mdi:contacts-outline' },
   { label: 'Certificates', icon: 'mdi:certificate-outline' },
   { label: 'Logo', icon: 'mdi:image-outline' },
@@ -1004,9 +1004,70 @@ export default function CompanyDatabaseCreateForm() {
                   control={control}
                   render={({ field, fieldState }) => (
                     <FormControl fullWidth error={!!fieldState.error} sx={INPUT_SX}>
-                      <InputLabel>Experience in Business *</InputLabel>
-                      <Select {...field} multiple input={<OutlinedInput label="Experience in Business *" />} renderValue={(selected) => (<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>{selected.map((val) => (<Chip key={val} label={val} size="small" />))}</Box>)}>
-                        {EXPERIENCE_OPTIONS.map((opt) => (<MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>))}
+                      <InputLabel sx={{ fontSize: '0.875rem' }}>Experience in Business</InputLabel>
+                      <Select
+                        {...field}
+                        multiple
+                        input={<OutlinedInput label="Experience in Business" />}
+                        renderValue={(selected) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, py: 0.25 }}>
+                            {selected.map((val) => (
+                              <Chip
+                                key={val}
+                                label={val}
+                                size="small"
+                                color="primary"
+                                variant="soft"
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onDelete={(e) => {
+                                  e.stopPropagation();
+                                  const newVal = field.value.filter((v) => v !== val);
+                                  field.onChange(newVal);
+                                }}
+                                deleteIcon={
+                                  <Iconify
+                                    icon="eva:close-fill"
+                                    width={14}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                  />
+                                }
+                                sx={{
+                                  fontWeight: 500,
+                                  fontSize: '0.75rem',
+                                  borderRadius: '6px',
+                                  height: 24,
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        )}
+                        sx={{
+                          '& .MuiOutlinedInput-notchedOutline': { borderRadius: '8px' },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'primary.main',
+                            borderWidth: '1.5px',
+                          },
+                        }}
+                      >
+                        {EXPERIENCE_OPTIONS.map((opt) => (
+                          <MenuItem
+                            key={opt.value}
+                            value={opt.value}
+                            sx={{
+                              fontSize: '0.875rem',
+                              borderRadius: '6px',
+                              mx: 0.5,
+                              '&.Mui-selected': {
+                                bgcolor: 'primary.lighter',
+                                color: 'primary.main',
+                                fontWeight: 600,
+                                '&:hover': { bgcolor: 'primary.light' },
+                              },
+                            }}
+                          >
+                            {opt.label}
+                          </MenuItem>
+                        ))}
                       </Select>
                       {fieldState.error && <FormHelperText>{fieldState.error.message}</FormHelperText>}
                     </FormControl>
@@ -1032,141 +1093,14 @@ export default function CompanyDatabaseCreateForm() {
           </Card>
         </TabPanel>
 
-        {/* Tab 3: Supply Chain */}
+        {/* ── Supply Chain Tab (commented out - not active) ──
         <TabPanel value={activeTab} index={3}>
-          <Card sx={SECTION_CARD_SX}>
-            <SectionHeader
-              icon="mdi:truck-delivery-outline"
-              title="Supply Chain"
-              subtitle="Add one or multiple supplier entries for the supply chain"
-              badge={supplyChainFields.length > 0 ? `${supplyChainFields.length} supplier${supplyChainFields.length > 1 ? 's' : ''}` : 'Required'}
-            />
-
-            {/* ── Supply Chain Table ── */}
-            <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '10px', border: '1px solid #eef0f6', boxShadow: 'none', mb: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                    {['Supplier Name', 'City', 'Country', 'Email', ''].map((h) => (
-                      <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', py: 1.5, whiteSpace: 'nowrap' }}>{h}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {supplyChainFields.map((field, index) => (
-                    <TableRow key={field.id} sx={{ '&:last-child td': { border: 0 }, '&:hover': { bgcolor: '#fafbff' } }}>
-                      <TableCell sx={{ minWidth: 180, py: 1.5 }}>
-                        <Controller
-                          name={`supplyChain.${index}.supplierName`}
-                          control={control}
-                          render={({ field: f, fieldState }) => (
-                            <TextField
-                              {...f}
-                              size="small"
-                              fullWidth
-                              placeholder="Supplier Name"
-                              error={!!fieldState.error}
-                              helperText={fieldState.error?.message}
-                              sx={INPUT_SX}
-                              InputProps={{
-                                startAdornment: (
-                                  <InputAdornment position="start">
-                                    <Iconify icon="mdi:domain" width={16} sx={{ color: '#94a3b8' }} />
-                                  </InputAdornment>
-                                ),
-                              }}
-                            />
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ minWidth: 130, py: 1.5 }}>
-                        <Controller
-                          name={`supplyChain.${index}.city`}
-                          control={control}
-                          render={({ field: f, fieldState }) => (
-                            <TextField
-                              {...f}
-                              size="small"
-                              fullWidth
-                              placeholder="City"
-                              error={!!fieldState.error}
-                              helperText={fieldState.error?.message}
-                              sx={INPUT_SX}
-                            />
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ minWidth: 175, py: 1.5 }}>
-                        <RHFAutocomplete
-                          name={`supplyChain.${index}.country`}
-                          label="Country"
-                          options={countries}
-                          getOptionLabel={(o) => o?.Country_Name || ''}
-                          isOptionEqualToValue={(o, v) => o?.Country_ID === v?.Country_ID}
-                          renderOption={(props, option) => (
-                            <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75 }}>
-                              {option?.Country_Code && (
-                                <Iconify icon={`circle-flags:${option.Country_Code.toLowerCase()}`} sx={{ width: 20, height: 20, flexShrink: 0 }} />
-                              )}
-                              <Typography variant="body2">{option?.Country_Name}</Typography>
-                            </Box>
-                          )}
-                          sx={INPUT_SX}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ minWidth: 190, py: 1.5 }}>
-                        <Controller
-                          name={`supplyChain.${index}.email`}
-                          control={control}
-                          render={({ field: f, fieldState }) => (
-                            <TextField
-                              {...f}
-                              size="small"
-                              fullWidth
-                              placeholder="Email"
-                              type="email"
-                              error={!!fieldState.error}
-                              helperText={fieldState.error?.message}
-                              sx={INPUT_SX}
-                            />
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ py: 1.5, pr: 2 }}>
-                        <Tooltip title="Remove" arrow>
-                          <span>
-                            <IconButton
-                              size="small"
-                              onClick={() => removeSupplyChain(index)}
-                              disabled={supplyChainFields.length === 1}
-                              sx={{ color: '#ef4444', bgcolor: '#fff1f1', borderRadius: '6px' }}
-                            >
-                              <Iconify icon="mdi:trash-can-outline" width={16} />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<Iconify icon="mdi:plus" width={16} />}
-                onClick={() => appendSupplyChain({ supplierName: '', city: '', country: null, email: '' })}
-              >
-                Add Supplier
-              </Button>
-            </Box>
-          </Card>
+          ... Supply Chain UI ...
         </TabPanel>
+        */}
 
-        {/* Tab 4: Contacts */}
-        <TabPanel value={activeTab} index={4}>
+        {/* Tab 3: Contacts */}
+        <TabPanel value={activeTab} index={3}>
           <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:contacts-outline"
@@ -1219,8 +1153,8 @@ export default function CompanyDatabaseCreateForm() {
           </Card>
         </TabPanel>
 
-        {/* Tab 5: Certificates */}
-        <TabPanel value={activeTab} index={5}>
+        {/* Tab 4: Certificates */}
+        <TabPanel value={activeTab} index={4}>
           <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:certificate-outline"
@@ -1249,8 +1183,8 @@ export default function CompanyDatabaseCreateForm() {
           </Card>
         </TabPanel>
 
-        {/* Tab 6: Company Logo */}
-        <TabPanel value={activeTab} index={6}>
+        {/* Tab 5: Company Logo */}
+        <TabPanel value={activeTab} index={5}>
           <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:image-outline"
