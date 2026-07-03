@@ -749,7 +749,7 @@ export default function CompanyDatabaseCreateForm() {
             />
             <Grid container spacing={2}>
               <Grid xs={12}>
-                <RHFTextField name="supName" label="Company Name *" placeholder="e.g. IVT International Ltd" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
+                <RHFTextField name="supName" label="Company Name *" placeholder="e.g. ABC Textiles" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:domain" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12}>
                 <RHFTextField name="addressLine1" label="Address Line 1 *" placeholder="Flat A, 10/F, Lockhart Centre" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:map-marker-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
@@ -759,6 +759,9 @@ export default function CompanyDatabaseCreateForm() {
               </Grid>
               <Grid xs={12} md={4}>
                 <RHFAutocomplete name="country" label="Country *" placeholder="Select Country" options={countries} getOptionLabel={(o) => o?.Country_Name || ''} isOptionEqualToValue={(o, v) => o?.Country_ID === v?.Country_ID} sx={INPUT_SX} />
+              </Grid>
+              <Grid xs={12} md={4}>
+                <RHFTextField name="onboardingEmail" label="Email *" placeholder="contact@company.com" type="email" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:email-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
               </Grid>
               <Grid xs={12} md={4}>
                 <RHFTextField name="province" label="Province / State" placeholder="Province" sx={INPUT_SX} />
@@ -781,9 +784,7 @@ export default function CompanyDatabaseCreateForm() {
               <Grid xs={12} md={4}>
                 <RHFAutocomplete name="mainExportMarket" label="Main Export Market" placeholder="Select market" options={exportMarketValue} getOptionLabel={(o) => o?.Name || ''} isOptionEqualToValue={(o, v) => o?.ExportMarketId === v?.ExportMarketId} sx={INPUT_SX} />
               </Grid>
-              <Grid xs={12} md={4}>
-                <RHFTextField name="onboardingEmail" label="Onboarding Email *" placeholder="contact@company.com" type="email" InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="mdi:email-outline" width={18} sx={{ color: '#94a3b8' }} /></InputAdornment> }} sx={INPUT_SX} />
-              </Grid>
+
             </Grid>
           </Card>
         </TabPanel>
@@ -833,7 +834,7 @@ export default function CompanyDatabaseCreateForm() {
           <Card sx={SECTION_CARD_SX}>
             <SectionHeader
               icon="mdi:chart-bar"
-              title="Business Profile"
+              title="Company Profile"
               subtitle="Business metrics, experience, and operational details"
               badge="Required"
             />

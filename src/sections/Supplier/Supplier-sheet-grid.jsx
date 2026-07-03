@@ -607,7 +607,7 @@ const SupplierGrid = () => {
                       <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
                         <Tooltip title="Edit supplier" arrow>
                           <IconButton size="small" onClick={() => handleOpenEdit(row)}
-                            sx={{ color: 'info.main', padding: '4px' }}
+                            sx={{ color: 'primary.main', padding: '4px' }}
                           >
                             <Iconify icon="solar:pen-bold" width={18} />
                           </IconButton>
