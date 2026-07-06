@@ -325,6 +325,23 @@ export default function OverviewAppView() {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [companyName, setCompanyName] = useState('');
 
+  // ── Supplier Stats from API ──
+  const [supplierStats, setSupplierStats] = useState({ All: 0, Emailed: 0, Pending: 0, Registered: 0 });
+
+  useEffect(() => {
+    const fetchSupplierStats = async () => {
+      try {
+        const res = await Get('Supplier/Tabs?tab=all');
+        if (res?.data?.Success) {
+          setSupplierStats(res.data.Counts);
+        }
+      } catch (err) {
+        console.error('Supplier stats fetch error:', err);
+      }
+    };
+    fetchSupplierStats();
+  }, []);
+
   useEffect(() => {
     const fetchCompanyProfile = async () => {
       try {
@@ -384,6 +401,45 @@ export default function OverviewAppView() {
         </Grid>
         <Grid xs={12} sm={6} md={3}>
           <KpiCard label="Pending approval" value="318" sub="↑ 24 from last week" subColor={CLR.red} />
+        </Grid>
+
+        {/* ── Supplier Stats from API ── */}
+        <Grid xs={12} md={4}>
+          <SectionCard title="Supplier Onboarding Status" subheader="Total, Pending, Emailed & Registered">
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 1 }}>
+              <Box sx={{ p: 1.5, borderRadius: 1.5, bgcolor: alpha(theme.palette.info.main, 0.08), border: '0.5px solid', borderColor: alpha(theme.palette.info.main, 0.2) }}>
+                <Typography variant="caption" color="info.main" fontWeight={600} display="block">Total</Typography>
+                <Typography variant="h5" fontWeight={700}>{supplierStats.All}</Typography>
+              </Box>
+              <Box sx={{ p: 1.5, borderRadius: 1.5, bgcolor: alpha(theme.palette.warning.main, 0.08), border: '0.5px solid', borderColor: alpha(theme.palette.warning.main, 0.2) }}>
+                <Typography variant="caption" color="warning.main" fontWeight={600} display="block">Pending</Typography>
+                <Typography variant="h5" fontWeight={700}>{supplierStats.Pending}</Typography>
+              </Box>
+              <Box sx={{ p: 1.5, borderRadius: 1.5, bgcolor: alpha(theme.palette.success.main, 0.08), border: '0.5px solid', borderColor: alpha(theme.palette.success.main, 0.2) }}>
+                <Typography variant="caption" color="success.main" fontWeight={600} display="block">Emailed</Typography>
+                <Typography variant="h5" fontWeight={700}>{supplierStats.Emailed}</Typography>
+              </Box>
+              <Box sx={{ p: 1.5, borderRadius: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.08), border: '0.5px solid', borderColor: alpha(theme.palette.primary.main, 0.2) }}>
+                <Typography variant="caption" color="primary.main" fontWeight={600} display="block">Registered</Typography>
+                <Typography variant="h5" fontWeight={700}>{supplierStats.Registered}</Typography>
+              </Box>
+            </Box>
+            <Box sx={{ mt: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+               <Typography variant="caption" color="text.secondary">Onboarding completion</Typography>
+               <Typography variant="caption" fontWeight={700}>
+                 {supplierStats.All > 0 ? Math.round((supplierStats.Registered / supplierStats.All) * 100) : 0}%
+               </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={supplierStats.All > 0 ? (supplierStats.Registered / supplierStats.All) * 100 : 0}
+              sx={{
+                mt: 1, height: 6, borderRadius: 3,
+                bgcolor: theme.palette.action.hover,
+                '& .MuiLinearProgress-bar': { bgcolor: 'primary.main', borderRadius: 3 },
+              }}
+            />
+          </SectionCard>
         </Grid>
 
         {/* ── Profile Completion Circle ── */}
@@ -600,35 +656,6 @@ export default function OverviewAppView() {
                 </Box>
               ))}
             </Box>
-          </SectionCard>
-        </Grid>
-
-        {/* ── Supplier bar ── */}
-        <Grid xs={12} md={4}>
-          <SectionCard title="Supplier response rate" subheader="Data submission completion by tier">
-            <ChartLegend items={[
-              { label: 'Submitted', color: CLR.blue },
-              { label: 'Pending', color: CLR.blueLight },
-            ]} />
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={SUPPLIER_DATA} layout="vertical" barCategoryGap="25%">
-                <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} horizontal={false} />
-                <XAxis
-                  type="number" domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: theme.palette.text.secondary }}
-                  axisLine={false} tickLine={false}
-                  tickFormatter={(v) => `${v}%`}
-                />
-                <YAxis
-                  type="category" dataKey="tier" width={115}
-                  tick={{ fontSize: 10, fill: theme.palette.text.secondary }}
-                  axisLine={false} tickLine={false}
-                />
-                <Tooltip content={<PctTooltip />} />
-                <Bar dataKey="Submitted" stackId="a" fill={CLR.blue} radius={[0, 0, 0, 0]} />
-                <Bar dataKey="Pending" stackId="a" fill={CLR.blueLight} radius={[0, 3, 3, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
           </SectionCard>
         </Grid>
 

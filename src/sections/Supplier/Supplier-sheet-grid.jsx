@@ -30,6 +30,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tab,
+  Tabs,
 } from '@mui/material';
 import Scrollbar from 'src/components/scrollbar';
 import Iconify from 'src/components/iconify';
@@ -58,6 +60,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('SupplierName');
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('all');
 
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
@@ -149,6 +152,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
   const handleCloseInvite = () => {
     setInviteDialogOpen(false);
     setSelectedSupplier(null);
+    fetchSupplierData();
   };
 
   // --- SECURED: Copy Onboarding Link with Base64 Obfuscation ---
@@ -267,9 +271,16 @@ const SupplierGrid = ({ onRefreshRef }) => {
     return map;
   }, [countryOptions]);
 
-  // Filter Data based on search and multiple countries
+  // Filter Data based on tab, search and multiple countries
   const filteredData = useMemo(() => {
     let filtered = reportData;
+
+    // Filter by tab
+    if (activeTab === 'pending') {
+      filtered = filtered.filter((item) => !item.EmailSent);
+    } else if (activeTab === 'emailed') {
+      filtered = filtered.filter((item) => item.EmailSent === true);
+    }
 
     // Filter by multiple countries
     if (selectedCountries.length > 0) {
@@ -292,7 +303,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
     }
 
     return filtered;
-  }, [reportData, searchText, selectedCountries]);
+  }, [reportData, searchText, selectedCountries, activeTab]);
 
   // Sort Data
   const sortedData = useMemo(() => {
@@ -342,13 +353,14 @@ const SupplierGrid = ({ onRefreshRef }) => {
 
   return (
     <Box sx={{ width: '100%', p: 2 }}>
+
       {/* Search and Filter Section */}
       <Paper
         elevation={0}
         sx={{
           p: 2.5,
-          mb: 3,
-          borderRadius: 3,
+          mb: 0,
+          borderRadius: '12px 12px 0 0',
           border: '1px solid',
           borderColor: 'divider',
         }}
@@ -537,6 +549,77 @@ const SupplierGrid = ({ onRefreshRef }) => {
         )}
       </Paper>
 
+      {/* ── Tabs ── */}
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2,
+          mt: 0,
+          borderRadius: '0 0 12px 12px',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderTop: 0,
+          overflow: 'hidden',
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          onChange={(_, val) => { setActiveTab(val); setPage(0); }}
+          sx={{
+            px: 2,
+            '& .MuiTabs-indicator': {
+              height: 3,
+              borderRadius: '3px 3px 0 0',
+            },
+            '& .MuiTab-root': {
+              minHeight: 48,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              textTransform: 'none',
+              color: 'text.secondary',
+              '&.Mui-selected': { color: 'primary.main' },
+            },
+          }}
+        >
+          <Tab
+            value="all"
+            label={
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Iconify icon="mdi:view-list-outline" width={18} />
+                <span>All</span>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'inherit', lineHeight: 1 }}>
+                  ({reportData.length})
+                </Typography>
+              </Stack>
+            }
+          />
+          <Tab
+            value="pending"
+            label={
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Iconify icon="mdi:clock-outline" width={18} />
+                <span>Pending</span>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'inherit', lineHeight: 1 }}>
+                  ({reportData.filter(r => !r.EmailSent).length})
+                </Typography>
+              </Stack>
+            }
+          />
+          <Tab
+            value="emailed"
+            label={
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Iconify icon="mdi:email-check-outline" width={18} />
+                <span>Emailed</span>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'inherit', lineHeight: 1 }}>
+                  ({reportData.filter(r => r.EmailSent === true).length})
+                </Typography>
+              </Stack>
+            }
+          />
+        </Tabs>
+      </Paper>
+
       {/* Table */}
       <Paper
         sx={{
@@ -561,7 +644,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 120, fontSize: '0.875rem' }}>City</TableCell>
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>Email</TableCell>
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 150, fontSize: '0.875rem' }}>Country</TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 90, fontSize: '0.875rem', textAlign: 'center' }}>Invite Link</TableCell>
+                {/* <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 90, fontSize: '0.875rem', textAlign: 'center' }}>Invite Link</TableCell> */}
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 80, fontSize: '0.875rem', textAlign: 'center' }}>Send Invite</TableCell>
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 100, fontSize: '0.875rem', textAlign: 'center' }}>Actions</TableCell>
               </TableRow>
@@ -612,7 +695,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
                       ) : '-'}
                     </TableCell>
 
-                    {/* ── Invite Link column ── */}
+                    {/* ── Invite Link column (commented out) ──
                     <TableCell sx={{ textAlign: 'center' }}>
                       <Tooltip title="Copy onboarding link" arrow>
                         <IconButton size="small" onClick={() => handleCopyLink(row)}
@@ -622,6 +705,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
                         </IconButton>
                       </Tooltip>
                     </TableCell>
+                    */}
 
                     {/* ── Send Invite column ── */}
                     <TableCell sx={{ textAlign: 'center' }}>
