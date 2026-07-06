@@ -7,7 +7,7 @@ export default function SupplierListPage() {
   return (
     <>
       <Helmet>
-        <title> Pre On Boarding List</title>
+        <title> Supply Chain Network Onboard List</title>
       </Helmet>
 
 

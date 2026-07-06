@@ -60,6 +60,8 @@ const YEARS_OPTIONS = ['1-2', '3-5', '6-10', 'Over 10'].map(opt => ({ label: opt
 const BUSINESS_TYPE_OPTIONS = ['Manufacturer', 'Trader', 'Agent', 'Distributor'].map(opt => ({ label: opt, value: opt }));
 const EXPERIENCE_OPTIONS = ['Whole Sale', 'Retail', 'Export', 'Import', 'E-Commerce'].map(opt => ({ label: opt, value: opt }));
 const CERTIFICATE_OPTIONS = ['ISO 9001', 'ISO 14001', 'ISO 27001', 'API Q1', 'CE Marking', 'FDA Approval', 'GMP', 'HACCP', 'Other'];
+const PARTNER_TYPE_OPTIONS = ['Manufacturer', 'Sub-supplier', 'Agent', 'Distributor', 'Trader'].map(opt => ({ label: opt, value: opt }));
+const TIER_OPTIONS = ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'].map(opt => ({ label: opt, value: opt }));
 
 const TABS = [
   { label: 'Company Info', icon: 'mdi:domain' },
@@ -437,9 +439,15 @@ const NewCompanySchema = Yup.object().shape({
   supplyChain: Yup.array().of(
     Yup.object().shape({
       supplierName: Yup.string().nullable(),
-      city: Yup.string().nullable(),
-      country: Yup.object().nullable(),
       email: Yup.string().nullable().email('Invalid email'),
+      city: Yup.string().nullable(),
+      province: Yup.string().nullable(),
+      country: Yup.object().nullable(),
+      organizationType: Yup.object().nullable(),
+      partnerType: Yup.object().nullable(),
+      material: Yup.string().nullable(),
+      tier: Yup.object().nullable(),
+      notes: Yup.string().nullable(),
     })
   ),
   capacityPerMonth: Yup.string().nullable(),
@@ -504,6 +512,7 @@ export default function CompanyDatabaseCreateForm() {
 
   const [logoFile, setLogoFile] = useState(null);
   const [businessLicenseFile, setBusinessLicenseFile] = useState(null);
+  const [organizationTypes, setOrganizationTypes] = useState([]);
 
   // Store file paths from API (to send back in update)
   const [storedPaths, setStoredPaths] = useState({
@@ -525,25 +534,29 @@ export default function CompanyDatabaseCreateForm() {
       setLoading(true);
       try {
         // Fetch all dropdown data in parallel
-        const [exportRes, unitRes, currencyRes, contactTypeRes, countryRes] = await Promise.all([
+        const [exportRes, unitRes, currencyRes, contactTypeRes, countryRes, orgTypeRes] = await Promise.all([
           Get('ExportMarket/GetAll'),
           Get('Unit/GetAll'),
           Get('Currency/GetAll'),
           Get('ContactType/GetAll'),
           Get('Country/GetAll'),
+          Get('OrganizationType/GetAll'),
         ]);
 
         const exportMarkets = exportRes?.data?.Data || [];
-        const units         = unitRes?.data?.Data || [];
-        const currencies    = currencyRes?.data?.Data || [];
-        const contactTypes  = contactTypeRes?.data?.Data || [];
+        const units = unitRes?.data?.Data || [];
+        const currencies = currencyRes?.data?.Data || [];
+        const contactTypes = contactTypeRes?.data?.Data || [];
         const countriesList = countryRes?.data?.Data || [];
+
+        const orgTypes = orgTypeRes?.data?.Data || [];
 
         if (exportRes.status === 200) setExportMarketValue(exportMarkets);
         if (unitRes.status === 200) setUnitValue(units);
         if (currencyRes.status === 200) setCurrencyValue(currencies);
         if (contactTypeRes.status === 200) setContactTypeValue(contactTypes);
         if (countryRes.status === 200) setCountries(countriesList);
+        if (orgTypeRes.status === 200) setOrganizationTypes(orgTypes);
 
         // Fetch company data and populate form
         if (companyId) {
@@ -552,7 +565,7 @@ export default function CompanyDatabaseCreateForm() {
             const d = companyRes.data.Data;
 
             // Helper: find option by id or value
-            const findById  = (arr, idKey, val) => arr.find(o => String(o[idKey]) === String(val)) || null;
+            const findById = (arr, idKey, val) => arr.find(o => String(o[idKey]) === String(val)) || null;
             const findByVal = (arr, val) => arr.find(o => o.value === val) || null;
 
             // Map experience string to array
@@ -563,73 +576,79 @@ export default function CompanyDatabaseCreateForm() {
             // Map contacts
             const mappedContacts = d.Contacts?.length
               ? d.Contacts.map(c => ({
-                  contactType: findById(contactTypes, 'ContactTypeId', c.ContactTypeId) || null,
-                  name: c.FullName || '',
-                  jobTitle: c.JobTitle || '',
-                  mobileNumber: c.MobileNumber || '',
-                  email: c.Email || '',
-                }))
+                contactType: findById(contactTypes, 'ContactTypeId', c.ContactTypeId) || null,
+                name: c.FullName || '',
+                jobTitle: c.JobTitle || '',
+                mobileNumber: c.MobileNumber || '',
+                email: c.Email || '',
+              }))
               : [{ contactType: null, name: '', jobTitle: '', mobileNumber: '', email: '' }];
 
             // Map certificates
             const mappedCerts = d.Certificates?.length
               ? d.Certificates.map(cert => ({
-                  document: cert.Name || '',
-                  description: cert.IssuingBody || '',
-                  certificateNo: cert.CertificateNo || '',
-                  validityFrom: cert.IssueDate ? dayjs(cert.IssueDate) : null,
-                  validityTo: cert.ExpiryDate ? dayjs(cert.ExpiryDate) : null,
-                  filePath: cert.FilePath || '',
-                  file: null,
-                }))
+                document: cert.Name || '',
+                description: cert.IssuingBody || '',
+                certificateNo: cert.CertificateNo || '',
+                validityFrom: cert.IssueDate ? dayjs(cert.IssueDate) : null,
+                validityTo: cert.ExpiryDate ? dayjs(cert.ExpiryDate) : null,
+                filePath: cert.FilePath || '',
+                file: null,
+              }))
               : [];
 
             // Map supply chain entries
             const mappedSupplyChain = d.SupplyChain?.length
               ? d.SupplyChain.map(sc => ({
-                  supplierName: sc.SupplierName || '',
-                  city: sc.City || '',
-                  country: findById(countriesList, 'Country_ID', sc.CountryID) || null,
-                  email: sc.Email || '',
-                }))
-              : [{ supplierName: '', city: '', country: null, email: '' }];
+                supplierName: sc.SupplierName || '',
+                email: sc.Email || '',
+                city: sc.City || '',
+                province: sc.Province || '',
+                country: findById(countriesList, 'Country_ID', sc.CountryID) || null,
+                organizationType: findById(orgTypes, 'Id', sc.OrganizationTypeID) || null,
+                partnerType: sc.PartnerType ? findByVal(PARTNER_TYPE_OPTIONS, sc.PartnerType) : null,
+                material: sc.Material || '',
+                tier: sc.Tier ? findByVal(TIER_OPTIONS, sc.Tier) : null,
+                notes: sc.Notes || '',
+              }))
+              : [{ supplierName: '', email: '', city: '', province: '', country: null, organizationType: null, partnerType: null, material: '', tier: null, notes: '' }];
 
             const populated = {
               // Company Info
-              ...(d.OrganizationName   && { supName: d.OrganizationName }),
-              ...(d.AddressLine1       && { addressLine1: d.AddressLine1 }),
-              ...(d.AddressLine2       && { addressLine2: d.AddressLine2 }),
-              ...(d.Province           && { province: d.Province }),
-              ...(d.City               && { city: d.City }),
-              ...(d.Phone              && { phone: d.Phone }),
-              ...(d.Fax                && { fax: d.Fax }),
-              ...(d.ZipPostalCode      && { zipCode: d.ZipPostalCode }),
-              ...(d.Website            && { webAddress: d.Website }),
-              ...(d.OnboardingEmail    && { onboardingEmail: d.OnboardingEmail }),
+              ...(d.OrganizationName && { supName: d.OrganizationName }),
+              ...(d.AddressLine1 && { addressLine1: d.AddressLine1 }),
+              ...(d.AddressLine2 && { addressLine2: d.AddressLine2 }),
+              ...(d.Province && { province: d.Province }),
+              ...(d.City && { city: d.City }),
+              ...(d.Phone && { phone: d.Phone }),
+              ...(d.Fax && { fax: d.Fax }),
+              ...(d.ZipPostalCode && { zipCode: d.ZipPostalCode }),
+              ...(d.Website && { webAddress: d.Website }),
+              ...(d.OnboardingEmail && { onboardingEmail: d.OnboardingEmail }),
               ...(d.Email && !d.OnboardingEmail && { onboardingEmail: d.Email }),
-              ...(d.CountryID          && { country: findById(countriesList, 'Country_ID', d.CountryID) }),
-              ...(d.ExportMarketId     && { mainExportMarket: findById(exportMarkets, 'ExportMarketId', d.ExportMarketId) }),
+              ...(d.CountryID && { country: findById(countriesList, 'Country_ID', d.CountryID) }),
+              ...(d.ExportMarketId && { mainExportMarket: findById(exportMarkets, 'ExportMarketId', d.ExportMarketId) }),
               // Setup Details
-              ...(d.CapacityPerMonth   && { capacityPerMonth: String(d.CapacityPerMonth) }),
-              ...(d.UnitId             && { unit: findById(units, 'UnitId', d.UnitId) }),
-              ...(d.AnnualTurnover     && { turnoverPerYear: String(d.AnnualTurnover) }),
-              ...(d.CurrencyId         && { currency: findById(currencies, 'CurrencyId', d.CurrencyId) }),
-              ...(d.BusinessLicenseNo  && { businessLicenseNo: d.BusinessLicenseNo }),
+              ...(d.CapacityPerMonth && { capacityPerMonth: String(d.CapacityPerMonth) }),
+              ...(d.UnitId && { unit: findById(units, 'UnitId', d.UnitId) }),
+              ...(d.AnnualTurnover && { turnoverPerYear: String(d.AnnualTurnover) }),
+              ...(d.CurrencyId && { currency: findById(currencies, 'CurrencyId', d.CurrencyId) }),
+              ...(d.BusinessLicenseNo && { businessLicenseNo: d.BusinessLicenseNo }),
               ...(d.AdditionalInformation && { additionalInfo: d.AdditionalInformation }),
               // Business Profile
-              ...(d.NumberOfEmployees  && { noOfEmployee: findByVal(EMPLOYEE_OPTIONS, d.NumberOfEmployees) }),
+              ...(d.NumberOfEmployees && { noOfEmployee: findByVal(EMPLOYEE_OPTIONS, d.NumberOfEmployees) }),
               ...(d.ExportBusinessPercent && { exportBusinessPct: findByVal(EXPORT_BUSINESS_OPTIONS, d.ExportBusinessPercent) }),
-              ...(expArr.length        && { experienceInBusiness: expArr }),
+              ...(expArr.length && { experienceInBusiness: expArr }),
               ...(d.BusinessInEuropePercent && { businessInEuropePct: findByVal(EUROPE_BUSINESS_OPTIONS, d.BusinessInEuropePercent) }),
-              ...(d.ShippingTerms      && { shippingTerms: findByVal(SHIPPING_TERMS_OPTIONS, d.ShippingTerms) }),
-              ...(d.BusinessType       && { businessType: findByVal(BUSINESS_TYPE_OPTIONS, d.BusinessType) }),
-              ...(d.YearsInBusiness    && { yearsInBusiness: findByVal(YEARS_OPTIONS, d.YearsInBusiness) }),
+              ...(d.ShippingTerms && { shippingTerms: findByVal(SHIPPING_TERMS_OPTIONS, d.ShippingTerms) }),
+              ...(d.BusinessType && { businessType: findByVal(BUSINESS_TYPE_OPTIONS, d.BusinessType) }),
+              ...(d.YearsInBusiness && { yearsInBusiness: findByVal(YEARS_OPTIONS, d.YearsInBusiness) }),
               ...(d.YearsInEuropeanBusiness && { yearsEuropeanBusiness: findByVal(YEARS_OPTIONS, d.YearsInEuropeanBusiness) }),
               // Supply Chain (all entries)
               supplyChain: mappedSupplyChain,
               // Contacts & Certificates
               contacts: mappedContacts,
-              ...(mappedCerts.length   && { certificates: mappedCerts }),
+              ...(mappedCerts.length && { certificates: mappedCerts }),
             };
 
             // Store file paths from API response
@@ -650,7 +669,7 @@ export default function CompanyDatabaseCreateForm() {
     };
 
     fetchAllData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
   const methods = useForm({
@@ -683,7 +702,7 @@ export default function CompanyDatabaseCreateForm() {
       yearsEuropeanBusiness: null,
       businessType: null,
       // Supply Chain
-      supplyChain: [{ supplierName: '', city: '', country: null, email: '' }],
+      supplyChain: [{ supplierName: '', email: '', city: '', province: '', country: null, organizationType: null, partnerType: null, material: '', tier: null, notes: '' }],
       contacts: [{ contactType: null, name: '', jobTitle: '', mobileNumber: '', email: '' }],
       certificates: [],
     },
@@ -861,10 +880,17 @@ export default function CompanyDatabaseCreateForm() {
 
         // Supply Chain
         SupplyChain: data.supplyChain.map((sc) => ({
+          InvitationId: null,
           SupplierName: sc.supplierName,
-          City: sc.city,
-          CountryID: sc.country ? parseInt(sc.country.Country_ID, 10) : 0,
           Email: sc.email,
+          City: sc.city,
+          Province: sc.province || '',
+          CountryID: sc.country ? parseInt(sc.country.Country_ID, 10) : 0,
+          OrganizationTypeID: sc.organizationType?.Id || 0,
+          PartnerType: sc.partnerType?.value || '',
+          Material: sc.material || '',
+          Tier: sc.tier?.value || '',
+          Notes: sc.notes || '',
         })),
 
         // Contacts
@@ -1246,9 +1272,112 @@ export default function CompanyDatabaseCreateForm() {
           </Card>
         </TabPanel>
 
-        {/* ── Supply Chain Tab (commented out - not active) ──
+
+        {/* ── Supply Chain Tab (commented out — not needed now) ──
         <TabPanel value={activeTab} index={3}>
-          ... Supply Chain UI ...
+          <Card sx={SECTION_CARD_SX}>
+            <SectionHeader
+              icon="mdi:truck-delivery-outline"
+              title="Supply Chain"
+              subtitle="Add your suppliers and their details"
+              badge={supplyChainFields.length > 0 ? `${supplyChainFields.length} suppliers` : 'Optional'}
+            />
+            <Stack spacing={2}>
+              {supplyChainFields.map((field, index) => (
+                <Box
+                  key={field.id}
+                  sx={{
+                    p: 2,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : '#f8fafc',
+                    borderRadius: '10px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    position: 'relative',
+                    transition: 'all 0.2s ease',
+                    animation: 'fadeIn 0.25s ease',
+                    '@keyframes fadeIn': { from: { opacity: 0, transform: 'translateY(6px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+                    '&:hover': {
+                      borderColor: 'primary.light',
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.04) : '#fafbff',
+                    },
+                  }}
+                >
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Box
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: '7px',
+                          bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.12) : '#eef2ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Iconify icon="mdi:truck-delivery-outline" width={16} sx={{ color: 'primary.main' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        Supplier #{index + 1}
+                      </Typography>
+                    </Stack>
+                    <IconButton
+                      size="small"
+                      onClick={() => removeSupplyChain(index)}
+                      disabled={supplyChainFields.length === 1}
+                      sx={{
+                        color: 'error.main',
+                        bgcolor: (theme) => alpha(theme.palette.error.main, 0.08),
+                        borderRadius: '6px',
+                        width: 26,
+                        height: 26,
+                        '&:hover': { bgcolor: (theme) => alpha(theme.palette.error.main, 0.16) },
+                      }}
+                    >
+                      <Iconify icon="mdi:trash-can-outline" width={14} />
+                    </IconButton>
+                  </Stack>
+                  <Grid container spacing={2}>
+                    <Grid xs={12} md={4}>
+                      <Controller name={`supplyChain.${index}.supplierName`} control={control} render={({ field: f, fieldState }) => (<TextField {...f} size="small" fullWidth label="Supplier Name" placeholder="e.g. ABC Fabrics" error={!!fieldState.error} helperText={fieldState.error?.message} sx={INPUT_SX} />)} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <Controller name={`supplyChain.${index}.email`} control={control} render={({ field: f, fieldState }) => (<TextField {...f} size="small" fullWidth label="Email" placeholder="supplier@email.com" error={!!fieldState.error} helperText={fieldState.error?.message} sx={INPUT_SX} />)} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <RHFAutocomplete name={`supplyChain.${index}.partnerType`} label="Partner Type" placeholder="Select type" options={PARTNER_TYPE_OPTIONS} getOptionLabel={(o) => o?.label || ''} isOptionEqualToValue={(o, v) => o?.value === v?.value} sx={INPUT_SX} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <Controller name={`supplyChain.${index}.city`} control={control} render={({ field: f }) => (<TextField {...f} size="small" fullWidth label="City" placeholder="City" sx={INPUT_SX} />)} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <Controller name={`supplyChain.${index}.province`} control={control} render={({ field: f }) => (<TextField {...f} size="small" fullWidth label="Province / State" placeholder="Province" sx={INPUT_SX} />)} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <RHFAutocomplete name={`supplyChain.${index}.country`} label="Country" placeholder="Select Country" options={countries} getOptionLabel={(o) => o?.Country_Name || ''} isOptionEqualToValue={(o, v) => o?.Country_ID === v?.Country_ID} sx={INPUT_SX} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <RHFAutocomplete name={`supplyChain.${index}.organizationType`} label="Organization Type" placeholder="Select type" options={organizationTypes} getOptionLabel={(o) => o?.Name || ''} isOptionEqualToValue={(o, v) => o?.Id === v?.Id} sx={INPUT_SX} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <Controller name={`supplyChain.${index}.material`} control={control} render={({ field: f }) => (<TextField {...f} size="small" fullWidth label="Material" placeholder="e.g. Cotton Yarn" sx={INPUT_SX} />)} />
+                    </Grid>
+                    <Grid xs={12} md={4}>
+                      <RHFAutocomplete name={`supplyChain.${index}.tier`} label="Tier" placeholder="Select tier" options={TIER_OPTIONS} getOptionLabel={(o) => o?.label || ''} isOptionEqualToValue={(o, v) => o?.value === v?.value} sx={INPUT_SX} />
+                    </Grid>
+                    <Grid xs={12}>
+                      <Controller name={`supplyChain.${index}.notes`} control={control} render={({ field: f }) => (<TextField {...f} size="small" fullWidth label="Notes" placeholder="Additional notes about this supplier..." multiline rows={2} sx={INPUT_SX} />)} />
+                    </Grid>
+                  </Grid>
+                </Box>
+              ))}
+            </Stack>
+            <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button size="small" variant="outlined" startIcon={<Iconify icon="mdi:plus" width={16} />} onClick={() => appendSupplyChain({ supplierName: '', email: '', city: '', province: '', country: null, organizationType: null, partnerType: null, material: '', tier: null, notes: '' })}>
+                Add Supplier
+              </Button>
+            </Box>
+          </Card>
         </TabPanel>
         */}
 

@@ -88,13 +88,13 @@ export default function SupplierGridView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading=" Pre On Boarding List"
+        heading=" Supply Chain Network Onboard List"
         links={[
           {
             name: 'Home',
             href: paths.dashboard.root,
           },
-          { name: 'Pre On Boarding List' },
+          { name: 'Supply Chain Network Onboard List' },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },
@@ -125,7 +125,7 @@ export default function SupplierGridView() {
               startIcon={<Iconify icon="mingcute:add-line" />}
               color="primary"
             >
-              Add Pre-Onboard Supplier
+              Add Supplier
             </Button>
 
           </Box>

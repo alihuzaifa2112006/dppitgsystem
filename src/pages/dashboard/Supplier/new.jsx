@@ -7,7 +7,7 @@ export default function SupplierNewPage() {
   return (
     <>
       <Helmet>
-        <title> Pre On Boarding Create </title>
+        <title> Supply Chain Network Onboard Create </title>
       </Helmet>
 
       <SupplierNewView />

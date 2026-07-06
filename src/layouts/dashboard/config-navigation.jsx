@@ -125,12 +125,12 @@ export function useNavData() {
         // subheader: t('application'),
         items: [
           {
-            title: t('Onboarding'),
+            title: t('Supply Chain Network'),
             path: '',
             icon: ICONS.management,
             children: [
               {
-                title: t('Pre On Boarding '),
+                title: t('Supply Chain Network Onboard'),
                 path: paths.dashboard.Onboarding.Supplier.root,
               },
             ],

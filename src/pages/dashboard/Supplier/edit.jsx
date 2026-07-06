@@ -19,7 +19,7 @@ export default function SupplierEditPage() {
   return (
     <>
       <Helmet>
-        <title>Pre On Boarding Edit</title>
+        <title>Supply Chain Network Onboard Edit</title>
       </Helmet>
 
       <SupplierEditView urlData={urlData} />

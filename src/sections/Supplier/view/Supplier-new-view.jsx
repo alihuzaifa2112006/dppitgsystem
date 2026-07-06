@@ -16,17 +16,17 @@ export default function SupplierNewView() {
     return (
         <Container maxWidth={settings.themeStretch ? false : 'lg'}>
             <CustomBreadcrumbs
-                heading="Pre On Boarding "
+                heading="Supply Chain Network Onboard "
                 links={[
                     {
                         name: 'Home',
                         href: paths.dashboard.root,
                     },
                     {
-                        name: 'Pre On Boarding List',
+                        name: 'Supply Chain Network Onboard List',
                         href: paths.dashboard.Onboarding.Supplier.root,
                     },
-                    { name: 'Board' },
+                    { name: 'Onboard' },
                 ]}
                 sx={{
                     mb: { xs: 3, md: 5 },

@@ -14,7 +14,7 @@ export default function ItemReceivePdfPage() {
   return (
     <>
       <Helmet>
-        <title>  Pre On Boarding PDF : View PDF</title>
+        <title>  Supply Chain Network Onboard PDF : View PDF</title>
       </Helmet>
 
       <SupplierPDFView urlData={params} />

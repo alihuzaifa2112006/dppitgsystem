@@ -556,6 +556,8 @@ const SupplierGrid = ({ onRefreshRef }) => {
                     Supplier Name
                   </TableSortLabel>
                 </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 110, fontSize: '0.875rem' }}>Tier</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 130, fontSize: '0.875rem' }}>Industry</TableCell>
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 120, fontSize: '0.875rem' }}>City</TableCell>
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>Email</TableCell>
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 150, fontSize: '0.875rem' }}>Country</TableCell>
@@ -577,6 +579,26 @@ const SupplierGrid = ({ onRefreshRef }) => {
                   >
                     <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{serialNumber}</TableCell>
                     <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>{row.SupplierName || '-'}</TableCell>
+                    <TableCell sx={{ fontSize: '0.875rem' }}>
+                      {row.TierName ? (
+                        <Box
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            px: 1.2,
+                            py: 0.3,
+                            borderRadius: '6px',
+                            bgcolor: (th) => `${th.palette.primary.main}14`,
+                            color: 'primary.main',
+                            fontWeight: 600,
+                            fontSize: '0.78rem',
+                          }}
+                        >
+                          {row.TierName}
+                        </Box>
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{row.IndustryName || '-'}</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{row.City || '-'}</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{row.Email || '-'}</TableCell>
                     <TableCell sx={{ fontSize: '0.875rem' }}>

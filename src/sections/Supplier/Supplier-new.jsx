@@ -67,10 +67,14 @@ export default function SupplierCreateForm() {
 
   const [isLoading, setLoading] = useState(false);
   const [countries, setCountries] = useState([]);
+  const [tiers, setTiers] = useState([]);
+  const [industries, setIndustries] = useState([]);
 
   // --- Form Hooks Setup ---
   const NewSupplierSchema = Yup.object().shape({
+    tier: Yup.object().nullable().required('Tier is required'),
     supName: Yup.string().required('Supplier Name is required'),
+    industry: Yup.object().nullable().required('Industry is required'),
     city: Yup.string().required('City is required'),
     country: Yup.object()
       .nullable()
@@ -88,7 +92,9 @@ export default function SupplierCreateForm() {
   const methods = useForm({
     resolver: yupResolver(NewSupplierSchema),
     defaultValues: {
+      tier: null,
       supName: '',
+      industry: null,
       city: '',
       country: null,
       email: '',
@@ -104,20 +110,23 @@ export default function SupplierCreateForm() {
     formState: { isSubmitting },
   } = methods;
 
-  // Fetch Countries
-  const getCountries = async () => {
-    try {
-      const response = await Get('Country/GetAll');
-      if (response.status === 200) {
-        setCountries(response?.data?.Data || []);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
+  // Fetch Countries & Tiers
   useEffect(() => {
-    getCountries();
+    const fetchData = async () => {
+      try {
+        const [countryRes, tierRes, industryRes] = await Promise.all([
+          Get('Country/GetAll'),
+          Get('Tier/GetAll'),
+          Get('Industry/GetAll'),
+        ]);
+        if (countryRes.status === 200) setCountries(countryRes?.data?.Data || []);
+        if (tierRes.status === 200) setTiers(tierRes?.data?.Data || []);
+        if (industryRes.status === 200) setIndustries(industryRes?.data?.Data || []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchData();
   }, []);
 
   const values = watch();
@@ -126,7 +135,9 @@ export default function SupplierCreateForm() {
     console.log('📝 Form Data:', data);
 
     const payload = {
+      TierId: data.tier?.TierId || 0,
       supplierName: data.supName,
+      IndustryId: data.industry?.IndustryId || 0,
       city: data.city,
       countryID: parseInt(data.country?.Country_ID, 10) || 0,
       email: data.email,
@@ -211,100 +222,92 @@ export default function SupplierCreateForm() {
             </Box>
 
             <Divider sx={{ mb: 3 }} />
+            <Stack spacing={2.5}>
 
-            <Stack spacing={3}>
-              {/* Supplier Name - Full Width (70% of the box) */}
-              <Box sx={{ width: '70%' }}>
+              {/* Row 1: Tier (40%) + Supplier Name (60%) */}
+              <Box
+                display="grid"
+                gridTemplateColumns={{ xs: '1fr', sm: '2fr 3fr' }}
+                gap={2.5}
+                sx={{ '& > *': { minWidth: 0 } }}
+              >
+                <RHFAutocomplete
+                  name="tier"
+                  label="Select Tier *"
+                  placeholder="Select Tier"
+                  fullWidth
+                  options={tiers}
+                  getOptionLabel={(option) => option?.Name || ''}
+                  isOptionEqualToValue={(option, value) => option?.TierId === value?.TierId}
+                  TextFieldProps={{
+                    InputProps: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Iconify icon="mdi:layers-outline" width={20} sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      ),
+                    },
+                    sx: { '& .MuiOutlinedInput-root': { borderRadius: 2 } },
+                  }}
+                />
+
                 <RHFTextField
                   name="supName"
-                  label="Supplier Name"
+                  label="Supplier Name *"
                   placeholder="Enter Supplier Name"
                   fullWidth
                   InputProps={{
                     startAdornment: (
-                      <Iconify
-                        icon="mdi:domain"
-                        width={20}
-                        sx={{ color: 'text.secondary', mr: 1 }}
-                      />
+                      <InputAdornment position="start">
+                        <Iconify icon="mdi:domain" width={20} sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
                     ),
                   }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      '&:hover fieldset': {
-                        borderColor: 'primary.main',
-                      },
-                    },
-                  }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Box>
 
-              {/* Remaining Fields - 2 Column Grid */}
+              {/* Row 2: Industry (50%) + Country (50%) */}
               <Box
                 display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
-                columnGap={3}
-                rowGap={3}
-                sx={{
-                  '& .MuiTextField-root': {
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      '&:hover fieldset': {
-                        borderColor: 'primary.main',
-                      },
-                    },
-                  },
-                }}
+                gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }}
+                gap={2.5}
+                sx={{ '& > *': { minWidth: 0 } }}
               >
-                <RHFTextField
-                  name="city"
-                  label="City"
-                  placeholder="Enter City"
+                <RHFAutocomplete
+                  name="industry"
+                  label="Select Industry *"
+                  placeholder="Select Industry"
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <Iconify
-                        icon="mdi:city"
-                        width={20}
-                        sx={{ color: '#666', mr: 1 }}
-                      />
-                    ),
+                  options={industries}
+                  getOptionLabel={(option) => option?.Name || ''}
+                  isOptionEqualToValue={(option, value) => option?.IndustryId === value?.IndustryId}
+                  TextFieldProps={{
+                    InputProps: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Iconify icon="mdi:factory" width={20} sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      ),
+                    },
+                    sx: { '& .MuiOutlinedInput-root': { borderRadius: 2 } },
                   }}
                 />
 
                 <RHFAutocomplete
                   name="country"
-                  label="Country"
+                  label="Country *"
                   placeholder="Select Country"
                   fullWidth
                   options={countries}
                   getOptionLabel={(option) => option?.Country_Name || ''}
                   isOptionEqualToValue={(option, value) => option?.Country_ID === value?.Country_ID}
                   renderOption={(props, option) => (
-                    <Box
-                      component="li"
-                      {...props}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        py: 1,
-                        px: 2,
-                      }}
-                    >
+                    <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1, px: 2 }}>
                       {option?.Country_Code && (
-                        <Iconify
-                          icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
-                          sx={{ width: 28, height: 28, flexShrink: 0 }}
-                        />
+                        <Iconify icon={`circle-flags:${option.Country_Code.toLowerCase()}`} sx={{ width: 24, height: 24, flexShrink: 0 }} />
                       )}
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {option?.Country_Name}
-                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{option?.Country_Name}</Typography>
                     </Box>
                   )}
                   TextFieldProps={{
@@ -312,40 +315,57 @@ export default function SupplierCreateForm() {
                       startAdornment: (
                         <InputAdornment position="start">
                           {values?.country?.Country_Code ? (
-                            <Iconify
-                              icon={`circle-flags:${values.country.Country_Code.toLowerCase()}`}
-                              sx={{ width: 28, height: 28, mr: -0.5, ml: 0.5 }}
-                            />
+                            <Iconify icon={`circle-flags:${values.country.Country_Code.toLowerCase()}`} sx={{ width: 24, height: 24 }} />
                           ) : (
-                            <Iconify
-                              icon="mdi:flag"
-                              width={20}
-                              sx={{ color: '#666' }}
-                            />
+                            <Iconify icon="mdi:flag-outline" width={20} sx={{ color: 'text.secondary' }} />
                           )}
                         </InputAdornment>
                       ),
                     },
+                    sx: { '& .MuiOutlinedInput-root': { borderRadius: 2 } },
                   }}
+                />
+              </Box>
+
+              {/* Row 3: City (50%) + Email (50%) */}
+              <Box
+                display="grid"
+                gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }}
+                gap={2.5}
+                sx={{ '& > *': { minWidth: 0 } }}
+              >
+                <RHFTextField
+                  name="city"
+                  label="City *"
+                  placeholder="Enter City"
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Iconify icon="mdi:city-variant-outline" width={20} sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
 
                 <RHFTextField
                   name="email"
-                  label="Email"
+                  label="Email *"
                   placeholder="Enter Email"
                   fullWidth
                   type="email"
                   InputProps={{
                     startAdornment: (
-                      <Iconify
-                        icon="mdi:email"
-                        width={20}
-                        sx={{ color: '#666', mr: 1 }}
-                      />
+                      <InputAdornment position="start">
+                        <Iconify icon="mdi:email-outline" width={20} sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
                     ),
                   }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Box>
+
             </Stack>
           </Card>
 
@@ -393,7 +413,7 @@ export default function SupplierCreateForm() {
                 },
               }}
             >
-              Save Supplier
+              Save
             </LoadingButton>
           </Stack>
         </Grid>
