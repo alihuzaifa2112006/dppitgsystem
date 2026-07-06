@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Box from '@mui/material/Box';
 import PropTypes from 'prop-types';
@@ -47,6 +47,236 @@ const shimmer = keyframes`
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 `;
+
+// ----------------------------------------------------------------------
+// 3D Particle Constellation Background for Hero
+// ----------------------------------------------------------------------
+
+function Hero3DBackground() {
+  const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: -9999, y: -9999 });
+  const animRef = useRef(null);
+  const particlesRef = useRef([]);
+  const timeRef = useRef(0);
+
+  // Create particles once
+  const initParticles = useCallback((width, height) => {
+    const count = Math.min(Math.floor((width * height) / 12000), 120);
+    const particles = [];
+    for (let i = 0; i < count; i += 1) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z: Math.random() * 1, // depth 0 to 1 (0 = far, 1 = near)
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.3,
+        vz: (Math.random() - 0.5) * 0.003,
+        baseRadius: 1.5 + Math.random() * 2.5,
+        phase: Math.random() * Math.PI * 2,
+        // Some particles are "bright nodes"
+        isBright: Math.random() < 0.15,
+      });
+    }
+    return particles;
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const ctx = canvas.getContext('2d');
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Re-init particles on resize
+      particlesRef.current = initParticles(rect.width, rect.height);
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Mouse tracking
+    const onMouseMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+    const onMouseLeave = () => {
+      mouseRef.current = { x: -9999, y: -9999 };
+    };
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseleave', onMouseLeave);
+
+    // Animation loop
+    const animate = () => {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      const { x: mx, y: my } = mouseRef.current;
+      const particles = particlesRef.current;
+      const time = timeRef.current;
+      timeRef.current += 0.008;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Update particles
+      particles.forEach((p) => {
+        // Organic floating motion
+        p.x += p.vx + Math.sin(time + p.phase) * 0.15;
+        p.y += p.vy + Math.cos(time * 0.7 + p.phase) * 0.12;
+        p.z += p.vz;
+
+        // Wrap around edges
+        if (p.x < -30) p.x = w + 30;
+        if (p.x > w + 30) p.x = -30;
+        if (p.y < -30) p.y = h + 30;
+        if (p.y > h + 30) p.y = -30;
+        if (p.z < 0) p.z = 1;
+        if (p.z > 1) p.z = 0;
+
+        // Mouse repel (subtle push)
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) {
+          const force = (150 - dist) / 150 * 0.8;
+          p.x += (dx / dist) * force;
+          p.y += (dy / dist) * force;
+        }
+      });
+
+      // Draw connections first (behind particles)
+      const connectionDist = 140;
+      for (let i = 0; i < particles.length; i += 1) {
+        for (let j = i + 1; j < particles.length; j += 1) {
+          const a = particles[i];
+          const b = particles[j];
+          const ddx = a.x - b.x;
+          const ddy = a.y - b.y;
+          const d = Math.sqrt(ddx * ddx + ddy * ddy);
+          if (d < connectionDist) {
+            const depthAlpha = ((a.z + b.z) / 2) * 0.5 + 0.1;
+            const lineAlpha = (1 - d / connectionDist) * depthAlpha * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(16, 57, 150, ${lineAlpha})`;
+            ctx.lineWidth = 0.6 + (a.z + b.z) * 0.3;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw mouse connections (highlight nearby particles)
+      if (mx > 0 && my > 0) {
+        particles.forEach((p) => {
+          const ddx = p.x - mx;
+          const ddy = p.y - my;
+          const d = Math.sqrt(ddx * ddx + ddy * ddy);
+          if (d < 180) {
+            const lineAlpha = (1 - d / 180) * 0.25;
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+            ctx.lineTo(p.x, p.y);
+            ctx.strokeStyle = `rgba(26, 75, 181, ${lineAlpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        });
+      }
+
+      // Draw particles
+      particles.forEach((p) => {
+        const depthScale = 0.4 + p.z * 0.6;
+        const radius = p.baseRadius * depthScale;
+        const alpha2 = 0.15 + p.z * 0.55;
+
+        // Glow for bright nodes
+        if (p.isBright) {
+          const glowSize = radius * 4 + Math.sin(time * 2 + p.phase) * 2;
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowSize);
+          grad.addColorStop(0, `rgba(16, 57, 150, ${alpha2 * 0.4})`);
+          grad.addColorStop(0.5, `rgba(26, 75, 181, ${alpha2 * 0.15})`);
+          grad.addColorStop(1, 'rgba(26, 75, 181, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Core particle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.isBright
+          ? `rgba(26, 75, 181, ${alpha2 * 1.2})`
+          : `rgba(16, 57, 150, ${alpha2 * 0.7})`;
+        ctx.fill();
+
+        // Bright inner highlight
+        if (radius > 1.5) {
+          ctx.beginPath();
+          ctx.arc(p.x - radius * 0.25, p.y - radius * 0.25, radius * 0.35, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha2 * 0.5})`;
+          ctx.fill();
+        }
+      });
+
+      // Floating hexagonal grid hint (very subtle)
+      const hexTime = time * 0.3;
+      const hexAlpha = 0.035 + Math.sin(hexTime) * 0.015;
+      ctx.strokeStyle = `rgba(16, 57, 150, ${hexAlpha})`;
+      ctx.lineWidth = 0.5;
+      const hexSize = 60;
+      const hexH = hexSize * Math.sqrt(3);
+      for (let row = -1; row < h / hexH + 1; row += 1) {
+        for (let col = -1; col < w / (hexSize * 1.5) + 1; col += 1) {
+          const cx = col * hexSize * 1.5 + Math.sin(hexTime + row * 0.2) * 3;
+          const cy = row * hexH + (col % 2) * hexH / 2 + Math.cos(hexTime + col * 0.15) * 2;
+          ctx.beginPath();
+          for (let k = 0; k < 6; k += 1) {
+            const angle = (Math.PI / 3) * k - Math.PI / 6;
+            const hx = cx + hexSize * 0.4 * Math.cos(angle);
+            const hy = cy + hexSize * 0.4 * Math.sin(angle);
+            if (k === 0) ctx.moveTo(hx, hy);
+            else ctx.lineTo(hx, hy);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      canvas.removeEventListener('mousemove', onMouseMove);
+      canvas.removeEventListener('mouseleave', onMouseLeave);
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [initParticles]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'auto',
+        zIndex: 0,
+      }}
+    />
+  );
+}
 
 // ----------------------------------------------------------------------
 // Reveal-on-scroll wrapper
@@ -693,9 +923,36 @@ export default function LandingPage() {
         {/* ============================================================ */}
         {/* HERO                                                         */}
         {/* ============================================================ */}
+        <Box
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* 3D Animated Background */}
+          <Hero3DBackground />
+
+          {/* Gradient overlays for depth */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `
+                radial-gradient(ellipse 80% 50% at 20% 40%, ${alpha(PRIMARY, 0.06)} 0%, transparent 60%),
+                radial-gradient(ellipse 60% 60% at 80% 20%, ${alpha('#0288d1', 0.05)} 0%, transparent 50%),
+                radial-gradient(ellipse 70% 40% at 50% 90%, ${alpha(PRIMARY_DARK, 0.04)} 0%, transparent 50%)
+              `,
+              zIndex: 0,
+              pointerEvents: 'none',
+            }}
+          />
+
         <Container
           maxWidth="lg"
-          sx={{ position: 'relative', zIndex: 1, pt: { xs: 7, md: 12 }, pb: { xs: 8, md: 12 } }}
+          sx={{ position: 'relative', zIndex: 2, pt: { xs: 7, md: 12 }, pb: { xs: 8, md: 12 } }}
         >
           <Grid container spacing={6} alignItems="center">
             {/* Left Column (Text Content) */}
@@ -874,6 +1131,7 @@ export default function LandingPage() {
             </Grid>
           </Reveal>
         </Container>
+        </Box>
 
         {/* ============================================================ */}
         {/* DATA SOURCES                                                 */}
