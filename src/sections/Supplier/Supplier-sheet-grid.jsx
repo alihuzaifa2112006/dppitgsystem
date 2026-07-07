@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSnackbar } from 'src/components/snackbar';
 import { LoadingScreen } from 'src/components/loading-screen';
-import { Get, Post } from 'src/api/apibasemethods';
+import { Get, Post, Put, Delete } from 'src/api/apibasemethods';
 import { useSettingsContext } from 'src/components/settings';
 import SendInviteDialog from './SendInviteDialog';
 import {
@@ -54,13 +54,17 @@ const SupplierGrid = ({ onRefreshRef }) => {
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [selectedCountries, setSelectedCountries] = useState([]);
-  const [countryOptions, setCountryOptions] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('SupplierName');
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
+
+  // Options
+  const [countryOptions, setCountryOptions] = useState([]);
+  const [tierOptions, setTierOptions] = useState([]);
+  const [industryOptions, setIndustryOptions] = useState([]);
 
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
@@ -72,7 +76,15 @@ const SupplierGrid = ({ onRefreshRef }) => {
   // --- Edit Dialog States ---
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editRow, setEditRow] = useState(null);
-  const [editForm, setEditForm] = useState({ supplierName: '', city: '', email: '', country: null });
+  const [editForm, setEditForm] = useState({
+    supplierName: '',
+    city: '',
+    email: '',
+    country: null,
+    tier: null,
+    industry: null
+  });
+  const [editErrors, setEditErrors] = useState({});
   const [editSaving, setEditSaving] = useState(false);
 
   // --- Delete Dialog States ---
@@ -85,27 +97,60 @@ const SupplierGrid = ({ onRefreshRef }) => {
     const matchedCountry = countryOptions.find(
       (c) => c.Country_Name === row.CountryName || String(c.Country_ID) === String(row.CountryID)
     ) || null;
+    const matchedTier = tierOptions.find(
+      (t) => t.Name === row.TierName || t.TierId === row.TierId
+    ) || null;
+    const matchedIndustry = industryOptions.find(
+      (i) => i.Name === row.IndustryName || i.IndustryId === row.IndustryId
+    ) || null;
+
     setEditForm({
       supplierName: row.SupplierName || '',
       city: row.City || '',
       email: row.Email || '',
       country: matchedCountry,
+      tier: matchedTier,
+      industry: matchedIndustry,
     });
     setEditDialogOpen(true);
+    setEditErrors({});
+  };
+
+  const validateEditForm = () => {
+    const errors = {};
+    if (!editForm.supplierName?.trim()) errors.supplierName = 'Supplier name is required';
+    if (!editForm.email?.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(editForm.email)) {
+      errors.email = 'Invalid email format';
+    }
+    if (!editForm.city?.trim()) errors.city = 'City is required';
+    if (!editForm.country) errors.country = 'Country is required';
+    if (!editForm.tier) errors.tier = 'Tier is required';
+    if (!editForm.industry) errors.industry = 'Industry is required';
+
+    setEditErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSaveEdit = async () => {
     if (!editRow) return;
+    if (!validateEditForm()) {
+      enqueueSnackbar('Please fill all required fields', { variant: 'error' });
+      return;
+    }
     try {
       setEditSaving(true);
       const payload = {
-        InvitationId: editRow.InvitationId,
-        supplierName: editForm.supplierName,
-        city: editForm.city,
-        email: editForm.email,
-        countryID: editForm.country ? parseInt(editForm.country.Country_ID, 10) : (editRow.CountryID || 0),
+        SupplierName: editForm.supplierName,
+        Email: editForm.email,
+        City: editForm.city,
+        CountryID: editForm.country ? parseInt(editForm.country.Country_ID, 10) : (editRow.CountryID || 0),
+        OrganizationTypeID: editRow.OrganizationTypeID || 9,
+        TierId: editForm.tier ? editForm.tier.TierId : (editRow.TierId || 0),
+        IndustryId: editForm.industry ? editForm.industry.IndustryId : (editRow.IndustryId || 0),
       };
-      const response = await Post('Supplier/Update', payload);
+      const response = await Put(`Supplier/Update?id=${editRow.InvitationId || editRow.VendorID}`, payload);
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar('Supplier updated successfully!', { variant: 'success' });
         setEditDialogOpen(false);
@@ -129,7 +174,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
     if (!deleteRow) return;
     try {
       setDeleteLoading(true);
-      const response = await Post('Supplier/Delete', { InvitationId: deleteRow.InvitationId });
+      const response = await Delete(`Supplier/Delete?id=${deleteRow.InvitationId || deleteRow.VendorID}`);
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar('Supplier deleted successfully!', { variant: 'success' });
         setDeleteDialogOpen(false);
@@ -213,16 +258,19 @@ const SupplierGrid = ({ onRefreshRef }) => {
     [navigate]
   );
 
-  // Fetch Country Data
-  const fetchCountryData = useCallback(async () => {
+  // Fetch Country, Tier, Industry Data
+  const fetchDataOptions = useCallback(async () => {
     try {
-      const response = await Get('Country/GetAll');
-      if (response.status === 200 && response.data?.Success) {
-        const countries = response.data?.Data || [];
-        setCountryOptions(countries);
-      }
+      const [countryRes, tierRes, industryRes] = await Promise.all([
+        Get('Country/GetAll'),
+        Get('Tier/GetAll'),
+        Get('Industry/GetAll'),
+      ]);
+      if (countryRes.status === 200) setCountryOptions(countryRes?.data?.Data || []);
+      if (tierRes.status === 200) setTierOptions(tierRes?.data?.Data || []);
+      if (industryRes.status === 200) setIndustryOptions(industryRes?.data?.Data || []);
     } catch (error) {
-      console.error('Error fetching countries:', error);
+      console.error('Error fetching options:', error);
     }
   }, []);
 
@@ -250,8 +298,8 @@ const SupplierGrid = ({ onRefreshRef }) => {
 
   useEffect(() => {
     fetchSupplierData();
-    fetchCountryData();
-  }, [fetchSupplierData, fetchCountryData]);
+    fetchDataOptions();
+  }, [fetchSupplierData, fetchDataOptions]);
 
   // Expose refresh method via ref callback
   useEffect(() => {
@@ -633,25 +681,35 @@ const SupplierGrid = ({ onRefreshRef }) => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 60, width: 60, fontSize: '0.875rem' }}>S.No</TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 180, fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>
                   <TableSortLabel active={orderBy === 'SupplierName'} direction={order} onClick={() => handleSort('SupplierName')} hideSortIcon>
                     Supplier Name
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 110, fontSize: '0.875rem' }}>Tier</TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 130, fontSize: '0.875rem' }}>Industry</TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 120, fontSize: '0.875rem' }}>City</TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 200, fontSize: '0.875rem' }}>Email</TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 150, fontSize: '0.875rem' }}>Country</TableCell>
-                {/* <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 90, fontSize: '0.875rem', textAlign: 'center' }}>Invite Link</TableCell> */}
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 80, fontSize: '0.875rem', textAlign: 'center' }}>Send Invite</TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 100, fontSize: '0.875rem', textAlign: 'center' }}>Actions</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 100, fontSize: '0.875rem' }}>Tier</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 120, fontSize: '0.875rem' }}>Industry</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 100, fontSize: '0.875rem' }}>City</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 220, fontSize: '0.875rem' }}>Email</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 140, fontSize: '0.875rem' }}>Country</TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', minWidth: 90, fontSize: '0.875rem', textAlign: 'center' }}>Send Invite</TableCell>
+                <TableCell sx={{
+                  backgroundColor: 'background.neutral',
+                  fontWeight: 600,
+                  color: 'text.secondary',
+                  minWidth: 100,
+                  fontSize: '0.875rem',
+                  textAlign: 'center',
+                  position: 'sticky',
+                  right: 0,
+                  zIndex: 10,
+                  boxShadow: (th) => `-2px 0 4px ${th.palette.divider}`
+                }}>
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedData.map((row, index) => {
-                const serialNumber = page * rowsPerPage + index + 1;
                 const countryCode = row.Country_Code || countryCodeMap[row.CountryName] || null;
 
                 return (
@@ -660,7 +718,6 @@ const SupplierGrid = ({ onRefreshRef }) => {
                     hover
                     sx={{ '&:last-child td': { borderBottom: 0 } }}
                   >
-                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{serialNumber}</TableCell>
                     <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>{row.SupplierName || '-'}</TableCell>
                     <TableCell sx={{ fontSize: '0.875rem' }}>
                       {row.TierName ? (
@@ -719,7 +776,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
                     </TableCell>
 
                     {/* ── Actions: Edit + Delete ── */}
-                    <TableCell sx={{ textAlign: 'center' }}>
+                    <TableCell sx={{ textAlign: 'center', position: 'sticky', right: 0, bgcolor: 'background.paper', zIndex: 1, boxShadow: (th) => `-2px 0 4px ${th.palette.divider}` }}>
                       <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
                         <Tooltip title="Edit supplier" arrow>
                           <IconButton size="small" onClick={() => handleOpenEdit(row)}
@@ -743,7 +800,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
 
               {paginatedData.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
                     <Iconify icon="mdi:inbox" width={48} sx={{ color: 'text.disabled', mb: 1 }} />
                     <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                       No records found
@@ -942,7 +999,12 @@ const SupplierGrid = ({ onRefreshRef }) => {
               label="Supplier Name"
               fullWidth
               value={editForm.supplierName}
-              onChange={(e) => setEditForm((f) => ({ ...f, supplierName: e.target.value }))}
+              onChange={(e) => {
+                setEditForm((f) => ({ ...f, supplierName: e.target.value }));
+                if (editErrors.supplierName) setEditErrors((prev) => ({ ...prev, supplierName: null }));
+              }}
+              error={!!editErrors.supplierName}
+              helperText={editErrors.supplierName}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -958,7 +1020,12 @@ const SupplierGrid = ({ onRefreshRef }) => {
                 label="City"
                 fullWidth
                 value={editForm.city}
-                onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))}
+                onChange={(e) => {
+                  setEditForm((f) => ({ ...f, city: e.target.value }));
+                  if (editErrors.city) setEditErrors((prev) => ({ ...prev, city: null }));
+                }}
+                error={!!editErrors.city}
+                helperText={editErrors.city}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -969,7 +1036,10 @@ const SupplierGrid = ({ onRefreshRef }) => {
               />
               <Autocomplete
                 value={editForm.country}
-                onChange={(_, newVal) => setEditForm((f) => ({ ...f, country: newVal }))}
+                onChange={(_, newVal) => {
+                  setEditForm((f) => ({ ...f, country: newVal }));
+                  if (editErrors.country) setEditErrors((prev) => ({ ...prev, country: null }));
+                }}
                 options={countryOptions}
                 getOptionLabel={(o) => o.Country_Name || ''}
                 isOptionEqualToValue={(o, v) => o.Country_ID === v?.Country_ID}
@@ -985,6 +1055,8 @@ const SupplierGrid = ({ onRefreshRef }) => {
                   <TextField
                     {...params}
                     label="Country"
+                    error={!!editErrors.country}
+                    helperText={editErrors.country}
                     InputProps={{
                       ...params.InputProps,
                       startAdornment: (
@@ -1008,13 +1080,74 @@ const SupplierGrid = ({ onRefreshRef }) => {
               />
             </Box>
 
+            {/* Tier + Industry — side by side */}
+            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+              <Autocomplete
+                value={editForm.tier}
+                onChange={(_, newVal) => {
+                  setEditForm((f) => ({ ...f, tier: newVal }));
+                  if (editErrors.tier) setEditErrors((prev) => ({ ...prev, tier: null }));
+                }}
+                options={tierOptions}
+                getOptionLabel={(o) => o.Name || ''}
+                isOptionEqualToValue={(o, v) => o.TierId === v?.TierId}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Select Tier"
+                    error={!!editErrors.tier}
+                    helperText={editErrors.tier}
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Iconify icon="mdi:layers-outline" width={18} sx={{ color: 'text.secondary', ml: 0.5 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                )}
+              />
+              <Autocomplete
+                value={editForm.industry}
+                onChange={(_, newVal) => {
+                  setEditForm((f) => ({ ...f, industry: newVal }));
+                  if (editErrors.industry) setEditErrors((prev) => ({ ...prev, industry: null }));
+                }}
+                options={industryOptions}
+                getOptionLabel={(o) => o.Name || ''}
+                isOptionEqualToValue={(o, v) => o.IndustryId === v?.IndustryId}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Select Industry"
+                    error={!!editErrors.industry}
+                    helperText={editErrors.industry}
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Iconify icon="mdi:factory" width={18} sx={{ color: 'text.secondary', ml: 0.5 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+
             {/* Email — full width */}
             <TextField
               label="Email"
               fullWidth
               type="email"
               value={editForm.email}
-              onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+              onChange={(e) => {
+                setEditForm((f) => ({ ...f, email: e.target.value }));
+                if (editErrors.email) setEditErrors((prev) => ({ ...prev, email: null }));
+              }}
+              error={!!editErrors.email}
+              helperText={editErrors.email}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

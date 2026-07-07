@@ -11,6 +11,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import SupplierListPage from 'src/pages/dashboard/Supplier/list';
 import SupplierNewPage from 'src/pages/dashboard/Supplier/new';
 import SupplierEditPage from 'src/pages/dashboard/Supplier/edit';
+import RegulationsListPage from 'src/pages/dashboard/Regulations/list';
+import RegulationsNewPage from 'src/pages/dashboard/Regulations/new';
 
 // ----------------------------------------------------------------------
 
@@ -82,6 +84,27 @@ export const dashboardRoutes = [
             ),
           },
 
+        ],
+      },
+      {
+        path: 'regulations',
+        children: [
+          {
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <RegulationsListPage />
+              </Suspense>
+            ),
+            index: true,
+          },
+          {
+            path: 'new',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <RegulationsNewPage />
+              </Suspense>
+            ),
+          },
         ],
       },
       {

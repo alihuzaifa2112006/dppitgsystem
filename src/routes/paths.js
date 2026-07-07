@@ -60,5 +60,11 @@ export const paths = {
       new: `${ROOTS.DASHBOARD}/company-database/new`,
     },
 
+    Regulations: {
+      root: `${ROOTS.DASHBOARD}/regulations`,
+      new: `${ROOTS.DASHBOARD}/regulations/new`,
+      edit: (id) => `${ROOTS.DASHBOARD}/regulations/edit/${id}`,
+    },
+
   },
 };

@@ -18,8 +18,8 @@ export default function NavList({ data, depth, slotProps }) {
   const [openMenu, setOpenMenu] = useState(active);
 
   useEffect(() => {
-    if (!active) {
-      handleCloseMenu();
+    if (active) {
+      setOpenMenu(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);

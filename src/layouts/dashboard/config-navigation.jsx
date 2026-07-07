@@ -135,6 +135,11 @@ export function useNavData() {
               },
             ],
           },
+          {
+            title: t('Regulations'),
+            path: paths.dashboard.Regulations.root,
+            icon: ICONS.file,
+          },
         ],
       },
     ];

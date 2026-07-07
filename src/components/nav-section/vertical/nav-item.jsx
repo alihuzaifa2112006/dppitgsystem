@@ -275,6 +275,9 @@ const StyledNavItem = styled(ListItemButton, {
       },
       '& .label': {
         ...baseStyles.label,
+        whiteSpace: 'normal',
+        overflow: 'visible',
+        textOverflow: 'unset',
       },
       '& .caption': {
         ...baseStyles.caption,
