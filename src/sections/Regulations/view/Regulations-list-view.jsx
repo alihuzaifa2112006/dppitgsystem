@@ -449,10 +449,40 @@ export default function RegulationsListView() {
                       </Stack>
                       <Button
                         size="small"
-                        color="primary"
                         onClick={() => handleOpenDetails(regulation)}
                         endIcon={<Iconify icon="mdi:arrow-right" width={16} />}
-                        sx={{ fontWeight: 700, fontSize: '0.75rem' }}
+                        sx={{
+                          minWidth: 120,
+                          height: 40,
+                          px: 2.5,
+                          borderRadius: '999px',
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          fontSize: '0.82rem',
+                          color: '#fff',
+                          background: 'linear-gradient(135deg, #0F4D80 0%, #1565A8 100%)',
+                          boxShadow: '0 6px 18px rgba(15, 77, 128, 0.25)',
+                          transition: 'all .25s ease',
+
+                          '& .MuiButton-endIcon': {
+                            marginLeft: 0.8,
+                            transition: 'transform .25s ease',
+                          },
+
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #0C3E67 0%, #0F4D80 100%)',
+                            boxShadow: '0 10px 24px rgba(15, 77, 128, 0.35)',
+                            transform: 'translateY(-2px)',
+
+                            '& .MuiButton-endIcon': {
+                              transform: 'translateX(3px)',
+                            },
+                          },
+
+                          '&:active': {
+                            transform: 'translateY(0)',
+                          },
+                        }}
                       >
                         Details
                       </Button>
@@ -664,7 +694,7 @@ export default function RegulationsListView() {
               <Button variant="outlined" color="inherit" onClick={handleCloseDetails} sx={{ fontWeight: 700 }}>
                 Close
               </Button>
-              <Button
+              {/* <Button
                 variant="contained"
                 onClick={() => {
                   const mainDoc = getUniqueDocuments(selectedRegulation.documents)[0];
@@ -675,7 +705,7 @@ export default function RegulationsListView() {
                 sx={{ fontWeight: 700 }}
               >
                 {processingId === 'download-main-law' ? 'Processing...' : 'Download Main Law'}
-              </Button>
+              </Button> */}
             </DialogActions>
           </>
         )}
