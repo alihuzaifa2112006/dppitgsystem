@@ -68,6 +68,12 @@ export default function JwtLoginView() {
         // We no longer save UserData here. It will be saved after OTP verification.
         localStorage.setItem('loginTime', loginTime);
 
+        // Save the temporary email for display on verification screen
+        const email = response?.data?.Data?.company?.Email || response?.data?.company?.Email || '';
+        if (email) {
+          localStorage.setItem('tempLoginEmail', email);
+        }
+
         // Don't call context login() yet — redirect to OTP verification first
         // Context login will happen after OTP is verified
         router.push(paths.auth.jwt.verify);

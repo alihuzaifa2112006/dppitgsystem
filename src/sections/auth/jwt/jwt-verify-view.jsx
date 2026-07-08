@@ -58,6 +58,31 @@ export default function JWTVerifyView() {
   // Wrong OTP status
   const [wrongOtpStatus, setWrongOtpStatus] = useState(null); // { attemptsLeft: number }
 
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    const tempEmail = localStorage.getItem('tempLoginEmail');
+    if (tempEmail) {
+      setEmail(tempEmail);
+    }
+  }, []);
+
+  const maskEmail = (emailStr) => {
+    if (!emailStr || !emailStr.includes('@')) return '';
+    const [username, domain] = emailStr.split('@');
+    if (username.length <= 3) {
+      return `${username[0]}***@${domain}`;
+    }
+    const visibleLength = Math.max(1, Math.floor(username.length * 0.4));
+    const firstPart = username.slice(0, visibleLength);
+    const lastPart = username.slice(-Math.min(2, username.length - visibleLength));
+    const maskedLength = username.length - firstPart.length - lastPart.length;
+    const mask = '*'.repeat(Math.max(3, maskedLength));
+    return `${firstPart}${mask}${lastPart}@${domain}`;
+  };
+
+  const maskedEmail = maskEmail(email);
+
   const inputRefs = useRef([]);
 
   // ✅ CHECK IF USER IS ALREADY AUTHENTICATED - WITH TOKEN EXPIRY CHECK
@@ -232,6 +257,7 @@ export default function JWTVerifyView() {
         const newToken = verifyData?.Data?.token || verifyData?.token || '';
 
         localStorage.setItem('UserData', JSON.stringify(verifyData));
+        localStorage.removeItem('tempLoginEmail');
 
         if (login) {
           await login({
@@ -300,8 +326,37 @@ export default function JWTVerifyView() {
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Verify OTP
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          We&apos;ve sent a verification code to your email. Please enter it below.
+        <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
+          {email ? (
+            <>
+              We have sent a verification code to:{' '}
+              <Box
+                component="span"
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontWeight: 600,
+                  color: 'text.primary',
+                  bgcolor: (theme) => alpha(theme.palette.grey[500], 0.08),
+                  py: 0.25,
+                  px: 0.75,
+                  borderRadius: 0.5,
+                  fontSize: '0.875rem',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {maskedEmail}
+              </Box>
+            </>
+          ) : (
+            "We have sent a verification code to your registered email."
+          )}
+          <br />
+          The OTP will expire in{' '}
+          <Box component="span" sx={{ fontWeight: 600, color: 'warning.main' }}>
+            15 minutes
+          </Box>
+          .
         </Typography>
       </Stack>
 
@@ -418,6 +473,9 @@ export default function JWTVerifyView() {
           component={RouterLink}
           href={paths.auth.jwt.login}
           variant="subtitle2"
+          onClick={() => {
+            localStorage.removeItem('tempLoginEmail');
+          }}
           sx={{
             cursor: 'pointer',
             display: 'inline-flex',
