@@ -495,7 +495,7 @@ export default function RegulationsListView() {
         </Grid>
       )}
 
-      {/* ── Details Dialog ── */}
+
       <Dialog
         open={openDialog}
         onClose={handleCloseDetails}
