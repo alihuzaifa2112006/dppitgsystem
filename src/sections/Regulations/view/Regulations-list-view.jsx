@@ -536,7 +536,7 @@ export default function RegulationsListView() {
 
             <DialogContent dividers sx={{ p: 3, bgcolor: 'background.neutral' }}>
               <Stack spacing={3}>
-                {/* Dates & Status Strip */}
+
                 <Card variant="outlined" sx={{ p: 2, borderRadius: 1, bgcolor: 'background.paper' }}>
                   <Grid container spacing={2}>
                     <Grid item xs={6} sm={3}>
