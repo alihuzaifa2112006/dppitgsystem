@@ -597,7 +597,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
         )}
       </Paper>
 
-      {/* ── Tabs ── */}
+
       <Paper
         elevation={0}
         sx={{
@@ -610,6 +610,8 @@ const SupplierGrid = ({ onRefreshRef }) => {
           overflow: 'hidden',
         }}
       >
+
+
         <Tabs
           value={activeTab}
           onChange={(_, val) => { setActiveTab(val); setPage(0); }}
