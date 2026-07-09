@@ -92,7 +92,7 @@ const SECTION_CARD_SX = {
   boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
 };
 
-// ─── Animated Tab Panel ───────────────────────────────────────────────────────
+
 
 function TabPanel({ children, value, index }) {
   const isActive = value === index;
