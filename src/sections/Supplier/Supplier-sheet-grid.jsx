@@ -550,7 +550,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
           </Grid>
         </Grid>
 
-        {/* Active Filters Display */}
+
         {(selectedCountries.length > 0 || searchText) && (
           <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap', gap: 1 }}>
             {selectedCountries.map((country) => (
