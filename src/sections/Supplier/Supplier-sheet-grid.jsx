@@ -200,14 +200,14 @@ const SupplierGrid = ({ onRefreshRef }) => {
     fetchSupplierData();
   };
 
-  // --- SECURED: Copy Onboarding Link with Base64 Obfuscation ---
+
   const handleCopyLink = useCallback((row) => {
     try {
       const domain = window.location.origin;
       const companyID = userData?.company?.CompanyId || 0;
       const vendorID = row.VendorID || row.InvitationId || 0;
 
-      // Generates a clean 6-character high-entropy alphanumeric OTP
+
       const generateSecureOTP = () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No 0, O, I, L, 1
         const array = new Uint32Array(6);
@@ -402,7 +402,7 @@ const SupplierGrid = ({ onRefreshRef }) => {
   return (
     <Box sx={{ width: '100%', p: 2 }}>
 
-      {/* Search and Filter Section */}
+
       <Paper
         elevation={0}
         sx={{
