@@ -66,7 +66,7 @@ const SupplierPDF = ({ currentData }) => {
     };
   });
 
-  // ----------- Styles -----------
+
   const styles = StyleSheet.create({
     page: {
       paddingTop: 8,
