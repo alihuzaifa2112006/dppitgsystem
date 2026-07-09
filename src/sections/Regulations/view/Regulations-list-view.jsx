@@ -563,7 +563,7 @@ export default function RegulationsListView() {
                   </Grid>
                 </Card>
 
-                {/* Summary Section */}
+
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.secondary' }}>SUMMARY</Typography>
                   <Typography variant="body2" sx={{ lineHeight: 1.8, color: 'text.primary' }}>
@@ -571,7 +571,6 @@ export default function RegulationsListView() {
                   </Typography>
                 </Box>
 
-                {/* Key Obligations */}
                 {selectedRegulation.obligations?.length > 0 && (
                   <Card
                     variant="outlined"
