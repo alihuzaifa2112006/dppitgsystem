@@ -172,7 +172,7 @@ export default function JwtRegisterOrgView() {
           router.push(paths.auth.jwt.login);
         }, 1000);
       } else if (response.status === 409) {
-        setErrorMsg('Username or Company already exists.');
+        setErrorMsg('Username or Email already exists.');
       } else {
         setErrorMsg('Registration failed. Please try again.');
       }

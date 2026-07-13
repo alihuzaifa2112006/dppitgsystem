@@ -5,7 +5,6 @@ import { paths } from 'src/routes/paths';
 import { useTranslate } from 'src/locales';
 
 import SvgColor from 'src/components/svg-color';
-import { decrypt } from 'src/api/encryption';
 
 // ----------------------------------------------------------------------
 
@@ -73,31 +72,30 @@ const ICONS = {
 // ----------------------------------------------------------------------
 export function useNavData() {
   const { t } = useTranslate();
-  const userData = useMemo(() => JSON.parse(localStorage.getItem('UserData')), []);
-  const userRoles = userData?.userDetails?.roles || [];
 
-  // const groupARoles = [70, 80];
-  // const groupBRoles = [85, 70];
-  // const InvRoles = [87, 88, 70];
-  // const QCRoles = [89, 70];
-  // const allButInvnQC = [
-  //   64, 65, 66, 67, 68, 69, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 89,
-  // ];
-  // const HRRoles = [1, 2, 3, 4];
+  // LocalStorage se data lein
+  const userData = useMemo(() => {
+    try {
+      const data = localStorage.getItem('UserData');
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error parsing UserData:', error);
+      return null;
+    }
+  }, []);
 
-  // // const groupBRoles = [64, 65, 66, 67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83];
-  // const isTest = userData?.userDetails?.userId === 898;
+  // Company data extract karein
+  const companyData = userData?.Data?.company || {};
+  const mainType = companyData?.MainType || ''; // 'C' ya 'S'
 
-  // const hasRole = (rolesToCheck) => rolesToCheck.some((role) => userRoles.includes(role));
-  // const hasSectionID = (sectionIDsToCheck) => {
-  //   const userSectionID = userData?.userDetails?.SectionID;
-  //   return sectionIDsToCheck.includes(userSectionID);
-  // };
+  // Check karein ke user Company hai ya Supplier
+  const isCompany = mainType === 'C';
+  const isSupplier = mainType === 'S';
 
   const data = useMemo(() => {
+    // Base navigation - Dashboard sabko dikhega
     const navItems = [
       {
-        // Dashboard — no subheader
         items: [
           {
             title: t('Dashboard'),
@@ -106,7 +104,11 @@ export function useNavData() {
           },
         ],
       },
-      {
+    ];
+
+    // Company ke liye: Sab kuch dikhao
+    if (isCompany) {
+      navItems.push({
         items: [
           {
             title: t('Company'),
@@ -120,9 +122,9 @@ export function useNavData() {
             ],
           },
         ],
-      },
-      {
-        // subheader: t('application'),
+      });
+
+      navItems.push({
         items: [
           {
             title: t('Supply Chain Network'),
@@ -141,12 +143,36 @@ export function useNavData() {
             icon: ICONS.file,
           },
         ],
-      },
-    ];
+      });
+    }
+
+    // Supplier ke liye: Sirf Dashboard, Supply Chain Network, Regulations
+    if (isSupplier) {
+      navItems.push({
+        items: [
+          {
+            title: t('Supply Chain Network'),
+            path: '',
+            icon: ICONS.management,
+            children: [
+              {
+                title: t('Supply Chain Network Onboard'),
+                path: paths.dashboard.Onboarding.Supplier.root,
+              },
+            ],
+          },
+          {
+            title: t('Regulations'),
+            path: paths.dashboard.Regulations.root,
+            icon: ICONS.file,
+          },
+        ],
+      });
+    }
 
     return navItems;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t]);
+  }, [t, isCompany, isSupplier]);
 
   return data;
 }
