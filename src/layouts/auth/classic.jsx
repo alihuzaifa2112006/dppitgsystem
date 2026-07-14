@@ -36,10 +36,14 @@ export default function AuthClassicLayout({ children, image, title }) {
       sx={{
         width: { xs: 1, md: '40%' },
         height: '100%',
+        position: 'relative',
+        zIndex: 1,
+        ml: 'auto',
+        mr: { xs: 0, md: '8%' }, // Pushes the box 8% away from the right edge towards the center
         overflowY: 'auto',
-        px: { xs: 2, md: 3 },
+        px: { xs: 2, md: 3 }, // Reset padding to normal since margin handles the spacing now
         py: { xs: 3, md: 3 },
-        backgroundColor: (theme) => alpha(theme.palette.background.default, 0.6),
+        backgroundColor: 'transparent',
         '&::-webkit-scrollbar': {
           width: '5px',
         },
@@ -63,6 +67,10 @@ export default function AuthClassicLayout({ children, image, title }) {
           sx={{
             width: 1,
             maxWidth: 600,
+            minHeight: { md: 640 }, // Added to make Login and Register boxes the same height
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
             backgroundColor: (theme) => theme.palette.background.paper,
             borderRadius: 3,
             boxShadow: (theme) =>
@@ -80,10 +88,12 @@ export default function AuthClassicLayout({ children, image, title }) {
   const renderSection = (
     <Stack
       sx={{
-        flexGrow: 1,
-        width: '60%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
         height: '100%',
-        position: 'relative',
+        zIndex: 0,
         justifyContent: 'flex-end',
         p: { xs: 6, md: 8 },
         backgroundImage: `url(${image || '/assets/images/back.png'})`,
@@ -225,6 +235,7 @@ export default function AuthClassicLayout({ children, image, title }) {
         height: '100vh',
         maxHeight: '100vh',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
       {mdUp && renderSection}
