@@ -16,6 +16,7 @@ import Iconify from 'src/components/iconify';
 import { useAuthContext } from 'src/auth/hooks';
 import { PATH_AFTER_LOGIN } from 'src/config-global';
 import { jwtDecode } from 'jwt-decode';
+import dppImage from 'src/assets/dpp2.png';
 
 // Hardcoded colors
 const PRIMARY = '#103996';
@@ -950,187 +951,228 @@ export default function LandingPage() {
             }}
           />
 
-        <Container
-          maxWidth="lg"
-          sx={{ position: 'relative', zIndex: 2, pt: { xs: 7, md: 12 }, pb: { xs: 8, md: 12 } }}
-        >
-          <Grid container spacing={6} alignItems="center">
-            {/* Left Column (Text Content) */}
-            <Grid item xs={12} md={6}>
-              <Reveal>
-                <Stack spacing={3.5} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                  <Typography
-                    variant="h1"
-                    sx={{
-                      fontSize: { xs: '2.6rem', sm: '3.5rem', md: '4.1rem' },
-                      fontWeight: 800,
-                      lineHeight: 1.05,
-                      letterSpacing: '-0.03em',
-                    }}
-                  >
-                    Every product,{' '}
-                    <Box
-                      component="span"
+          <Container
+            maxWidth="lg"
+            sx={{ position: 'relative', zIndex: 2, pt: { xs: 7, md: 12 }, pb: { xs: 8, md: 12 } }}
+          >
+            <Grid container spacing={6} alignItems="center">
+              {/* Left Column (Text Content) */}
+              <Grid item xs={12} md={6}>
+                <Reveal>
+                  <Stack spacing={3.5} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                    <Typography
+                      variant="h1"
                       sx={{
-                        background: `linear-gradient(90deg, ${PRIMARY}, ${PRIMARY_LIGHT}, ${PRIMARY})`,
-                        backgroundSize: '200% auto',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        animation: `${shimmer} 5s linear infinite`,
+                        fontSize: { xs: '2.6rem', sm: '3.5rem', md: '4.1rem' },
+                        fontWeight: 800,
+                        lineHeight: 1.05,
+                        letterSpacing: '-0.03em',
                       }}
                     >
-                      a passport you can trust.
-                    </Box>
-                  </Typography>
+                      Every product,{' '}
+                      <Box
+                        component="span"
+                        sx={{
+                          background: `linear-gradient(90deg, ${PRIMARY}, ${PRIMARY_LIGHT}, ${PRIMARY})`,
+                          backgroundSize: '200% auto',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          animation: `${shimmer} 5s linear infinite`,
+                        }}
+                      >
+                        a passport you can trust.
+                      </Box>
+                    </Typography>
 
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: '#666666',
-                      fontSize: { xs: '1.1rem', sm: '1.2rem' },
-                      maxWidth: 540,
-                      mx: { xs: 'auto', md: 0 },
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Gather information from brands, suppliers, factories and laboratories. Validate the evidence behind
-                    every claim. Publish controlled Digital Product Passports for consumers, partners and authorities —
-                    all from one configurable platform.
-                  </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: '#666666',
+                        fontSize: { xs: '1.1rem', sm: '1.2rem' },
+                        maxWidth: 540,
+                        mx: { xs: 'auto', md: 0 },
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      Gather information from brands, suppliers, factories and laboratories. Validate the evidence behind
+                      every claim. Publish controlled Digital Product Passports for consumers, partners and authorities —
+                      all from one configurable platform.
+                    </Typography>
 
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={2}
-                    justifyContent={{ xs: 'center', md: 'flex-start' }}
-                    sx={{ pt: 1 }}
-                  >
-                    <Button
-                      size="large"
-                      variant="contained"
-                      onClick={() => handleNavigate(paths.auth.jwt.login)}
-                      endIcon={<Iconify icon="solar:arrow-right-linear" width={18} />}
-                      sx={{
-                        borderRadius: 1.5,
-                        px: 4,
-                        py: 1.6,
-                        fontSize: '0.95rem',
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        backgroundColor: PRIMARY,
-                        boxShadow: `0 12px 28px ${alpha(PRIMARY, 0.3)}`,
-                        '&:hover': {
-                          backgroundColor: PRIMARY_DARK,
-                          boxShadow: `0 16px 36px ${alpha(PRIMARY, 0.4)}`,
-                        },
-                      }}
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={2}
+                      justifyContent={{ xs: 'center', md: 'flex-start' }}
+                      sx={{ pt: 1 }}
                     >
-                      Get Started
-                    </Button>
-                    <Button
-                      size="large"
-                      variant="outlined"
-                      onClick={() => scrollToId('how-it-works')}
-                      sx={{
-                        borderRadius: 1.5,
-                        px: 4,
-                        py: 1.6,
-                        fontSize: '0.95rem',
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        borderColor: alpha('#1a1a1a', 0.15),
-                        color: '#1a1a1a',
-                        '&:hover': {
-                          borderColor: '#1a1a1a',
-                          backgroundColor: alpha('#1a1a1a', 0.03),
-                        },
-                      }}
+                      <Button
+                        size="large"
+                        variant="contained"
+                        onClick={() => handleNavigate(paths.auth.jwt.login)}
+                        endIcon={<Iconify icon="solar:arrow-right-linear" width={18} />}
+                        sx={{
+                          borderRadius: 1.5,
+                          px: 4,
+                          py: 1.6,
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          backgroundColor: PRIMARY,
+                          boxShadow: `0 12px 28px ${alpha(PRIMARY, 0.3)}`,
+                          '&:hover': {
+                            backgroundColor: PRIMARY_DARK,
+                            boxShadow: `0 16px 36px ${alpha(PRIMARY, 0.4)}`,
+                          },
+                        }}
+                      >
+                        Get Started
+                      </Button>
+                      <Button
+                        size="large"
+                        variant="outlined"
+                        onClick={() => scrollToId('how-it-works')}
+                        sx={{
+                          borderRadius: 1.5,
+                          px: 4,
+                          py: 1.6,
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          borderColor: alpha('#1a1a1a', 0.15),
+                          color: '#1a1a1a',
+                          '&:hover': {
+                            borderColor: '#1a1a1a',
+                            backgroundColor: alpha('#1a1a1a', 0.03),
+                          },
+                        }}
+                      >
+                        See how it works
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      direction="row"
+                      spacing={3}
+                      sx={{ pt: 1, justifyContent: { xs: 'center', md: 'flex-start' }, flexWrap: 'wrap', rowGap: 1 }}
                     >
-                      See how it works
-                    </Button>
+                      {['No proprietary lock-in', 'Evidence-linked', 'EU-ready'].map((t) => (
+                        <Stack key={t} direction="row" alignItems="center" spacing={0.75}>
+                          <Iconify icon="solar:check-circle-bold" width={18} sx={{ color: '#2e7d32' }} />
+                          <Typography variant="body2" sx={{ color: '#666666', fontWeight: 500 }}>
+                            {t}
+                          </Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
                   </Stack>
+                </Reveal>
+              </Grid>
 
-                  <Stack
-                    direction="row"
-                    spacing={3}
-                    sx={{ pt: 1, justifyContent: { xs: 'center', md: 'flex-start' }, flexWrap: 'wrap', rowGap: 1 }}
-                  >
-                    {['No proprietary lock-in', 'Evidence-linked', 'EU-ready'].map((t) => (
-                      <Stack key={t} direction="row" alignItems="center" spacing={0.75}>
-                        <Iconify icon="solar:check-circle-bold" width={18} sx={{ color: '#2e7d32' }} />
-                        <Typography variant="body2" sx={{ color: '#666666', fontWeight: 500 }}>
-                          {t}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-                </Stack>
-              </Reveal>
-            </Grid>
-
-            {/* Right Column (Enhanced & Animated Image Section) */}
-            <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <Reveal delay={150}>
-                <Box
-                  sx={{
-                    width: '100%',
-                    maxWidth: { xs: '100%', md: 560 }, // Desktop par image container ko maximum width de kar bara kiya
-                    position: 'relative',
-                    borderRadius: '16px',
-                    padding: '1px', // Border wrapper padding
-                    background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.1)}, ${alpha(PRIMARY_LIGHT, 0.05)})`,
-                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': {
-                      transform: 'translateY(-6px) scale(1.02)', // Smooth subtle pop-out transition
-                      boxShadow: `0px 32px 64px ${alpha('#000000', 0.08)}, 0px 0px 20px ${alpha(PRIMARY, 0.15)}`,
-                    },
-                  }}
-                >
-                  <img
-                    src="/LandingImg.jpeg"
-                    alt="Dashboard interface showcasing verified product passports and statistics"
-                    style={{
+              {/* Right Column (Enhanced & Animated Image Section) */}
+              <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Reveal delay={150}>
+                  <Box
+                    sx={{
                       width: '100%',
-                      height: 'auto',
-                      display: 'block',
-                      borderRadius: '15px', // Inside padding balance ke liye 15px
-                      objectFit: 'cover',
-                    }}
-                  />
-                </Box>
-              </Reveal>
-            </Grid>
-          </Grid>
-
-          {/* Trust stats strip */}
-          <Reveal delay={250}>
-            <Grid container spacing={2} sx={{ mt: { xs: 4, md: 7 } }}>
-              {trustStats.map((s) => (
-                <Grid item xs={6} md={3} key={s.label}>
-                  <Card
-                    sx={{
-                      p: 2.5,
-                      borderRadius: 2,
-                      height: '100%',
-                      textAlign: 'center',
-                      border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
-                      boxShadow: 'none',
-                      transition: 'all 0.3s',
-                      '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 14px 30px ${alpha('#000', 0.06)}` },
+                      maxWidth: { xs: '100%', md: 560 }, // Desktop par image container ko maximum width de kar bara kiya
+                      position: 'relative',
+                      borderRadius: '16px',
+                      padding: '1px', // Border wrapper padding
+                      background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.1)}, ${alpha(PRIMARY_LIGHT, 0.05)})`,
+                      transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        transform: 'translateY(-6px) scale(1.02)', // Smooth subtle pop-out transition
+                        boxShadow: `0px 32px 64px ${alpha('#000000', 0.08)}, 0px 0px 20px ${alpha(PRIMARY, 0.15)}`,
+                      },
                     }}
                   >
-                    <Iconify icon={s.icon} width={26} sx={{ color: PRIMARY, mb: 1 }} />
-                    <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-                      {s.value}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#666666' }}>
-                      {s.label}
-                    </Typography>
-                  </Card>
-                </Grid>
-              ))}
+                    <img
+                      src="/LandingImg.jpeg"
+                      alt="Dashboard interface showcasing verified product passports and statistics"
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        display: 'block',
+                        borderRadius: '15px', // Inside padding balance ke liye 15px
+                        objectFit: 'cover',
+                      }}
+                    />
+                  </Box>
+                </Reveal>
+              </Grid>
             </Grid>
-          </Reveal>
-        </Container>
+
+            {/* Trust stats strip */}
+            <Reveal delay={250}>
+              <Grid container spacing={2} sx={{ mt: { xs: 4, md: 7 } }}>
+                {trustStats.map((s) => (
+                  <Grid item xs={6} md={3} key={s.label}>
+                    <Card
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        height: '100%',
+                        textAlign: 'center',
+                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
+                        boxShadow: 'none',
+                        transition: 'all 0.3s',
+                        '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 14px 30px ${alpha('#000', 0.06)}` },
+                      }}
+                    >
+                      <Iconify icon={s.icon} width={26} sx={{ color: PRIMARY, mb: 1 }} />
+                      <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+                        {s.value}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#666666' }}>
+                        {s.label}
+                      </Typography>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Reveal>
+          </Container>
+        </Box>
+
+        {/* ============================================================ */}
+        {/* SECOND SECTION (SPLIT BACKGROUND)                            */}
+        {/* ============================================================ */}
+        <Box sx={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
+          <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+            <Grid container alignItems="center" sx={{ minHeight: { md: '80vh' } }}>
+              {/* Left Side: Text */}
+              <Grid item xs={12} md={6} sx={{ py: { xs: 8, md: 12 }, pr: { md: 8 }, backgroundColor: { xs: '#ffffff', md: 'transparent' } }}>
+                <Reveal>
+
+                  <Typography variant="h2" sx={{ fontWeight: 800, color: '#1a1a1a', letterSpacing: '-0.03em', lineHeight: 1.1, mb: 3, fontSize: { xs: '2.5rem', sm: '3rem', md: '3.6rem' } }}>
+                    The passport is<br />only the surface.<br />
+                    <Box component="span" sx={{ color: PRIMARY }}>The governed<br />record is the system.</Box>
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#444', fontSize: '1.1rem', mb: 4, maxWidth: 480, lineHeight: 1.6 }}>
+                    One controlled product record powers your public passport, machine layer, evidence chain, and audit trail — all from the same source of truth.
+                  </Typography>
+
+
+                </Reveal>
+              </Grid>
+
+              {/* Right Side: Image */}
+              <Grid item xs={12} md={6} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: { xs: 8, md: 12 }, px: { xs: 2, md: 4 } }}>
+                <Reveal delay={150}>
+                  {/* <img
+                    src="/assets/dpp.png"
+                    alt="Governed record system"
+                    style={{ width: '100%', maxWidth: '100%', display: 'block', borderRadius: '12px' }}
+                  /> */}
+                  <img
+                    src={dppImage}
+                    alt="Governed record system"
+                    style={{ width: '100%', maxWidth: '100%', display: 'block', borderRadius: '12px' }}
+                  />
+                </Reveal>
+              </Grid>
+            </Grid>
+          </Container>
         </Box>
 
         {/* ============================================================ */}
