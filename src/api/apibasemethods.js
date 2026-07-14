@@ -22,15 +22,15 @@ apiHandle.interceptors.request.use(
 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          console.log('✅ Authorization header set');
+          console.log(' Authorization header set');
         } else {
-          console.warn('⚠️ No token found in UserData');
+          console.warn(' No token found in UserData');
         }
       } else {
-        console.warn('⚠️ No UserData found in localStorage');
+        console.warn(' No UserData found in localStorage');
       }
     } catch (error) {
-      console.error('❌ Error parsing UserData from localStorage:', error);
+      console.error(' Error parsing UserData from localStorage:', error);
     }
     return config;
   },
