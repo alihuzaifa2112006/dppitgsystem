@@ -123,15 +123,7 @@ export default function AccountPopover() {
           ))}
         </Stack>
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
-
-        <MenuItem
-          onClick={handleLogout}
-          sx={{ m: 1, fontWeight: 'fontWeightBold', color: 'error.main' }}
-        >
-          Logout
-        </MenuItem>
-      </CustomPopover>
+    </CustomPopover>
     </>
   );
 }

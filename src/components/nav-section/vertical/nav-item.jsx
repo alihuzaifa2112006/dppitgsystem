@@ -242,7 +242,7 @@ const StyledNavItem = styled(ListItemButton, {
       }),
       ...(opened && {
         color: theme.palette.text.primary,
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'transparent',
       }),
     }),
 

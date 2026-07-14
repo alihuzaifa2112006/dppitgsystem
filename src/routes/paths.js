@@ -65,6 +65,8 @@ export const paths = {
       new: `${ROOTS.DASHBOARD}/regulations/new`,
       edit: (id) => `${ROOTS.DASHBOARD}/regulations/edit/${id}`,
     },
-
+    Settings: {
+      root: `${ROOTS.DASHBOARD}/settings`,
+    },
   },
 };

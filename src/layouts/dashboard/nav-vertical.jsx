@@ -90,43 +90,6 @@ export default function NavVertical({ openNav, onCloseNav }) {
 
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* ── Logout Button at bottom of sidebar ── */}
-      <Box
-        onClick={() => setLogoutDialogOpen(true)}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          px: 3,
-          py: 1.5,
-          cursor: 'pointer',
-          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.06),
-            '& .logout-icon': { transform: 'rotate(20deg)' },
-            '& .logout-text': { color: 'primary.main' },
-          },
-        }}
-      >
-        <Typography
-          className="logout-text"
-          variant="body2"
-          sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.88rem', transition: 'color 0.2s ease' }}
-        >
-          Logout
-        </Typography>
-        <Iconify
-          className="logout-icon"
-          icon="mdi:power"
-          width={18}
-          sx={{
-            color: 'primary.main',
-            transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
-          }}
-        />
-      </Box>
     </Scrollbar>
   );
 

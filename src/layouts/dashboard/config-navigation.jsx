@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import Iconify from 'src/components/iconify';
 
 import { paths } from 'src/routes/paths';
 
@@ -11,6 +12,8 @@ import SvgColor from 'src/components/svg-color';
 const icon = (name) => (
   <SvgColor src={`/assets/icons/navbar/${name}.svg`} sx={{ width: 1, height: 1 }} />
 );
+
+const modernDashboardIcon = <Iconify icon="solar:widget-5-bold-duotone" width={1} height={1} />;
 
 const ICONS = {
   job: icon('ic_job'),
@@ -37,7 +40,7 @@ const ICONS = {
   menuItem: icon('ic_menu_item'),
   ecommerce: icon('ic_ecommerce'),
   analytics: icon('ic_analytics'),
-  dashboard: icon('ic_dashboard'),
+  dashboard: modernDashboardIcon,
   management: icon('ic_management'),
   meeting: icon('ic_meeting'),
   complain: icon('ic_complain'),
@@ -128,7 +131,7 @@ export function useNavData() {
         items: [
           {
             title: t('Supply Chain Network'),
-            path: '',
+            path: paths.dashboard.Onboarding.Supplier.root,
             icon: ICONS.management,
             children: [
               {
@@ -152,7 +155,7 @@ export function useNavData() {
         items: [
           {
             title: t('Supply Chain Network'),
-            path: '',
+            path: paths.dashboard.Onboarding.Supplier.root,
             icon: ICONS.management,
             children: [
               {
@@ -169,6 +172,17 @@ export function useNavData() {
         ],
       });
     }
+
+    // Sabke liye (Everyone)
+    navItems.push({
+      items: [
+        {
+          title: t('Settings'),
+          path: paths.dashboard.Settings.root,
+          icon: ICONS.settings,
+        }
+      ]
+    });
 
     return navItems;
     // eslint-disable-next-line react-hooks/exhaustive-deps

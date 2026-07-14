@@ -768,13 +768,21 @@ const SupplierGrid = ({ onRefreshRef }) => {
 
                     {/* ── Send Invite column ── */}
                     <TableCell sx={{ textAlign: 'center' }}>
-                      <Tooltip title={`Send invite to ${row.Email || 'supplier'}`} arrow>
-                        <IconButton size="small" onClick={() => handleOpenInvite(row)}
-                          sx={{ color: 'primary.main', padding: '4px' }}
-                        >
-                          <Iconify icon="mdi:email-arrow-right-outline" width={20} />
-                        </IconButton>
-                      </Tooltip>
+                      {row.EmailSent ? (
+                        <Tooltip title="Email Sent" arrow>
+                          <Box component="span" sx={{ display: 'inline-flex', color: 'success.main', p: '4px' }}>
+                            <Iconify icon="mdi:check-circle" width={22} />
+                          </Box>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title={`Send invite to ${row.Email || 'supplier'}`} arrow>
+                          <IconButton size="small" onClick={() => handleOpenInvite(row)}
+                            sx={{ color: 'primary.main', padding: '4px' }}
+                          >
+                            <Iconify icon="mdi:email-arrow-right-outline" width={20} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </TableCell>
 
                     {/* ── Actions: Edit + Delete ── */}

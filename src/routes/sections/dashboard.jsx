@@ -20,6 +20,7 @@ import RegulationsNewPage from 'src/pages/dashboard/Regulations/new';
 const SupplierPublicOnboardingPage = lazy(() => import('src/pages/SupplierForm'));
 const IndexPage = lazy(() => import('src/pages/dashboard/app'));
 const CompanyDatabaseNewPage = lazy(() => import('src/pages/dashboard/CompanyDatabase/new'));
+const SettingsPage = lazy(() => import('src/pages/dashboard/Settings/index'));
 
 // const UserAccountPage = lazy(() => import('src/pages/dashboard/user/account'));
 
@@ -119,6 +120,14 @@ export const dashboardRoutes = [
             ),
           },
         ],
+      },
+      {
+        path: 'settings',
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <SettingsPage />
+          </Suspense>
+        ),
       },
 
       // admin
