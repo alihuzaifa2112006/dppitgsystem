@@ -1334,7 +1334,7 @@ export default function LandingPage() {
                         overflow: 'visible',
                         transformStyle: 'preserve-3d',
                         transition: 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
-                        
+
                         // Default slightly tilted 3D cube-block appearance
                         transform: 'rotateX(6deg) rotateY(-8deg)',
                         boxShadow: `

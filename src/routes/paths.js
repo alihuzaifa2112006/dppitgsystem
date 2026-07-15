@@ -65,6 +65,14 @@ export const paths = {
       new: `${ROOTS.DASHBOARD}/regulations/new`,
       edit: (id) => `${ROOTS.DASHBOARD}/regulations/edit/${id}`,
     },
+    Powertool: {
+      root: `${ROOTS.DASHBOARD}/powertool`,
+      Customer: {
+        root: `${ROOTS.DASHBOARD}/powertool/customers`,
+        new: `${ROOTS.DASHBOARD}/powertool/customers/new`,
+        view: (id) => `${ROOTS.DASHBOARD}/powertool/customers/view/${id}`,
+      },
+    },
     Settings: {
       root: `${ROOTS.DASHBOARD}/settings`,
     },

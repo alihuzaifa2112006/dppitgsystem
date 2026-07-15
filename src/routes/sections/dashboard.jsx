@@ -13,6 +13,9 @@ import SupplierNewPage from 'src/pages/dashboard/Supplier/new';
 import SupplierEditPage from 'src/pages/dashboard/Supplier/edit';
 import RegulationsListPage from 'src/pages/dashboard/Regulations/list';
 import RegulationsNewPage from 'src/pages/dashboard/Regulations/new';
+import CustomerListPage from '../../pages/dashboard/Customer/list';
+import CustomerNewPage from '../../pages/dashboard/Customer/new';
+import CustomerDetailPage from '../../pages/dashboard/Customer/view';
 
 // ----------------------------------------------------------------------
 
@@ -85,6 +88,35 @@ export const dashboardRoutes = [
             ),
           },
 
+        ],
+      },
+      {
+        path: 'powertool/customers',
+        children: [
+          {
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CustomerListPage />
+              </Suspense>
+            ),
+            index: true,
+          },
+          {
+            path: 'new',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CustomerNewPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'view/:id',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CustomerDetailPage />
+              </Suspense>
+            ),
+          },
         ],
       },
       {

@@ -114,13 +114,23 @@ export function useNavData() {
       navItems.push({
         items: [
           {
-            title: t('Company'),
+            title: t('Company Profile'),
             path: paths.dashboard.CompanyDatabase.new,
             icon: ICONS.database,
+          },
+        ],
+      });
+
+      navItems.push({
+        items: [
+          {
+            title: t('Powertool'),
+            path: paths.dashboard.Powertool.Customer.root,
+            icon: ICONS.management,
             children: [
               {
-                title: t('Company Profile'),
-                path: paths.dashboard.CompanyDatabase.new,
+                title: t('Customer'),
+                path: paths.dashboard.Powertool.Customer.root,
               },
             ],
           },
@@ -133,12 +143,6 @@ export function useNavData() {
             title: t('Supply Chain Network'),
             path: paths.dashboard.Onboarding.Supplier.root,
             icon: ICONS.management,
-            children: [
-              {
-                title: t('Supply Chain Network Onboard'),
-                path: paths.dashboard.Onboarding.Supplier.root,
-              },
-            ],
           },
           {
             title: t('Regulations'),
@@ -157,12 +161,6 @@ export function useNavData() {
             title: t('Supply Chain Network'),
             path: paths.dashboard.Onboarding.Supplier.root,
             icon: ICONS.management,
-            children: [
-              {
-                title: t('Supply Chain Network Onboard'),
-                path: paths.dashboard.Onboarding.Supplier.root,
-              },
-            ],
           },
           {
             title: t('Regulations'),
