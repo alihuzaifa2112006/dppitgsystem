@@ -17,6 +17,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { PATH_AFTER_LOGIN } from 'src/config-global';
 import { jwtDecode } from 'jwt-decode';
 import dppImage from 'src/assets/dpp2.png';
+import heroIcon from 'src/assets/heroicon.png';
 
 // Hardcoded colors
 const PRIMARY = '#103996';
@@ -959,25 +960,33 @@ export default function LandingPage() {
               {/* Left Column (Text Content) */}
               <Grid item xs={12} md={6}>
                 <Reveal>
-                  <Stack spacing={3.5} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                  <Stack
+                    spacing={3.5}
+                    sx={{
+                      textAlign: { xs: 'center', md: 'left' },
+                      textRendering: 'optimizeLegibility',
+                      WebkitFontSmoothing: 'antialiased',
+                      MozOsxFontSmoothing: 'grayscale',
+                    }}
+                  >
                     <Typography
                       variant="h1"
                       sx={{
-                        fontSize: { xs: '2.6rem', sm: '3.5rem', md: '4.1rem' },
+                        fontSize: { xs: '2.6rem', sm: '3.5rem', md: '4.2rem' },
                         fontWeight: 800,
-                        lineHeight: 1.05,
-                        letterSpacing: '-0.03em',
+                        lineHeight: 1.1,
+                        letterSpacing: '-0.035em',
                       }}
                     >
                       Every product,{' '}
                       <Box
                         component="span"
                         sx={{
-                          background: `linear-gradient(90deg, ${PRIMARY}, ${PRIMARY_LIGHT}, ${PRIMARY})`,
+                          background: `linear-gradient(90deg, ${PRIMARY}, #2563eb, ${PRIMARY})`,
                           backgroundSize: '200% auto',
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
-                          animation: `${shimmer} 5s linear infinite`,
+                          animation: `${shimmer} 4s linear infinite`,
                         }}
                       >
                         a passport you can trust.
@@ -987,11 +996,12 @@ export default function LandingPage() {
                     <Typography
                       variant="body1"
                       sx={{
-                        color: '#666666',
-                        fontSize: { xs: '1.1rem', sm: '1.2rem' },
+                        color: '#334155',
+                        fontSize: { xs: '1.1rem', sm: '1.25rem' },
                         maxWidth: 540,
                         mx: { xs: 'auto', md: 0 },
-                        lineHeight: 1.6,
+                        lineHeight: 1.7,
+                        fontWeight: 400,
                       }}
                     >
                       Gather information from brands, suppliers, factories and laboratories. Validate the evidence behind
@@ -1058,7 +1068,7 @@ export default function LandingPage() {
                       {['No proprietary lock-in', 'Evidence-linked', 'EU-ready'].map((t) => (
                         <Stack key={t} direction="row" alignItems="center" spacing={0.75}>
                           <Iconify icon="solar:check-circle-bold" width={18} sx={{ color: '#2e7d32' }} />
-                          <Typography variant="body2" sx={{ color: '#666666', fontWeight: 500 }}>
+                          <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600 }}>
                             {t}
                           </Typography>
                         </Stack>
@@ -1076,25 +1086,19 @@ export default function LandingPage() {
                       width: '100%',
                       maxWidth: { xs: '100%', md: 560 }, // Desktop par image container ko maximum width de kar bara kiya
                       position: 'relative',
-                      borderRadius: '16px',
-                      padding: '1px', // Border wrapper padding
-                      background: `linear-gradient(135deg, ${alpha(PRIMARY, 0.1)}, ${alpha(PRIMARY_LIGHT, 0.05)})`,
                       transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
                         transform: 'translateY(-6px) scale(1.02)', // Smooth subtle pop-out transition
-                        boxShadow: `0px 32px 64px ${alpha('#000000', 0.08)}, 0px 0px 20px ${alpha(PRIMARY, 0.15)}`,
                       },
                     }}
                   >
                     <img
-                      src="/LandingImg.jpeg"
+                      src={heroIcon}
                       alt="Dashboard interface showcasing verified product passports and statistics"
                       style={{
                         width: '100%',
                         height: 'auto',
                         display: 'block',
-                        borderRadius: '15px', // Inside padding balance ke liye 15px
-                        objectFit: 'cover',
                       }}
                     />
                   </Box>
@@ -1181,63 +1185,30 @@ export default function LandingPage() {
         <Box id="platform" sx={{ py: { xs: 8, md: 11 }, position: 'relative', zIndex: 1 }}>
           <Container maxWidth="lg">
             <Reveal>
-              <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography variant="overline" sx={{ color: PRIMARY, fontWeight: 700, letterSpacing: 1.5 }}>
-                  One source of truth
-                </Typography>
-                <Typography variant="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-                  Gather data from every link in the chain
-                </Typography>
-                <Typography variant="body1" sx={{ color: '#666666', maxWidth: 620, mx: 'auto' }}>
-                  Companies register on the platform and contribute the data only they hold. A single passport record
-                  serves every stakeholder view through access policy — never duplicated datasets.
-                </Typography>
-              </Stack>
-            </Reveal>
-
-            <Reveal delay={120}>
-              <Grid container spacing={2.5} justifyContent="center">
-                {dataSources.map((src) => (
-                  <Grid item xs={6} sm={4} md={2} key={src.label}>
-                    <Card
-                      sx={{
-                        p: 3,
-                        borderRadius: 2,
-                        textAlign: 'center',
-                        height: '100%',
-                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
-                        boxShadow: 'none',
-                        transition: 'all 0.3s',
-                        '&:hover': {
-                          transform: 'translateY(-5px)',
-                          borderColor: alpha(PRIMARY, 0.3),
-                          boxShadow: `0 16px 30px ${alpha('#000', 0.06)}`,
-                        },
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 52,
-                          height: 52,
-                          mx: 'auto',
-                          mb: 1.5,
-                          borderRadius: 2,
-                          backgroundColor: alpha(PRIMARY, 0.08),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: PRIMARY,
-                        }}
-                      >
-                        <Iconify icon={src.icon} width={28} />
-                      </Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                        {src.label}
-                      </Typography>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    maxWidth: 1100,
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                    },
+                  }}
+                >
+                  <img
+                    src="/assets/chain.png"
+                    alt="Chain"
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      display: 'block',
+                    }}
+                  />
+                </Box>
+              </Box>
             </Reveal>
           </Container>
         </Box>
