@@ -16,7 +16,7 @@ import Iconify from 'src/components/iconify';
 import { useAuthContext } from 'src/auth/hooks';
 import { PATH_AFTER_LOGIN } from 'src/config-global';
 import { jwtDecode } from 'jwt-decode';
-import dppImage from 'src/assets/dpp2.png';
+import dppImage from 'src/assets/section2.png';
 import heroIcon from 'src/assets/heroicon.png';
 
 // Hardcoded colors
