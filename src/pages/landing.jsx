@@ -506,7 +506,7 @@ export default function LandingPage() {
 
   const flowSteps = [
     { icon: 'solar:document-add-bold-duotone', title: 'Product context', text: 'Brand product, purchase order or tech pack creates the commercial reference.' },
-    { icon: 'solar:hierarchy-2-bold-duotone', title: 'Master data', text: 'Establish model, style, SKU, batch and item hierarchy with supplier mapping.' },
+    { icon: 'solar:database-bold-duotone', title: 'Master data', text: 'Establish model, style, SKU, batch and item hierarchy with supplier mapping.' },
     { icon: 'solar:inbox-in-bold-duotone', title: 'Collect & extract', text: 'Suppliers submit data and evidence; AI structures documents for review.' },
     { icon: 'solar:check-read-bold-duotone', title: 'Validate & approve', text: 'Automated regulatory validation, then compliance and economic-operator approval.' },
     { icon: 'solar:qr-code-bold-duotone', title: 'Generate passport', text: 'Create the immutable, human- and machine-readable DPP version.' },
@@ -730,6 +730,9 @@ export default function LandingPage() {
                       width: '100%',
                       height: '100%',
                       objectFit: 'contain',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      pointerEvents: 'none',
                     }}
                   />
                 </Box>
@@ -1099,6 +1102,9 @@ export default function LandingPage() {
                         width: '100%',
                         height: 'auto',
                         display: 'block',
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        pointerEvents: 'none',
                       }}
                     />
                   </Box>
@@ -1171,7 +1177,15 @@ export default function LandingPage() {
                   <img
                     src={dppImage}
                     alt="Governed record system"
-                    style={{ width: '100%', maxWidth: '100%', display: 'block', borderRadius: '12px' }}
+                    style={{
+                      width: '100%',
+                      maxWidth: '100%',
+                      display: 'block',
+                      borderRadius: '12px',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      pointerEvents: 'none',
+                    }}
                   />
                 </Reveal>
               </Grid>
@@ -1205,6 +1219,9 @@ export default function LandingPage() {
                       width: '100%',
                       height: 'auto',
                       display: 'block',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      pointerEvents: 'none',
                     }}
                   />
                 </Box>
@@ -1302,7 +1319,7 @@ export default function LandingPage() {
               </Stack>
             </Reveal>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={4} sx={{ perspective: 1200 }}>
               {flowSteps.map((step, i) => (
                 <Grid item xs={12} sm={6} md={4} key={step.title}>
                   <Reveal delay={i * 80}>
@@ -1312,27 +1329,70 @@ export default function LandingPage() {
                         height: '100%',
                         p: 3.5,
                         borderRadius: 2.5,
-                        border: `1px solid ${alpha('#e0e0e0', 0.08)}`,
-                        boxShadow: 'none',
-                        overflow: 'hidden',
-                        transition: 'all 0.3s',
-                        '&:hover': { boxShadow: `0 18px 36px ${alpha('#000', 0.06)}` },
+                        border: `1px solid ${alpha('#e0e0e0', 0.15)}`,
+                        background: 'linear-gradient(135deg, #ffffff 0%, #fcfdfe 100%)',
+                        overflow: 'visible',
+                        transformStyle: 'preserve-3d',
+                        transition: 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
+                        
+                        // Default slightly tilted 3D cube-block appearance
+                        transform: 'rotateX(6deg) rotateY(-8deg)',
+                        boxShadow: `
+                          1px 1px 0px #cbd5e1, 
+                          2px 2px 0px #cbd5e1, 
+                          3px 3px 0px #cbd5e1, 
+                          4px 4px 12px ${alpha('#000000', 0.05)}
+                        `,
+
+                        '&:hover': {
+                          // Enhanced hover translation and rotation for solid 3D block extension
+                          transform: 'translateY(-14px) translate3d(-6px, -6px, 20px) rotateX(12deg) rotateY(-14deg)',
+                          borderColor: alpha(PRIMARY, 0.3),
+                          boxShadow: `
+                            1px 1px 0px #94a3b8, 
+                            2px 2px 0px #94a3b8, 
+                            3px 3px 0px #94a3b8, 
+                            4px 4px 0px #94a3b8, 
+                            5px 5px 0px #94a3b8, 
+                            6px 6px 0px #94a3b8, 
+                            7px 7px 0px #94a3b8, 
+                            8px 8px 0px #94a3b8, 
+                            12px 12px 28px ${alpha('#000000', 0.15)}
+                          `,
+                          '& .step-number': {
+                            transform: 'translateZ(55px) translateX(-5px)',
+                            color: alpha(PRIMARY, 0.18),
+                          },
+                          '& .icon-box': {
+                            transform: 'translateZ(45px) scale(1.08)',
+                            boxShadow: `0 10px 20px ${alpha(PRIMARY, 0.18)}`,
+                          },
+                          '& .card-title': {
+                            transform: 'translateZ(35px)',
+                          },
+                          '& .card-text': {
+                            transform: 'translateZ(25px)',
+                          }
+                        },
                       }}
                     >
                       <Typography
+                        className="step-number"
                         sx={{
                           position: 'absolute',
                           top: 8,
                           right: 16,
-                          fontSize: '3.4rem',
+                          fontSize: '3.6rem',
                           fontWeight: 900,
                           lineHeight: 1,
-                          color: alpha(PRIMARY, 0.07),
+                          color: alpha(PRIMARY, 0.06),
+                          transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
                         }}
                       >
                         {i + 1}
                       </Typography>
                       <Box
+                        className="icon-box"
                         sx={{
                           width: 50,
                           height: 50,
@@ -1343,14 +1403,31 @@ export default function LandingPage() {
                           justifyContent: 'center',
                           color: PRIMARY,
                           mb: 2,
+                          transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
                         }}
                       >
                         <Iconify icon={step.icon} width={26} />
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                      <Typography
+                        className="card-title"
+                        variant="h6"
+                        sx={{
+                          fontWeight: 700,
+                          mb: 1,
+                          transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+                        }}
+                      >
                         {step.title}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#666666', lineHeight: 1.6 }}>
+                      <Typography
+                        className="card-text"
+                        variant="body2"
+                        sx={{
+                          color: '#556677',
+                          lineHeight: 1.6,
+                          transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+                        }}
+                      >
                         {step.text}
                       </Typography>
                     </Card>
