@@ -30,6 +30,8 @@ import {
   Autocomplete,
   Chip,
   InputAdornment,
+  Radio,
+  RadioGroup,
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { alpha } from '@mui/material/styles';
@@ -51,15 +53,21 @@ export default function CustomerForm({ currentData }) {
   const [continents, setContinents] = useState([]);
   const [currencies, setCurrencies] = useState([]);
   const [paymentModesAPI, setPaymentModesAPI] = useState([]);
+  const [termPaymentModesAPI, setTermPaymentModesAPI] = useState([]);
+  const [warehouseCountries, setWarehouseCountries] = useState([]);
+  const [termTransactionModesAPI, setTermTransactionModesAPI] = useState([]);
+  const [paymentTermsAPI, setPaymentTermsAPI] = useState([]);
+  const [termSuppliersAPI, setTermSuppliersAPI] = useState([]);
+  const [shipmentModesAPI, setShipmentModesAPI] = useState([]);
 
   // Local lists for dialog/inline additions
   const [contacts, setContacts] = useState(currentData?.BuyerContacts || []);
   const [paymentTerms, setPaymentTerms] = useState([]);
   const [warehouseEnabled, setWarehouseEnabled] = useState(currentData?.WarehouseAddressEnabled || false);
+  const [isActive, setIsActive] = useState(currentData?.IsActive !== undefined ? currentData.IsActive : true);
 
   // Dialog & Inline States
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
-  const [newContact, setNewContact] = useState({ Name: '', Designation: '', CellNo: '', Email: '' });
 
   const [showAddTermInline, setShowAddTermInline] = useState(false);
   const [inlineTerm, setInlineTerm] = useState({
@@ -69,7 +77,7 @@ export default function CustomerForm({ currentData }) {
     PaymentMethod: '',
     SuppTerm: '',
     SuppDays: '',
-    TransactionType: 'Service',
+    TransactionType: '',
   });
 
   // Options
@@ -79,14 +87,34 @@ export default function CustomerForm({ currentData }) {
 
   // Form Validation Schema
   const CustomerSchema = Yup.object().shape({
+    // General Information
     Cust_Name: Yup.string().required('Customer Name is required'),
     DisplayName: Yup.string().required('Display Name is required'),
     Commission: Yup.number().typeError('Commission must be a number').required('Commission is required'),
-    Website: Yup.string().url('Must be a valid URL (include http:// or https://)').required('Website is required'),
+    Website: Yup.string().required('Website is required'),
+    Forwarder: Yup.string().required('Forwarder is required'),
+    GlnNo: Yup.string().required('GLN NO is required'),
+    VatNo: Yup.string().required('VAT NO is required'),
+    TransactionMode: Yup.mixed().nullable().required('Transaction Mode is required'),
+    DefaultIncoterm: Yup.mixed().nullable().required('Default Incoterm is required'),
+
+    // Address & Contact
     AddressLine1: Yup.string().required('Address Line 1 is required'),
+    AddressLine2: Yup.string(),
+    Continent: Yup.mixed().nullable().required('Continent is required'),
     Country: Yup.object().nullable().required('Country is required'),
     City: Yup.object().nullable().required('City is required'),
+    PostalCode: Yup.string().required('Postal Code is required'),
     Phone: Yup.string().required('Phone is required'),
+    Fax: Yup.string().required('Fax is required'),
+
+    // Order Defaults
+    DefaultCurrency: Yup.object().nullable().required('Default Currency is required'),
+    DefaultPaymentMode: Yup.object().nullable().required('Default Payment Mode is required'),
+    DefaultShipmentMode: Yup.object().nullable().required('Default Shipment Mode is required'),
+    DefaultPaymentTerm: Yup.object().nullable().required('Default Payment Term is required'),
+    DefaultTolerance: Yup.string().required('Default Tolerance is required'),
+
     // Warehouse fields
     Warehouse_AddressLine1: Yup.string(),
     Warehouse_AddressLine2: Yup.string(),
@@ -135,6 +163,10 @@ export default function CustomerForm({ currentData }) {
       Warehouse_Email: currentData?.Warehouse_Email || '',
       Warehouse_GlnNo: currentData?.Warehouse_GlnNo || '',
       Warehouse_VatNo: currentData?.Warehouse_VatNo || '',
+      Contact_Name: '',
+      Contact_Designation: '',
+      Contact_CellNo: '',
+      Contact_Email: '',
     }),
     [currentData]
   );
@@ -147,6 +179,7 @@ export default function CustomerForm({ currentData }) {
   const {
     handleSubmit,
     setValue,
+    getValues,
     watch,
     reset,
     formState: { isSubmitting },
@@ -190,8 +223,8 @@ export default function CustomerForm({ currentData }) {
 
   // Fetch warehouse cities based on Warehouse_Country in Edit Mode
   useEffect(() => {
-    if (currentData?.WarehouseAddressEnabled && currentData?.Warehouse_Country && countries.length > 0) {
-      const matchedCountry = countries.find(
+    if (currentData?.WarehouseAddressEnabled && currentData?.Warehouse_Country && warehouseCountries.length > 0) {
+      const matchedCountry = warehouseCountries.find(
         (c) => c.Country_Name.toLowerCase() === currentData.Warehouse_Country.toLowerCase()
       );
       if (matchedCountry) {
@@ -199,7 +232,7 @@ export default function CustomerForm({ currentData }) {
         getWarehouseCities(matchedCountry.Country_ID);
       }
     }
-  }, [currentData, countries, getWarehouseCities, setValue]);
+  }, [currentData, warehouseCountries, getWarehouseCities, setValue]);
 
   // Handle Edit Mode City Matching
   useEffect(() => {
@@ -271,6 +304,7 @@ export default function CustomerForm({ currentData }) {
         const res = await Get('TransactionMode/GetAll');
         if (res.status === 200) {
           setTransactionModes(res?.data?.Data || []);
+          setTermTransactionModesAPI(res?.data?.Data || []);
         }
       } catch (error) {
         console.error('Error fetching transaction modes:', error);
@@ -308,8 +342,41 @@ export default function CustomerForm({ currentData }) {
       try {
         const res = await Get('PaymentMode/GetAll');
         setPaymentModesAPI(res?.data?.Data || []);
+        setTermPaymentModesAPI(res?.data?.Data || []);
       } catch (error) {
         console.error('Error fetching payment modes:', error);
+      }
+    };
+    const fetchWarehouseCountries = async () => {
+      try {
+        const res = await Get('Country/GetAll');
+        setWarehouseCountries(res?.data?.Data || []);
+      } catch (error) {
+        console.error('Error fetching warehouse countries:', error);
+      }
+    };
+    const fetchPaymentTermsAPI = async () => {
+      try {
+        const res = await Get('PaymentTerm/GetAll');
+        setPaymentTermsAPI(res?.data?.Data || []);
+      } catch (error) {
+        console.error('Error fetching payment terms:', error);
+      }
+    };
+    const fetchTermSuppliersAPI = async () => {
+      try {
+        const res = await Get('Supplier/GetAll');
+        setTermSuppliersAPI(res?.data?.Data || []);
+      } catch (error) {
+        console.error('Error fetching suppliers:', error);
+      }
+    };
+    const fetchShipmentModesAPI = async () => {
+      try {
+        const res = await Get('ShipmentMode/GetAll');
+        setShipmentModesAPI(res?.data?.Data || []);
+      } catch (error) {
+        console.error('Error fetching shipment modes:', error);
       }
     };
     fetchTransactionModes();
@@ -317,6 +384,10 @@ export default function CustomerForm({ currentData }) {
     fetchContinents();
     fetchCurrencies();
     fetchPaymentModes();
+    fetchWarehouseCountries();
+    fetchPaymentTermsAPI();
+    fetchTermSuppliersAPI();
+    fetchShipmentModesAPI();
   }, []);
 
 
@@ -327,6 +398,7 @@ export default function CustomerForm({ currentData }) {
       reset(defaultValues);
       setContacts(currentData.BuyerContacts || []);
       setWarehouseEnabled(currentData.WarehouseAddressEnabled || false);
+      setIsActive(currentData.IsActive !== undefined ? currentData.IsActive : true);
     }
   }, [currentData, reset, defaultValues]);
 
@@ -335,33 +407,62 @@ export default function CustomerForm({ currentData }) {
   // On Submit
   const onSubmit = handleSubmit(async (data) => {
     try {
-      // Map to API payload structure
       const payload = {
-        Cust_Name: data.Cust_Name,
-        Cust_Abb: data.DisplayName,
-        Cust_URL: data.Website,
-        Cust_Address1: data.AddressLine1,
-        Cust_Address2: data.AddressLine2 || 'N/A',
-        Cust_Landline_No: data.Phone,
-        Cust_ZipCode: data.PostalCode || 'N/A',
-        Cust_Country_ID: data.Country?.Country_ID || 0,
-        Cust_City_ID: data.City?.City_ID || 0,
-        Commission: data.Commission,
-        Forwarder: data.Forwarder,
-        GlnNo: data.GlnNo,
-        VatNo: data.VatNo,
-        TransactionMode: data.TransactionMode,
-        DefaultIncoterm: data.DefaultIncoterm,
-        Continent: data.Continent,
-        Fax: data.Fax,
-        DefaultCurrency: data.DefaultCurrency?.Currency_Name || null,
-        DefaultPaymentMode: data.DefaultPaymentMode?.Name || data.DefaultPaymentMode,
-        DefaultShipmentMode: data.DefaultShipmentMode,
-        DefaultPaymentTerm: data.DefaultPaymentTerm,
-        DefaultTolerance: data.DefaultTolerance,
-        WarehouseAddressEnabled: warehouseEnabled,
-        BuyerContacts: contacts,
-        PaymentTerms: paymentTerms,
+        CustomerName: data.Cust_Name || '',
+        DisplayName: data.DisplayName || '',
+        CommissionPercent: Number(data.Commission) || 0,
+        Website: data.Website || '',
+        Forwarder: data.Forwarder || '',
+        GLNNo: data.GlnNo || '',
+        VatNo: data.VatNo || '',
+        TransactionModeId: data.TransactionMode?.TransactionModeId || data.TransactionMode?.Id || 0,
+        DefaultIncotermId: data.DefaultIncoterm?.IncotermId || data.DefaultIncoterm?.Id || 0,
+
+        AddressLine1: data.AddressLine1 || '',
+        AddressLine2: data.AddressLine2 || 'N/A',
+        ContinentId: data.Continent?.ContinentId || 0,
+        CountryID: data.Country?.Country_ID || 0,
+        CityId: data.City?.CityId || data.City?.City_ID || 0,
+        PostalCode: data.PostalCode || 'N/A',
+        Phone: data.Phone || '',
+        Fax: data.Fax || '',
+
+        DefaultCurrencyId: data.DefaultCurrency?.CurrencyId || 0,
+        DefaultPaymentModeId: data.DefaultPaymentMode?.PaymentModeId || data.DefaultPaymentMode?.Id || 0,
+        DefaultShipmentModeId: data.DefaultShipmentMode?.ShipmentModeId || data.DefaultShipmentMode?.Id || 0,
+        DefaultPaymentTermId: data.DefaultPaymentTerm?.PaymentTermId || data.DefaultPaymentTerm?.Id || 0,
+        DefaultTolerance: data.DefaultTolerance || '',
+
+        WarehouseEnabled: warehouseEnabled,
+        WarehouseAddressLine1: data.Warehouse_AddressLine1 || '',
+        WarehouseAddressLine2: data.Warehouse_AddressLine2 || '',
+        WarehouseCityId: data.Warehouse_City?.CityId || data.Warehouse_City?.City_ID || 0,
+        WarehouseCountryID: data.Warehouse_Country?.Country_ID || 0,
+        WarehousePostalCode: data.Warehouse_PostalCode || '',
+        WarehousePhone: data.Warehouse_Phone || '',
+        WarehouseFax: data.Warehouse_Fax || '',
+        WarehouseEmail: data.Warehouse_Email || '',
+        WarehouseGLNNo: data.Warehouse_GlnNo || '',
+        WarehouseVatNo: data.Warehouse_VatNo || '',
+
+        IsActive: isActive,
+
+        PaymentTerms: paymentTerms.map(pt => ({
+          SupplierId: pt.Supplier?.InvitationId || pt.Supplier?.SupplierId || null,
+          Term: pt.PaymentTerm || '',
+          DueDays: pt.DueDays ? parseInt(pt.DueDays, 10) : null,
+          PaymentModeId: pt.PaymentMethod?.PaymentModeId || pt.PaymentMethod?.Id || 0,
+          SuppTerm: pt.SuppTerm || null,
+          SuppDays: pt.SuppDays ? parseInt(pt.SuppDays, 10) : null,
+          TransactionType: pt.TransactionType || ''
+        })),
+
+        Contacts: contacts.map(c => ({
+          Name: c.Name,
+          Designation: c.Designation,
+          CellNo: c.CellNo,
+          Email: c.Email
+        }))
       };
 
       console.log('Sending Customer Payload:', payload);
@@ -369,31 +470,49 @@ export default function CustomerForm({ currentData }) {
       if (currentData?.CustomerID) {
         // Edit flow (mocked or actual)
         enqueueSnackbar('Customer details saved successfully!', { variant: 'success' });
+        navigate(paths.dashboard.Powertool.Customer.root);
       } else {
         // Create flow
-        await Post('RegisterCustomer', payload);
-        enqueueSnackbar('Customer created successfully!', { variant: 'success' });
+        const response = await Post('Customer/Create', payload);
+        if (response.status === 200 || response.status === 201) {
+          enqueueSnackbar('Customer created successfully!', { variant: 'success' });
+          navigate(paths.dashboard.Powertool.Customer.root);
+        } else {
+          enqueueSnackbar(response?.data?.Message || 'Error creating customer', { variant: 'error' });
+        }
       }
-      navigate(paths.dashboard.Powertool.Customer.root);
     } catch (error) {
       console.error('Error submitting form:', error);
-      enqueueSnackbar('Customer details saved successfully!', { variant: 'success' });
-      navigate(paths.dashboard.Powertool.Customer.root);
+      enqueueSnackbar(error?.response?.data?.Message || error?.message || 'Error submitting form', { variant: 'error' });
     }
   });
 
   // Contacts handlers
   const handleAddContactClick = () => {
-    setNewContact({ Name: '', Designation: '', CellNo: '', Email: '' });
+    setValue('Contact_Name', '');
+    setValue('Contact_Designation', '');
+    setValue('Contact_CellNo', '');
+    setValue('Contact_Email', '');
     setContactDialogOpen(true);
   };
 
   const handleSaveContact = () => {
-    if (!newContact.Name) {
+    const contactName = getValues('Contact_Name');
+    const contactDesignation = getValues('Contact_Designation');
+    const contactCellNo = getValues('Contact_CellNo');
+    const contactEmail = getValues('Contact_Email');
+
+    if (!contactName) {
       enqueueSnackbar('Contact name is required', { variant: 'warning' });
       return;
     }
-    setContacts([...contacts, { ...newContact, id: Date.now() }]);
+    setContacts([...contacts, {
+      Name: contactName,
+      Designation: contactDesignation,
+      CellNo: contactCellNo,
+      Email: contactEmail,
+      id: Date.now()
+    }]);
     setContactDialogOpen(false);
   };
 
@@ -410,7 +529,7 @@ export default function CustomerForm({ currentData }) {
       PaymentMethod: '',
       SuppTerm: '',
       SuppDays: '',
-      TransactionType: 'Service',
+      TransactionType: '',
     });
     setShowAddTermInline(true);
   };
@@ -431,31 +550,45 @@ export default function CustomerForm({ currentData }) {
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       {/* ── Form Header ── */}
-      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-        <Box
-          sx={{
-            width: 48,
-            height: 48,
-            borderRadius: '12px',
-            // bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
-            color: 'primary.main',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Iconify icon="solar:user-bold" width={24} />
-        </Box>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 800 }}>
-            {currentData?.Cust_Name || 'New Customer'}
-          </Typography>
-          {currentData?.CustomerID && (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              ID: {currentData.CustomerID}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: '12px',
+              // bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+              color: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Iconify icon="solar:user-bold" width={24} />
+          </Box>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              {currentData?.Cust_Name || 'New Customer'}
             </Typography>
-          )}
-        </Box>
+            {currentData?.CustomerID && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                ID: {currentData.CustomerID}
+              </Typography>
+            )}
+          </Box>
+        </Stack>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              color="primary"
+            />
+          }
+          label={isActive ? 'Active' : 'Disabled'}
+          labelPlacement="start"
+        />
       </Stack>
 
       <Grid container spacing={3}>
@@ -500,9 +633,9 @@ export default function CustomerForm({ currentData }) {
                   name="TransactionMode"
                   label="TRANSACTION MODE"
                   placeholder="Select Transaction mode"
-                  options={transactionModes.map((mode) => mode.Name)}
-                  getOptionLabel={(option) => option}
-                  isOptionEqualToValue={(option, value) => option === value}
+                  options={transactionModes}
+                  getOptionLabel={(option) => option?.Name || option || ''}
+                  isOptionEqualToValue={(option, value) => option?.TransactionModeId === value?.TransactionModeId || option === value}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -510,9 +643,9 @@ export default function CustomerForm({ currentData }) {
                   name="DefaultIncoterm"
                   label="DEFAULT INCOTERM"
                   placeholder="Select Incoterm"
-                  options={incoterms.map((term) => term.Code)}
-                  getOptionLabel={(option) => option}
-                  isOptionEqualToValue={(option, value) => option === value}
+                  options={incoterms}
+                  getOptionLabel={(option) => option?.Code || option?.Name || option || ''}
+                  isOptionEqualToValue={(option, value) => option?.IncotermId === value?.IncotermId || option === value}
                 />
               </Grid>
             </Grid>
@@ -658,35 +791,23 @@ export default function CustomerForm({ currentData }) {
                 />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Controller
+                <RHFAutocomplete
                   name="DefaultShipmentMode"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <TextField {...field} select fullWidth label="DEFAULT SHIPMENT MODE">
-                      <MenuItem value="">Select...</MenuItem>
-                      {shipmentModes.map((mode) => (
-                        <MenuItem key={mode} value={mode}>
-                          {mode}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
+                  label="DEFAULT SHIPMENT MODE"
+                  placeholder="Select Shipment Mode"
+                  options={shipmentModesAPI}
+                  getOptionLabel={(option) => option?.Name || option || ''}
+                  isOptionEqualToValue={(option, value) => option?.ShipmentModeId === value?.ShipmentModeId || option === value}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Controller
+                <RHFAutocomplete
                   name="DefaultPaymentTerm"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <TextField {...field} select fullWidth label="DEFAULT PAYMENT TERM">
-                      <MenuItem value="">Select...</MenuItem>
-                      {defaultPaymentTermsList.map((term) => (
-                        <MenuItem key={term} value={term}>
-                          {term}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
+                  label="DEFAULT PAYMENT TERM"
+                  placeholder="Select Payment Term"
+                  options={paymentTermsAPI}
+                  getOptionLabel={(option) => option?.Name || option || ''}
+                  isOptionEqualToValue={(option, value) => option?.PaymentTermId === value?.PaymentTermId || option === value}
                 />
               </Grid>
 
@@ -735,25 +856,23 @@ export default function CustomerForm({ currentData }) {
                 <Grid container spacing={2}>
                   {/* SUPPLIER */}
                   <Grid item xs={12} md={3}>
-                    <TextField
-                      select
+                    <Autocomplete
                       fullWidth
-                      size="small"
-                      label="SUPPLIER"
-                      value={inlineTerm.Supplier || ''}
-                      onChange={(e) => setInlineTerm({ ...inlineTerm, Supplier: e.target.value })}
-                    >
-                      <MenuItem value="">— Select Supplier —</MenuItem>
-                      <MenuItem value="Supplier 1">Supplier 1</MenuItem>
-                      <MenuItem value="Supplier 2">Supplier 2</MenuItem>
-                    </TextField>
+                      options={termSuppliersAPI}
+                      getOptionLabel={(option) => option?.SupplierName || option || ''}
+                      isOptionEqualToValue={(option, value) => option?.InvitationId === value?.InvitationId || option === value}
+                      value={inlineTerm.Supplier || null}
+                      onChange={(event, newValue) => {
+                        setInlineTerm({ ...inlineTerm, Supplier: newValue || null });
+                      }}
+                      renderInput={(params) => <TextField {...params} label="SUPPLIER" placeholder="Select Supplier" />}
+                    />
                   </Grid>
 
                   {/* PAYMENT TERM */}
                   <Grid item xs={12} md={3}>
                     <TextField
                       fullWidth
-                      size="small"
                       label="PAYMENT TERM"
                       placeholder="e.g. Open A/C 60 Days"
                       value={inlineTerm.PaymentTerm || ''}
@@ -765,7 +884,6 @@ export default function CustomerForm({ currentData }) {
                   <Grid item xs={12} md={2}>
                     <TextField
                       fullWidth
-                      size="small"
                       label="DUE DAYS"
                       placeholder="e.g. 60"
                       value={inlineTerm.DueDays || ''}
@@ -775,27 +893,22 @@ export default function CustomerForm({ currentData }) {
 
                   {/* PAYMENT METHOD */}
                   <Grid item xs={12} md={4}>
-                    <TextField
-                      select
+                    <Autocomplete
                       fullWidth
-                      size="small"
-                      label="PAYMENT METHOD"
-                      value={inlineTerm.PaymentMethod || ''}
-                      onChange={(e) => setInlineTerm({ ...inlineTerm, PaymentMethod: e.target.value })}
-                    >
-                      <MenuItem value="">— Select —</MenuItem>
-                      <MenuItem value="L/C">L/C</MenuItem>
-                      <MenuItem value="T/T">T/T</MenuItem>
-                      <MenuItem value="CAD">CAD</MenuItem>
-                      <MenuItem value="Open Account">Open Account</MenuItem>
-                    </TextField>
+                      options={termPaymentModesAPI}
+                      getOptionLabel={(option) => option?.Name || option || ''}
+                      value={inlineTerm.PaymentMethod || null}
+                      onChange={(event, newValue) => {
+                        setInlineTerm({ ...inlineTerm, PaymentMethod: newValue || null });
+                      }}
+                      renderInput={(params) => <TextField {...params} label="PAYMENT METHOD" placeholder="Select..." />}
+                    />
                   </Grid>
 
                   {/* SUPP. TERM */}
-                  <Grid item xs={12} md={3}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      size="small"
                       label="SUPP. TERM"
                       placeholder="Supplier term"
                       value={inlineTerm.SuppTerm || ''}
@@ -804,10 +917,9 @@ export default function CustomerForm({ currentData }) {
                   </Grid>
 
                   {/* SUPP. DAYS */}
-                  <Grid item xs={12} md={3}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      size="small"
                       label="SUPP. DAYS"
                       placeholder="e.g. 60"
                       value={inlineTerm.SuppDays || ''}
@@ -816,39 +928,25 @@ export default function CustomerForm({ currentData }) {
                   </Grid>
 
                   {/* TRANSACTION TYPE */}
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={10}>
                     <Stack direction="row" spacing={2} alignItems="center" sx={{ height: '100%' }}>
                       <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
                         TRANSACTION TYPE
                       </Typography>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
-                          border: '1px solid',
-                          borderColor: 'divider',
-                        }}
+                      <RadioGroup
+                        row
+                        value={inlineTerm.TransactionType || ''}
+                        onChange={(e) => setInlineTerm({ ...inlineTerm, TransactionType: e.target.value })}
                       >
-                        <Button
-                          size="small"
-                          variant={inlineTerm.TransactionType === 'Service' ? 'contained' : 'text'}
-                          color={inlineTerm.TransactionType === 'Service' ? 'primary' : 'inherit'}
-                          onClick={() => setInlineTerm({ ...inlineTerm, TransactionType: 'Service' })}
-                          sx={{ borderRadius: 0, px: 2, textTransform: 'none' }}
-                        >
-                          Service
-                        </Button>
-                        <Button
-                          size="small"
-                          variant={inlineTerm.TransactionType === 'Trade' ? 'contained' : 'text'}
-                          color={inlineTerm.TransactionType === 'Trade' ? 'primary' : 'inherit'}
-                          onClick={() => setInlineTerm({ ...inlineTerm, TransactionType: 'Trade' })}
-                          sx={{ borderRadius: 0, px: 2, textTransform: 'none' }}
-                        >
-                          Trade
-                        </Button>
-                      </Box>
+                        {termTransactionModesAPI.map((mode) => (
+                          <FormControlLabel
+                            key={mode?.Name || mode}
+                            value={mode?.Name || mode}
+                            control={<Radio />}
+                            label={<Typography variant="body2">{mode?.Name || mode}</Typography>}
+                          />
+                        ))}
+                      </RadioGroup>
                     </Stack>
                   </Grid>
 
@@ -858,13 +956,12 @@ export default function CustomerForm({ currentData }) {
                       <Button
                         variant="contained"
                         color="primary"
-                        size="small"
                         onClick={handleSaveInlineTerm}
                         sx={{ borderRadius: 1.5, px: 2 }}
                       >
                         + Add
                       </Button>
-                      <IconButton size="small" onClick={() => setShowAddTermInline(false)}>
+                      <IconButton onClick={() => setShowAddTermInline(false)}>
                         <Iconify icon="mingcute:close-line" width={18} />
                       </IconButton>
                     </Stack>
@@ -906,15 +1003,15 @@ export default function CustomerForm({ currentData }) {
                   <TableBody>
                     {paymentTerms.map((term, index) => (
                       <TableRow key={term.id || index}>
-                        <TableCell sx={{ fontWeight: 600 }}>{term.Supplier || '—'}</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>{term.Supplier?.SupplierName || term.Supplier || '—'}</TableCell>
                         <TableCell>{term.PaymentTerm || '—'}</TableCell>
                         <TableCell>{term.DueDays || '—'}</TableCell>
-                        <TableCell>{term.PaymentMethod || '—'}</TableCell>
+                        <TableCell>{term.PaymentMethod?.Name || term.PaymentMethod || '—'}</TableCell>
                         <TableCell>
                           <Chip
-                            label={term.TransactionType || 'Service'}
+                            label={term.TransactionType || '—'}
                             size="small"
-                            color={term.TransactionType === 'Trade' ? 'info' : 'primary'}
+                            color="primary"
                             variant="soft"
                           />
                         </TableCell>
@@ -987,7 +1084,7 @@ export default function CustomerForm({ currentData }) {
                     name="Warehouse_Country"
                     label="COUNTRY"
                     placeholder="Select country..."
-                    options={countries}
+                    options={warehouseCountries}
                     getOptionLabel={(option) => option?.Country_Name || ''}
                     isOptionEqualToValue={(option, value) => option?.Country_ID === value?.Country_ID}
                     onchange={(newValue) => {
@@ -1147,47 +1244,33 @@ export default function CustomerForm({ currentData }) {
       </Grid>
 
       {/* ── Add Contact Dialog ── */}
-      <Dialog open={contactDialogOpen} onClose={() => setContactDialogOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog open={contactDialogOpen} onClose={() => setContactDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>Add Buyer Contact</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Contact Name"
-              value={newContact.Name}
-              onChange={(e) => setNewContact({ ...newContact, Name: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Designation"
-              value={newContact.Designation}
-              onChange={(e) => setNewContact({ ...newContact, Designation: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Cell No"
-              value={newContact.CellNo}
-              onChange={(e) => setNewContact({ ...newContact, CellNo: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              value={newContact.Email}
-              onChange={(e) => setNewContact({ ...newContact, Email: e.target.value })}
-            />
-          </Stack>
+        <DialogContent sx={{ pt: 1, pb: 3 }}>
+          <Grid container spacing={2.5} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6}>
+              <RHFTextField name="Contact_Name" label="CONTACT NAME" placeholder="e.g. John Doe" />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <RHFTextField name="Contact_Designation" label="DESIGNATION" placeholder="e.g. Manager" />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <RHFTextField name="Contact_CellNo" label="CELL NO" placeholder="Enter cell number..." />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <RHFTextField name="Contact_Email" label="EMAIL" placeholder="Enter email address..." />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
-          <Button onClick={() => setContactDialogOpen(false)} color="inherit" variant="outlined">
+          <Button variant="outlined" color="inherit" onClick={() => setContactDialogOpen(false)} sx={{ fontWeight: 600 }}>
             Cancel
           </Button>
-          <Button onClick={handleSaveContact} color="primary" variant="contained">
+          <Button variant="contained" color="primary" onClick={handleSaveContact} sx={{ fontWeight: 600 }}>
             Save Contact
           </Button>
         </DialogActions>
       </Dialog>
-
-
     </FormProvider>
   );
 }
