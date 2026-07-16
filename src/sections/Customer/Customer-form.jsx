@@ -29,12 +29,13 @@ import {
   Switch,
   Autocomplete,
   Chip,
+  InputAdornment,
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { alpha } from '@mui/material/styles';
 import { useSnackbar } from 'src/components/snackbar';
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFTextField } from 'src/components/hook-form';
+import FormProvider, { RHFTextField, RHFAutocomplete } from 'src/components/hook-form';
 import { Get, Post } from 'src/api/apibasemethods';
 import { paths } from 'src/routes/paths';
 
@@ -44,8 +45,12 @@ export default function CustomerForm({ currentData }) {
 
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
-  const [filteredCities, setFilteredCities] = useState([]);
   const [warehouseCities, setWarehouseCities] = useState([]);
+  const [transactionModes, setTransactionModes] = useState([]);
+  const [incoterms, setIncoterms] = useState([]);
+  const [continents, setContinents] = useState([]);
+  const [currencies, setCurrencies] = useState([]);
+  const [paymentModesAPI, setPaymentModesAPI] = useState([]);
 
   // Local lists for dialog/inline additions
   const [contacts, setContacts] = useState(currentData?.BuyerContacts || []);
@@ -68,10 +73,6 @@ export default function CustomerForm({ currentData }) {
   });
 
   // Options
-  const continents = ['Asia', 'Europe', 'North America', 'South America', 'Africa', 'Australia'];
-  const transactionModes = ['Trade', 'Consignment', 'Direct'];
-  const incoterms = ['FOB', 'CIF', 'EXW', 'DDP', 'DAP', 'CFR'];
-  const currencies = ['Dollar (USD)', 'Euro (EUR)', 'PKR', 'GBP'];
   const paymentModes = ['L/C', 'T/T', 'CAD', 'Open Account'];
   const shipmentModes = ['Sea', 'Air', 'Road'];
   const defaultPaymentTermsList = ['Immediate', '30 Days', '60 Days', '90 Days'];
@@ -109,17 +110,17 @@ export default function CustomerForm({ currentData }) {
       Forwarder: currentData?.Forwarder || '',
       GlnNo: currentData?.GlnNo || '',
       VatNo: currentData?.VatNo || '',
-      TransactionMode: currentData?.TransactionMode || 'Trade',
-      DefaultIncoterm: currentData?.DefaultIncoterm || '',
+      TransactionMode: currentData?.TransactionMode || null,
+      DefaultIncoterm: currentData?.DefaultIncoterm || null,
       AddressLine1: currentData?.AddressLine1 || '',
       AddressLine2: currentData?.AddressLine2 || '',
-      Continent: currentData?.Continent || '',
+      Continent: currentData?.Continent || null,
       Country: null,
       City: null,
       PostalCode: currentData?.PostalCode || '',
       Phone: currentData?.Phone || '',
       Fax: currentData?.Fax || '',
-      DefaultCurrency: currentData?.DefaultCurrency || 'Dollar (USD)',
+      DefaultCurrency: currentData?.DefaultCurrency || null,
       DefaultPaymentMode: currentData?.DefaultPaymentMode || '',
       DefaultShipmentMode: currentData?.DefaultShipmentMode || '',
       DefaultPaymentTerm: currentData?.DefaultPaymentTerm || '',
@@ -153,43 +154,172 @@ export default function CustomerForm({ currentData }) {
 
   const watchedValues = watch();
 
-  // Load countries and cities
-  const loadOptions = useCallback(async () => {
+  const getCities = useCallback(async (countryId) => {
     try {
-      const [countriesRes, citiesRes] = await Promise.all([
-        Get('Country/GetAll'),
-        Get('city/active'),
-      ]);
-      if (countriesRes.status === 200) {
-        const countryList = countriesRes?.data?.Data || [];
-        setCountries(countryList);
-        // Find and set matched country in Edit Mode
-        if (currentData?.Country) {
-          const matched = countryList.find(
-            (c) => c.Country_Name.toLowerCase() === currentData.Country.toLowerCase()
-          );
-          if (matched) setValue('Country', matched);
-        }
-      }
-      if (citiesRes.status === 200) {
-        const cityList = citiesRes?.data?.Data || [];
-        setCities(cityList);
-        // Find and set matched city in Edit Mode
-        if (currentData?.City) {
-          const matched = cityList.find(
-            (c) => c.City_Name.toLowerCase() === currentData.City.toLowerCase()
-          );
-          if (matched) setValue('City', matched);
-        }
+      const response = await Get(`City/GetByCountry?countryId=${countryId}`);
+      if (response.status === 200) {
+        setCities(response?.data?.Data || []);
       }
     } catch (error) {
-      console.error('Error loading options:', error);
+      console.error(error);
     }
-  }, [currentData, setValue]);
+  }, []);
 
+  const getWarehouseCities = useCallback(async (countryId) => {
+    try {
+      const response = await Get(`City/GetByCountry?countryId=${countryId}`);
+      if (response.status === 200) {
+        setWarehouseCities(response?.data?.Data || []);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  // Fetch cities based on Country in Edit Mode
   useEffect(() => {
-    loadOptions();
-  }, [loadOptions]);
+    if (currentData?.Country && countries.length > 0) {
+      const matchedCountry = countries.find(
+        (c) => c.Country_Name.toLowerCase() === currentData.Country.toLowerCase()
+      );
+      if (matchedCountry) {
+        getCities(matchedCountry.Country_ID);
+      }
+    }
+  }, [currentData, countries, getCities]);
+
+  // Fetch warehouse cities based on Warehouse_Country in Edit Mode
+  useEffect(() => {
+    if (currentData?.WarehouseAddressEnabled && currentData?.Warehouse_Country && countries.length > 0) {
+      const matchedCountry = countries.find(
+        (c) => c.Country_Name.toLowerCase() === currentData.Warehouse_Country.toLowerCase()
+      );
+      if (matchedCountry) {
+        setValue('Warehouse_Country', matchedCountry);
+        getWarehouseCities(matchedCountry.Country_ID);
+      }
+    }
+  }, [currentData, countries, getWarehouseCities, setValue]);
+
+  // Handle Edit Mode City Matching
+  useEffect(() => {
+    if (currentData?.City && cities.length > 0) {
+      const matched = cities.find(
+        (c) => (c.Name || c.City_Name || '').toLowerCase() === currentData.City.toLowerCase()
+      );
+      if (matched) setValue('City', matched);
+    }
+  }, [currentData, cities, setValue]);
+
+  // Handle Edit Mode Warehouse City Matching
+  useEffect(() => {
+    if (currentData?.Warehouse_City && warehouseCities.length > 0) {
+      const matched = warehouseCities.find(
+        (c) => (c.Name || c.City_Name || '').toLowerCase() === currentData.Warehouse_City.toLowerCase()
+      );
+      if (matched) setValue('Warehouse_City', matched);
+    }
+  }, [currentData, warehouseCities, setValue]);
+
+  const getCountries = useCallback(async (continentId) => {
+    try {
+      const response = await Get(`Country/GetByContinent?continentId=${continentId}`);
+      if (response.status === 200) {
+        setCountries(response?.data?.Data || []);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  // Fetch countries based on continent in Edit Mode
+  useEffect(() => {
+    if (currentData?.Continent && continents.length > 0) {
+      const selected = continents.find(
+        (c) => c.Name.toLowerCase() === currentData.Continent.toLowerCase()
+      );
+      if (selected) {
+        getCountries(selected.ContinentId);
+      }
+    }
+  }, [currentData, continents, getCountries]);
+
+  // Handle Edit Mode Country Matching
+  useEffect(() => {
+    if (currentData?.Country && countries.length > 0) {
+      const matched = countries.find(
+        (c) => c.Country_Name.toLowerCase() === currentData.Country.toLowerCase()
+      );
+      if (matched) setValue('Country', matched);
+    }
+  }, [currentData, countries, setValue]);
+
+  // // Handle Edit Mode Currency Matching
+  // useEffect(() => {
+  //   if (currentData?.DefaultCurrency && currencies.length > 0) {
+  //     const matched = currencies.find(
+  //       (c) => c.Currency_Name.toLowerCase() === currentData.DefaultCurrency.toLowerCase()
+  //     );
+  //     if (matched) setValue('DefaultCurrency', matched);
+  //   }
+  // }, [currentData, currencies, setValue]);
+
+  // Load Transaction Modes, Incoterms and Continents
+  useEffect(() => {
+    const fetchTransactionModes = async () => {
+      try {
+        const res = await Get('TransactionMode/GetAll');
+        if (res.status === 200) {
+          setTransactionModes(res?.data?.Data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching transaction modes:', error);
+      }
+    };
+    const fetchIncoterms = async () => {
+      try {
+        const res = await Get('Incoterm/GetAll');
+        if (res.status === 200) {
+          setIncoterms(res?.data?.Data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching incoterms:', error);
+      }
+    };
+    const fetchContinents = async () => {
+      try {
+        const res = await Get('Continent/GetAll');
+        if (res.status === 200) {
+          setContinents(res?.data?.Data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching continents:', error);
+      }
+    };
+    const fetchCurrencies = async () => {
+      try {
+        const res = await Get('Currency/GetAll');
+        setCurrencies(res?.data?.Data || []);
+      } catch (error) {
+        console.error('Error fetching currencies:', error);
+      }
+    };
+    const fetchPaymentModes = async () => {
+      try {
+        const res = await Get('PaymentMode/GetAll');
+        setPaymentModesAPI(res?.data?.Data || []);
+      } catch (error) {
+        console.error('Error fetching payment modes:', error);
+      }
+    };
+    fetchTransactionModes();
+    fetchIncoterms();
+    fetchContinents();
+    fetchCurrencies();
+    fetchPaymentModes();
+  }, []);
+
+
 
   // Reset values when currentData loaded
   useEffect(() => {
@@ -200,27 +330,7 @@ export default function CustomerForm({ currentData }) {
     }
   }, [currentData, reset, defaultValues]);
 
-  // Filter cities when country changes
-  useEffect(() => {
-    if (watchedValues.Country) {
-      const countryId = watchedValues.Country.Country_ID;
-      const filtered = cities.filter((city) => city.Country_ID === countryId);
-      setFilteredCities(filtered);
-    } else {
-      setFilteredCities([]);
-    }
-  }, [watchedValues.Country, cities]);
 
-  // Filter warehouse cities when country changes
-  useEffect(() => {
-    if (watchedValues.Warehouse_Country) {
-      const countryId = watchedValues.Warehouse_Country.Country_ID;
-      const filtered = cities.filter((city) => city.Country_ID === countryId);
-      setWarehouseCities(filtered);
-    } else {
-      setWarehouseCities([]);
-    }
-  }, [watchedValues.Warehouse_Country, cities]);
 
   // On Submit
   const onSubmit = handleSubmit(async (data) => {
@@ -244,8 +354,8 @@ export default function CustomerForm({ currentData }) {
         DefaultIncoterm: data.DefaultIncoterm,
         Continent: data.Continent,
         Fax: data.Fax,
-        DefaultCurrency: data.DefaultCurrency,
-        DefaultPaymentMode: data.DefaultPaymentMode,
+        DefaultCurrency: data.DefaultCurrency?.Currency_Name || null,
+        DefaultPaymentMode: data.DefaultPaymentMode?.Name || data.DefaultPaymentMode,
         DefaultShipmentMode: data.DefaultShipmentMode,
         DefaultPaymentTerm: data.DefaultPaymentTerm,
         DefaultTolerance: data.DefaultTolerance,
@@ -386,34 +496,23 @@ export default function CustomerForm({ currentData }) {
                 <RHFTextField name="VatNo" label="VAT NO" placeholder="Enter VAT number..." />
               </Grid>
               <Grid item xs={12} md={4}>
-                <Controller
+                <RHFAutocomplete
                   name="TransactionMode"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <TextField {...field} select fullWidth label="TRANSACTION MODE">
-                      {transactionModes.map((mode) => (
-                        <MenuItem key={mode} value={mode}>
-                          {mode}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
+                  label="TRANSACTION MODE"
+                  placeholder="Select Transaction mode"
+                  options={transactionModes.map((mode) => mode.Name)}
+                  getOptionLabel={(option) => option}
+                  isOptionEqualToValue={(option, value) => option === value}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
-                <Controller
+                <RHFAutocomplete
                   name="DefaultIncoterm"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <TextField {...field} select fullWidth label="DEFAULT INCOTERM">
-                      <MenuItem value="">Select...</MenuItem>
-                      {incoterms.map((term) => (
-                        <MenuItem key={term} value={term}>
-                          {term}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
+                  label="DEFAULT INCOTERM"
+                  placeholder="Select Incoterm"
+                  options={incoterms.map((term) => term.Code)}
+                  getOptionLabel={(option) => option}
+                  isOptionEqualToValue={(option, value) => option === value}
                 />
               </Grid>
             </Grid>
@@ -441,71 +540,74 @@ export default function CustomerForm({ currentData }) {
               </Grid>
 
               <Grid item xs={12} md={3}>
-                <Controller
+                <RHFAutocomplete
                   name="Continent"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <TextField {...field} select fullWidth label="CONTINENT">
-                      <MenuItem value="">Select...</MenuItem>
-                      {continents.map((cont) => (
-                        <MenuItem key={cont} value={cont}>
-                          {cont}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
+                  label="CONTINENT"
+                  placeholder="Select Continent"
+                  options={continents.map((cont) => cont.Name)}
+                  getOptionLabel={(option) => option}
+                  isOptionEqualToValue={(option, value) => option === value}
+                  onchange={(newValue) => {
+                    setValue('Country', null);
+                    setValue('City', null);
+                    setCities([]);
+                    const selected = continents.find((c) => c.Name === newValue);
+                    if (selected) {
+                      getCountries(selected.ContinentId);
+                    } else {
+                      setCountries([]);
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Controller
+                <RHFAutocomplete
                   name="Country"
-                  control={methods.control}
-                  render={({ field, fieldState: { error } }) => (
-                    <Autocomplete
-                      {...field}
-                      options={countries}
-                      getOptionLabel={(option) => option.Country_Name || ''}
-                      onChange={(event, value) => {
-                        setValue('Country', value);
-                        setValue('City', null);
-                      }}
-                      isOptionEqualToValue={(option, value) => option.Country_ID === value?.Country_ID}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="COUNTRY"
-                          error={!!error}
-                          helperText={error?.message}
-                          placeholder="Select country..."
-                        />
+                  label="COUNTRY"
+                  placeholder="Select country..."
+                  options={countries}
+                  getOptionLabel={(option) => option?.Country_Name || ''}
+                  isOptionEqualToValue={(option, value) => option?.Country_ID === value?.Country_ID}
+                  onchange={(newValue) => {
+                    setValue('City', null);
+                    if (newValue) {
+                      getCities(newValue.Country_ID);
+                    } else {
+                      setCities([]);
+                    }
+                  }}
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1, px: 2 }}>
+                      {option?.Country_Code && (
+                        <Iconify icon={`circle-flags:${option.Country_Code.toLowerCase()}`} sx={{ width: 24, height: 24, flexShrink: 0 }} />
                       )}
-                    />
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{option?.Country_Name}</Typography>
+                    </Box>
                   )}
+                  TextFieldProps={{
+                    InputProps: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {watchedValues?.Country?.Country_Code ? (
+                            <Iconify icon={`circle-flags:${watchedValues.Country.Country_Code.toLowerCase()}`} sx={{ width: 24, height: 24 }} />
+                          ) : (
+                            <Iconify icon="mdi:flag-outline" width={20} sx={{ color: 'text.secondary' }} />
+                          )}
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Controller
+                <RHFAutocomplete
                   name="City"
-                  control={methods.control}
-                  render={({ field, fieldState: { error } }) => (
-                    <Autocomplete
-                      {...field}
-                      options={filteredCities}
-                      getOptionLabel={(option) => option.City_Name || ''}
-                      onChange={(event, value) => setValue('City', value)}
-                      isOptionEqualToValue={(option, value) => option.City_ID === value?.City_ID}
-                      disabled={!watchedValues.Country}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="CITY"
-                          error={!!error}
-                          helperText={error?.message}
-                          placeholder="Select city..."
-                        />
-                      )}
-                    />
-                  )}
+                  label="CITY"
+                  placeholder="Select city..."
+                  options={cities}
+                  getOptionLabel={(option) => option?.Name || option?.City_Name || ''}
+                  isOptionEqualToValue={(option, value) => (option?.CityId || option?.City_ID) === (value?.CityId || value?.City_ID)}
+                  disabled={!watchedValues.Country}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
@@ -536,34 +638,23 @@ export default function CustomerForm({ currentData }) {
 
             <Grid container spacing={2.5}>
               <Grid item xs={12} md={3}>
-                <Controller
+                <RHFAutocomplete
                   name="DefaultCurrency"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <TextField {...field} select fullWidth label="DEFAULT CURRENCY">
-                      {currencies.map((curr) => (
-                        <MenuItem key={curr} value={curr}>
-                          {curr}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
+                  label="DEFAULT CURRENCY"
+                  placeholder="Select Currency"
+                  options={currencies}
+                  getOptionLabel={(option) => option?.Name || ''}
+                  isOptionEqualToValue={(option, value) => option?.CurrencyId === value?.CurrencyId}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Controller
+                <RHFAutocomplete
                   name="DefaultPaymentMode"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <TextField {...field} select fullWidth label="DEFAULT PAYMENT MODE">
-                      <MenuItem value="">Select...</MenuItem>
-                      {paymentModes.map((mode) => (
-                        <MenuItem key={mode} value={mode}>
-                          {mode}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
+                  label="DEFAULT PAYMENT MODE"
+                  placeholder="Select Payment Mode"
+                  options={paymentModesAPI}
+                  getOptionLabel={(option) => option?.Name || option || ''}
+                  isOptionEqualToValue={(option, value) => option?.PaymentModeId === value?.PaymentModeId || option === value}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
@@ -892,53 +983,53 @@ export default function CustomerForm({ currentData }) {
                 </Grid>
 
                 <Grid item xs={12} md={3}>
-                  <Controller
+                  <RHFAutocomplete
                     name="Warehouse_Country"
-                    control={methods.control}
-                    render={({ field, fieldState: { error } }) => (
-                      <Autocomplete
-                        {...field}
-                        options={countries}
-                        getOptionLabel={(option) => option.Country_Name || ''}
-                        onChange={(event, value) => {
-                          setValue('Warehouse_Country', value);
-                          setValue('Warehouse_City', null);
-                        }}
-                        isOptionEqualToValue={(option, value) => option.Country_ID === value?.Country_ID}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="COUNTRY"
-                            error={!!error}
-                            placeholder="Select country..."
-                          />
+                    label="COUNTRY"
+                    placeholder="Select country..."
+                    options={countries}
+                    getOptionLabel={(option) => option?.Country_Name || ''}
+                    isOptionEqualToValue={(option, value) => option?.Country_ID === value?.Country_ID}
+                    onchange={(newValue) => {
+                      setValue('Warehouse_City', null);
+                      if (newValue) {
+                        getWarehouseCities(newValue.Country_ID);
+                      } else {
+                        setWarehouseCities([]);
+                      }
+                    }}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1, px: 2 }}>
+                        {option?.Country_Code && (
+                          <Iconify icon={`circle-flags:${option.Country_Code.toLowerCase()}`} sx={{ width: 24, height: 24, flexShrink: 0 }} />
                         )}
-                      />
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{option?.Country_Name}</Typography>
+                      </Box>
                     )}
+                    TextFieldProps={{
+                      InputProps: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            {watchedValues?.Warehouse_Country?.Country_Code ? (
+                              <Iconify icon={`circle-flags:${watchedValues.Warehouse_Country.Country_Code.toLowerCase()}`} sx={{ width: 24, height: 24 }} />
+                            ) : (
+                              <Iconify icon="mdi:flag-outline" width={20} sx={{ color: 'text.secondary' }} />
+                            )}
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <Controller
+                  <RHFAutocomplete
                     name="Warehouse_City"
-                    control={methods.control}
-                    render={({ field, fieldState: { error } }) => (
-                      <Autocomplete
-                        {...field}
-                        options={warehouseCities}
-                        getOptionLabel={(option) => option.City_Name || ''}
-                        onChange={(event, value) => setValue('Warehouse_City', value)}
-                        isOptionEqualToValue={(option, value) => option.City_ID === value?.City_ID}
-                        disabled={!watch('Warehouse_Country')}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="CITY"
-                            error={!!error}
-                            placeholder="Select city..."
-                          />
-                        )}
-                      />
-                    )}
+                    label="CITY"
+                    placeholder="Select city..."
+                    options={warehouseCities}
+                    getOptionLabel={(option) => option?.Name || option?.City_Name || ''}
+                    isOptionEqualToValue={(option, value) => (option?.CityId || option?.City_ID) === (value?.CityId || value?.City_ID)}
+                    disabled={!watchedValues.Warehouse_Country}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>

@@ -228,8 +228,8 @@ export default function CustomerOnboardForm({ currentData }) {
   }, []);
 
   const GetCurrencies = useCallback(async () => {
-    const res = await Get('getActiveCurrencies');
-    setCurrencies(res.data || []);
+    const res = await Get('Currency/GetAll');
+    setCurrencies(res.data?.Data || []);
   }, []);
 
   const getAllcustomers = useCallback(async () => {
@@ -314,8 +314,8 @@ export default function CustomerOnboardForm({ currentData }) {
 
   const GetActiveCurrencies = useCallback(async () => {
     try {
-      const response = await Get(`getActiveCurrencies`);
-      setCurrencyList(response.data);
+      const response = await Get('Currency/GetAll');
+      setCurrencyList(response.data?.Data || []);
     } catch (error) {
       console.log(error);
     }
@@ -934,7 +934,7 @@ export default function CustomerOnboardForm({ currentData }) {
           Capacity_per_Month: data?.Capacity_per_Month,
           UOM_ID: data?.Cust_Prod_Cap_Unit_ID?.Unit_ID,
           Trun_Over_Per_Year: data?.Cust_TurnoverPY,
-          Currency_ID: data?.Cust_Turnover_CurrencyID?.Currency_ID,
+          Currency_ID: data?.Cust_Turnover_CurrencyID?.CurrencyId || data?.Cust_Turnover_CurrencyID?.Currency_ID,
           Per_Of_Bus_In_USA: data?.Per_Of_Bus_In_USA.PerOfBusinessInEroupID,
           Business_License_No: data?.Business_License_No,
           Remarks: data?.Remarks,
@@ -1254,7 +1254,8 @@ export default function CustomerOnboardForm({ currentData }) {
                       placeholder="Choose an option"
                       fullWidth
                       options={currencies}
-                      getOptionLabel={(option) => option?.Currency_Name}
+                      getOptionLabel={(option) => option?.Name || option?.Currency_Name || ''}
+                      isOptionEqualToValue={(option, value) => (option?.CurrencyId || option?.Currency_ID) === (value?.CurrencyId || value?.Currency_ID)}
                     />
                   </Grid>
                 </Grid>
@@ -1843,8 +1844,9 @@ export default function CustomerOnboardForm({ currentData }) {
                   fullWidth
                   disabled
                   options={currencyList}
-                  getOptionLabel={(option) => option?.Currency_Name}
-                  value={currencyList?.find((option) => option?.Currency_ID === 1) || null}
+                  getOptionLabel={(option) => option?.Name || option?.Currency_Name || ''}
+                  isOptionEqualToValue={(option, value) => (option?.CurrencyId || option?.Currency_ID) === (value?.CurrencyId || value?.Currency_ID)}
+                  value={currencyList?.find((option) => (option?.CurrencyId || option?.Currency_ID) === 1) || null}
                 />
                 <RHFAutocomplete
                   name="Credit_Limit_ID"
