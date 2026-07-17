@@ -124,19 +124,26 @@ export function useNavData() {
       navItems.push({
         items: [
           {
-            title: t('Powertool'),
+            title: t('Master Data'),
             path: paths.dashboard.Powertool.Customer.root,
+            icon: ICONS.folder,
+            children: [
+              { title: t('Customer'), path: paths.dashboard.Powertool.Customer.root },
+              { title: t('Buying Departments'), path: paths.dashboard.Powertool.BuyingDepartment.root },
+              { title: t('Offices'), path: paths.dashboard.Powertool.Office.root },
+              { title: t('Factories'), path: paths.dashboard.Powertool.Factory.root },
+            ],
+          },
+        ],
+      });
+
+      navItems.push({
+        items: [
+          {
+            title: t('Powertool'),
+            path: paths.dashboard.Powertool.TransactionType.root,
             icon: ICONS.management,
             children: [
-              {
-                title: t('Core Directory'),
-                children: [
-                  { title: t('Customer'), path: paths.dashboard.Powertool.Customer.root },
-                  { title: t('Buying Departments'), path: paths.dashboard.Powertool.BuyingDepartment.root },
-                  { title: t('Offices'), path: paths.dashboard.Powertool.Office.root },
-                  { title: t('Factories'), path: paths.dashboard.Powertool.Factory.root },
-                ],
-              },
               {
                 title: t('Finance & Logistics'),
                 children: [
