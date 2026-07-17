@@ -70,6 +70,7 @@ export const paths = {
       Customer: {
         root: `${ROOTS.DASHBOARD}/powertool/customers`,
         new: `${ROOTS.DASHBOARD}/powertool/customers/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/customers/edit/${id}`,
         view: (id) => `${ROOTS.DASHBOARD}/powertool/customers/view/${id}`,
       },
     },

@@ -41,7 +41,7 @@ import FormProvider, { RHFTextField, RHFAutocomplete } from 'src/components/hook
 import { Get, Post } from 'src/api/apibasemethods';
 import { paths } from 'src/routes/paths';
 
-export default function CustomerForm({ currentData }) {
+export default function CustomerEditForm({ currentData }) {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
@@ -446,8 +446,7 @@ export default function CustomerForm({ currentData }) {
         WarehouseGLNNo: data.Warehouse_GlnNo || '',
         WarehouseVatNo: data.Warehouse_VatNo || '',
 
-        // IsActive: isActive,
-        IsActive: true,
+        IsActive: isActive,
 
         PaymentTerms: paymentTerms.map(pt => ({
           SupplierId: pt.Supplier?.InvitationId || pt.Supplier?.SupplierId || null,
@@ -469,19 +468,17 @@ export default function CustomerForm({ currentData }) {
 
       console.log('Sending Customer Payload:', payload);
 
-      if (currentData?.CustomerID) {
-        // Edit flow (mocked or actual)
-        enqueueSnackbar('Customer details saved successfully!', { variant: 'success' });
-        navigate(paths.dashboard.Powertool.Customer.root);
-      } else {
-        // Create flow
-        const response = await Post('Customer/Create', payload);
+      if (currentData?.CustomerId || currentData?.CustomerID) {
+        payload.CustomerId = currentData.CustomerId || currentData.CustomerID;
+        const response = await Post('Customer/Update', payload);
         if (response.status === 200 || response.status === 201) {
-          enqueueSnackbar('Customer created successfully!', { variant: 'success' });
+          enqueueSnackbar('Customer updated successfully!', { variant: 'success' });
           navigate(paths.dashboard.Powertool.Customer.root);
         } else {
-          enqueueSnackbar(response?.data?.Message || 'Error creating customer', { variant: 'error' });
+          enqueueSnackbar(response?.data?.Message || 'Error updating customer', { variant: 'error' });
         }
+      } else {
+        enqueueSnackbar('Error: No Customer ID found for update.', { variant: 'error' });
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -570,11 +567,11 @@ export default function CustomerForm({ currentData }) {
           </Box>
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>
-              {currentData?.Cust_Name || 'New Customer'}
+              {currentData?.CustomerName || currentData?.Cust_Name || 'Edit Customer'}
             </Typography>
-            {currentData?.CustomerID && (
+            {(currentData?.CustomerId || currentData?.CustomerID) && (
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                ID: {currentData.CustomerID}
+                ID: {currentData?.CustomerId || currentData?.CustomerID}
               </Typography>
             )}
           </Box>
@@ -1294,6 +1291,6 @@ export default function CustomerForm({ currentData }) {
   );
 }
 
-CustomerForm.propTypes = {
+CustomerEditForm.propTypes = {
   currentData: PropTypes.object,
 };

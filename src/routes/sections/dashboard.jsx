@@ -15,7 +15,8 @@ import RegulationsListPage from 'src/pages/dashboard/Regulations/list';
 import RegulationsNewPage from 'src/pages/dashboard/Regulations/new';
 import CustomerListPage from '../../pages/dashboard/Customer/list';
 import CustomerNewPage from '../../pages/dashboard/Customer/new';
-import CustomerDetailPage from '../../pages/dashboard/Customer/view';
+import CustomerDetailPage from 'src/pages/dashboard/Customer/view';
+import CustomerEditPage from 'src/pages/dashboard/Customer/edit';
 
 // ----------------------------------------------------------------------
 
@@ -114,6 +115,14 @@ export const dashboardRoutes = [
             element: (
               <Suspense fallback={<LoadingScreen />}>
                 <CustomerDetailPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'edit/:id',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CustomerEditPage />
               </Suspense>
             ),
           },

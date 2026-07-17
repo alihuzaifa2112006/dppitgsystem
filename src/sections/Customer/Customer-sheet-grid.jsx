@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useSnackbar } from 'src/components/snackbar';
 import { LoadingScreen } from 'src/components/loading-screen';
-import { Get } from 'src/api/apibasemethods';
-import { useSettingsContext } from 'src/components/settings';
+import { Delete, Get } from 'src/api/apibasemethods';
 import {
   Box,
   TextField,
@@ -21,32 +21,235 @@ import {
   Chip,
   TableSortLabel,
   Stack,
-  Autocomplete,
   Grid,
+  Collapse,
+  Button
 } from '@mui/material';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 
-// Fallback Mock Data as requested by screenshots
-const MOCK_CUSTOMERS = [
-  {
-    CustomerID: 10045,
-    CustomerName: 'A. K. MARKETING',
-    ParentGroup: '—',
-    GeoTerritory: '—',
-    CountryName: 'PAKISTAN',
-    CountryCode: 'PK',
-  },
-  {
-    CustomerID: 10046,
-    CustomerName: 'ADOREME INC',
-    ParentGroup: '—',
-    GeoTerritory: '—',
-    CountryName: 'USA',
-    CountryCode: 'US',
-  },
-];
+function Row({ row, handleViewDetails, handleDelete, countryCodeMap }) {
+  const [open, setOpen] = useState(false);
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const [paymentTermsOpen, setPaymentTermsOpen] = useState(false);
+  const countryCode = countryCodeMap[row.CountryName] || '';
+
+  return (
+    <>
+      <TableRow hover sx={{ '& > *': { borderBottom: 'unset', whiteSpace: 'nowrap' } }}>
+        <TableCell>
+          <IconButton size="small" onClick={() => setOpen(!open)}>
+            <Iconify icon={open ? 'eva:arrow-down-fill' : 'eva:arrow-right-fill'} />
+          </IconButton>
+        </TableCell>
+        <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>
+          {row.CustomerName || '-'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.DisplayName || '—'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.CommissionPercent !== undefined ? `${row.CommissionPercent}%` : '—'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.Website || '—'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.Phone || '—'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.TransactionModeName || '—'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.IncotermCode || '—'}
+        </TableCell>
+        <TableCell sx={{ fontSize: '0.875rem' }}>
+          {row.CountryName ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {countryCode && (
+                <Iconify
+                  icon={`circle-flags:${countryCode.toLowerCase()}`}
+                  sx={{ width: 22, height: 22, flexShrink: 0 }}
+                />
+              )}
+              <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                {row.CountryName}
+              </Typography>
+            </Box>
+          ) : (
+            '—'
+          )}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.CityName || '—'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.CurrencyCode || '—'}
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Chip
+            label={row.IsActive ? 'Active' : 'Inactive'}
+            color={row.IsActive ? 'success' : 'error'}
+            size="small"
+            variant="soft"
+            sx={{ fontWeight: 600 }}
+          />
+        </TableCell>
+        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+          {row.CreatedAt ? new Date(row.CreatedAt).toLocaleDateString() : '—'}
+        </TableCell>
+        <TableCell
+          sx={{
+            textAlign: 'center',
+            position: 'sticky',
+            right: 0,
+            bgcolor: 'background.paper',
+            zIndex: 1,
+            boxShadow: (th) => `-2px 0 4px ${th.palette.divider}`,
+          }}
+        >
+          <Tooltip title="Edit customer" arrow>
+            <IconButton
+              size="small"
+              onClick={() => handleViewDetails(row.CustomerId)}
+              sx={{ color: 'primary.main', padding: '4px' }}
+            >
+              <Iconify icon="solar:pen-bold" width={22} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete customer" arrow>
+            <IconButton
+              size="small"
+              onClick={() => handleDelete(row.CustomerId || row.CustomerID)}
+              sx={{ color: 'error.main', padding: '4px' }}
+            >
+              <Iconify icon="solar:trash-bin-trash-bold" width={22} />
+            </IconButton>
+          </Tooltip>
+        </TableCell>
+      </TableRow>
+
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={14}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 2, p: 2, bgcolor: 'background.neutral', borderRadius: 1.5, border: '1px solid', borderColor: 'divider', overflowX: 'hidden' }}>
+              <Stack spacing={2}>
+                <Box>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ cursor: 'pointer', display: 'inline-flex' }} onClick={() => setContactsOpen(!contactsOpen)}>
+                    <IconButton size="small">
+                      <Iconify icon={contactsOpen ? 'eva:arrow-down-fill' : 'eva:arrow-right-fill'} />
+                    </IconButton>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                      Contacts
+                    </Typography>
+                  </Stack>
+                  <Collapse in={contactsOpen} timeout="auto" unmountOnExit>
+                    <Box sx={{ mt: 1, pl: 4 }}>
+                      {row.Contacts && row.Contacts.length > 0 ? (
+                        <TableContainer sx={{ maxHeight: 160, overflowY: 'auto', overflowX: 'hidden', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: 'max-content', minWidth: '50%' }}>
+                            <TableHead>
+                              <TableRow>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Name</TableCell>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Designation</TableCell>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Cell No</TableCell>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Email</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {row.Contacts.map((c, i) => (
+                                <TableRow key={c.ContactId || i}>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.Name || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.Designation || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.CellNo || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.Email || '-'}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">No contacts available.</Typography>
+                      )}
+                    </Box>
+                  </Collapse>
+                </Box>
+
+                <Box>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ cursor: 'pointer', display: 'inline-flex' }} onClick={() => setPaymentTermsOpen(!paymentTermsOpen)}>
+                    <IconButton size="small">
+                      <Iconify icon={paymentTermsOpen ? 'eva:arrow-down-fill' : 'eva:arrow-right-fill'} />
+                    </IconButton>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                      Payment Terms
+                    </Typography>
+                  </Stack>
+                  <Collapse in={paymentTermsOpen} timeout="auto" unmountOnExit>
+                    <Box sx={{ mt: 1, pl: 4 }}>
+                      {row.PaymentTerms && row.PaymentTerms.length > 0 ? (
+                        <TableContainer sx={{ maxHeight: 160, overflowY: 'auto', overflowX: 'hidden', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: 'max-content', minWidth: '50%' }}>
+                            <TableHead>
+                              <TableRow>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Term</TableCell>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Days</TableCell>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Supplier</TableCell>
+                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Mode</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {row.PaymentTerms.map((pt, i) => (
+                                <TableRow key={pt.PaymentTermId || i}>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.Term || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.DueDays || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.SupplierName || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.PaymentModeName || '-'}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">No payment terms available.</Typography>
+                      )}
+                    </Box>
+                  </Collapse>
+                </Box>
+              </Stack>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+}
+
+Row.propTypes = {
+  row: PropTypes.shape({
+    CustomerId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    CustomerID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    CustomerName: PropTypes.string,
+    DisplayName: PropTypes.string,
+    CommissionPercent: PropTypes.number,
+    Website: PropTypes.string,
+    Phone: PropTypes.string,
+    TransactionModeName: PropTypes.string,
+    IncotermCode: PropTypes.string,
+    CountryName: PropTypes.string,
+    CountryCode: PropTypes.string,
+    CityName: PropTypes.string,
+    CurrencyCode: PropTypes.string,
+    IsActive: PropTypes.bool,
+    CreatedAt: PropTypes.string,
+    Contacts: PropTypes.array,
+    PaymentTerms: PropTypes.array,
+  }).isRequired,
+  handleViewDetails: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func.isRequired,
+  countryCodeMap: PropTypes.object.isRequired,
+};
 
 export default function CustomerGrid() {
   const { enqueueSnackbar } = useSnackbar();
@@ -55,15 +258,15 @@ export default function CustomerGrid() {
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
-  const [selectedCountries, setSelectedCountries] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('CustomerName');
 
+  const [deleteId, setDeleteId] = useState(null);
   const [countryOptions, setCountryOptions] = useState([]);
 
-  // Fetch Country Options
+  // Fetch Country Options to get flags
   const fetchCountryOptions = useCallback(async () => {
     try {
       const res = await Get('Country/GetAll');
@@ -79,32 +282,17 @@ export default function CustomerGrid() {
   const fetchCustomerData = useCallback(async () => {
     try {
       setLoading(true);
-      const userDataStr = localStorage.getItem('UserData');
-      const userData = userDataStr ? JSON.parse(userDataStr) : null;
-      const orgId = userData?.Data?.userDetails?.orgId || userData?.userDetails?.orgId || 0;
-      const branchId = userData?.Data?.userDetails?.branchID || userData?.userDetails?.branchID || 0;
+      const response = await Get(`Customer/GetAll`);
 
-      const response = await Get(`getAllcustomers?orgId=${orgId}&branchId=${branchId}`);
-
-      if (response.status === 200 && response.data?.Data?.length > 0) {
-        // Map API response to match our columns
-        const customers = response.data?.Data.map((c) => ({
-          CustomerID: c.Cust_ID || c.WIC_ID || 0,
-          CustomerName: c.Cust_Name || c.WIC_Name || 'N/A',
-          ParentGroup: c.ParentGroup || '—',
-          GeoTerritory: c.GeoTerritory || '—',
-          CountryName: c.Country_Name || '—',
-          CountryCode: c.Country_Code || '',
-        }));
+      if (response.status === 200 && response.data?.Success) {
+        const customers = response.data.Data || [];
         setReportData(customers);
       } else {
-        // Fallback to Mock Data to ensure it matches the user's screenshot
-        setReportData(MOCK_CUSTOMERS);
+        setReportData([]);
       }
     } catch (error) {
       console.error('Error fetching customer data:', error);
-      // Fallback to Mock Data on API failure
-      setReportData(MOCK_CUSTOMERS);
+      setReportData([]);
     } finally {
       setLoading(false);
     }
@@ -115,17 +303,20 @@ export default function CustomerGrid() {
     fetchCountryOptions();
   }, [fetchCustomerData, fetchCountryOptions]);
 
+  // Build a lookup map: Country_Name -> Country_Code
+  const countryCodeMap = useMemo(() => {
+    const map = {};
+    countryOptions.forEach((c) => {
+      if (c.Country_Name && c.Country_Code) {
+        map[c.Country_Name] = c.Country_Code;
+      }
+    });
+    return map;
+  }, [countryOptions]);
+
   // Filter Data
   const filteredData = useMemo(() => {
     let filtered = reportData;
-
-    // Filter by multiple countries
-    if (selectedCountries.length > 0) {
-      const selectedCountryNames = selectedCountries.map((c) => c.Country_Name.toLowerCase());
-      filtered = filtered.filter((item) =>
-        item.CountryName && selectedCountryNames.includes(item.CountryName.toLowerCase())
-      );
-    }
 
     if (searchText) {
       const lowerSearch = searchText.toLowerCase();
@@ -140,7 +331,7 @@ export default function CustomerGrid() {
     }
 
     return filtered;
-  }, [reportData, searchText, selectedCountries]);
+  }, [reportData, searchText]);
 
   // Sort Data
   const sortedData = useMemo(() => {
@@ -185,7 +376,24 @@ export default function CustomerGrid() {
   };
 
   const handleViewDetails = (id) => {
-    navigate(paths.dashboard.Powertool.Customer.view(id));
+    navigate(paths.dashboard.Powertool.Customer.edit(id));
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const response = await Delete(`Customer/Delete?id=${deleteId}`);
+      if (response.status === 200) {
+        enqueueSnackbar('Customer deleted successfully', { variant: 'success' });
+        fetchCustomerData();
+      } else {
+        enqueueSnackbar('Error deleting customer', { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+      enqueueSnackbar('Error deleting customer', { variant: 'error' });
+    }
+    setDeleteId(null);
   };
 
   if (loading) {
@@ -205,91 +413,11 @@ export default function CustomerGrid() {
         }}
       >
         <Grid container spacing={2} alignItems="center">
-          {/* Country Filter */}
-          <Grid item xs={12} md={3}>
-            <Autocomplete
-              multiple
-              value={selectedCountries}
-              onChange={(event, newValue) => {
-                setSelectedCountries(newValue);
-                setPage(0);
-              }}
-              options={countryOptions}
-              getOptionLabel={(option) => option.Country_Name || ''}
-              isOptionEqualToValue={(option, value) => option.Country_ID === value?.Country_ID}
-              renderOption={(props, option) => (
-                <Box component="li" sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75 }} {...props}>
-                  {option.Country_Code && (
-                    <Iconify
-                      icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
-                      sx={{ width: 22, height: 22, flexShrink: 0 }}
-                    />
-                  )}
-                  <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                    {option.Country_Name}
-                  </Typography>
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="All Countries"
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                      minHeight: '48px',
-                      '&:hover fieldset': { borderColor: 'primary.main' },
-                      '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' },
-                    },
-                  }}
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: (
-                      <>
-                        {selectedCountries.length === 0 ? (
-                          <InputAdornment position="start">
-                            <Iconify icon="mdi:earth" width={20} sx={{ color: 'text.secondary', ml: 0.5 }} />
-                          </InputAdornment>
-                        ) : null}
-                        {params.InputProps.startAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-              clearIcon={<Iconify icon="eva:close-fill" width={18} sx={{ color: 'text.secondary' }} />}
-              sx={{ width: '100%' }}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option.Country_ID}
-                    icon={
-                      option.Country_Code ? (
-                        <Iconify
-                          icon={`circle-flags:${option.Country_Code.toLowerCase()}`}
-                          sx={{ width: 16, height: 16 }}
-                        />
-                      ) : undefined
-                    }
-                    label={option.Country_Name}
-                    size="small"
-                    color="primary"
-                    variant="soft"
-                    sx={{ fontWeight: 500, borderRadius: '6px' }}
-                  />
-                ))
-              }
-            />
-          </Grid>
-
           {/* Search Field */}
-          <Grid item xs={12} md={9}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
-              placeholder="Search customers by name, parent group, geo territory, or country..."
+              placeholder="Search customers by name, city, country..."
               variant="outlined"
               size="medium"
               value={searchText}
@@ -338,6 +466,27 @@ export default function CustomerGrid() {
             />
           </Grid>
         </Grid>
+
+        {searchText && (
+          <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap', gap: 1 }}>
+            <Chip
+              label={`Search: "${searchText}"`}
+              onDelete={() => setSearchText('')}
+              deleteIcon={<Iconify icon="eva:close-fill" width={16} sx={{ color: 'white !important' }} />}
+              size="small"
+              color="primary"
+              variant="filled"
+              sx={{ fontWeight: 500, borderRadius: '6px', color: 'white' }}
+            />
+            <Chip
+              label={`${filteredData.length} results`}
+              size="small"
+              color="primary"
+              variant="outlined"
+              sx={{ fontWeight: 500, borderRadius: '6px' }}
+            />
+          </Stack>
+        )}
       </Paper>
 
       {/* Table */}
@@ -349,23 +498,48 @@ export default function CustomerGrid() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
         }}
       >
-        <TableContainer sx={{ maxHeight: 500, overflowY: 'auto' }}>
-          <Table stickyHeader>
+        <TableContainer sx={{ maxHeight: 600, overflowY: 'auto' }}>
+          <Table stickyHeader sx={{ minWidth: 1600 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', width: 40 }} />
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                   <TableSortLabel active={orderBy === 'CustomerName'} direction={order} onClick={() => handleSort('CustomerName')} hideSortIcon>
                     CUSTOMER
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem' }}>
-                  PARENT GROUP
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  DISPLAY NAME
                 </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem' }}>
-                  GEO TERRITORY
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  COMMISSION %
                 </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem' }}>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  WEBSITE
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  PHONE
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  TRANSACTION MODE
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  INCOTERM
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                   COUNTRY
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  CITY
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  CURRENCY
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  STATUS
+                </TableCell>
+                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                  CREATED AT
                 </TableCell>
                 <TableCell sx={{
                   backgroundColor: 'background.neutral',
@@ -384,73 +558,9 @@ export default function CustomerGrid() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedData.map((row, index) => {
-                const countryCode = row.CountryCode || '';
-
-                return (
-                  <TableRow
-                    key={row.CustomerID || index}
-                    hover
-                    sx={{ '&:last-child td': { borderBottom: 0 } }}
-                  >
-                    {/* CUSTOMER NAME */}
-                    <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>
-                      {row.CustomerName || '-'}
-                    </TableCell>
-
-                    {/* PARENT GROUP */}
-                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-                      {row.ParentGroup || '—'}
-                    </TableCell>
-
-                    {/* GEO TERRITORY */}
-                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-                      {row.GeoTerritory || '—'}
-                    </TableCell>
-
-                    {/* COUNTRY */}
-                    <TableCell sx={{ fontSize: '0.875rem' }}>
-                      {row.CountryName ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {countryCode && (
-                            <Iconify
-                              icon={`circle-flags:${countryCode.toLowerCase()}`}
-                              sx={{ width: 22, height: 22, flexShrink: 0 }}
-                            />
-                          )}
-                          <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                            {row.CountryName}
-                          </Typography>
-                        </Box>
-                      ) : (
-                        '—'
-                      )}
-                    </TableCell>
-
-                    {/* ACTIONS (Eye Icon for full page detail view) */}
-                    <TableCell
-                      sx={{
-                        textAlign: 'center',
-                        position: 'sticky',
-                        right: 0,
-                        bgcolor: 'background.paper',
-                        zIndex: 1,
-                        boxShadow: (th) => `-2px 0 4px ${th.palette.divider}`,
-                      }}
-                    >
-                      <Tooltip title="View customer details" arrow>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleViewDetails(row.CustomerID)}
-                          sx={{ color: 'primary.main', padding: '4px' }}
-                        >
-                          <Iconify icon="solar:eye-bold" width={22} />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {paginatedData.map((row, index) => (
+                <Row key={row.CustomerId || index} row={row} handleViewDetails={handleViewDetails} handleDelete={(id) => setDeleteId(id)} countryCodeMap={countryCodeMap} />
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
@@ -465,6 +575,18 @@ export default function CustomerGrid() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        title="Delete Customer"
+        content="Are you sure you want to delete this customer? This action cannot be undone."
+        action={
+          <Button variant="contained" color="error" onClick={confirmDelete}>
+            Delete
+          </Button>
+        }
+      />
     </Box>
   );
 }
