@@ -735,7 +735,7 @@ export default function CustomerEditForm({ currentData }) {
                   label="DEFAULT CURRENCY"
                   placeholder="Select Currency"
                   options={currencies}
-                  getOptionLabel={(option) => option?.Name || ''}
+                  getOptionLabel={(option) => option?.Code || option?.CurrencyCode || option?.Name || ''}
                   isOptionEqualToValue={(option, value) => option?.CurrencyId === value?.CurrencyId}
                 />
               </Grid>
@@ -765,7 +765,7 @@ export default function CustomerEditForm({ currentData }) {
                   label="DEFAULT PAYMENT TERM"
                   placeholder="Select Payment Term"
                   options={paymentTermsAPI}
-                  getOptionLabel={(option) => option?.Name || option || ''}
+                  getOptionLabel={(option) => option?.Term || option?.Name || option || ''}
                   isOptionEqualToValue={(option, value) => option?.PaymentTermId === value?.PaymentTermId || option === value}
                 />
               </Grid>
