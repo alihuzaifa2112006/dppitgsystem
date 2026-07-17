@@ -23,7 +23,9 @@ import {
   Stack,
   Grid,
   Collapse,
-  Button
+  Button,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Iconify from 'src/components/iconify';
@@ -262,7 +264,8 @@ export default function CustomerGrid() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('CustomerName');
-
+  
+  const [filterStatus, setFilterStatus] = useState('All');
   const [deleteId, setDeleteId] = useState(null);
   const [countryOptions, setCountryOptions] = useState([]);
 
@@ -318,6 +321,12 @@ export default function CustomerGrid() {
   const filteredData = useMemo(() => {
     let filtered = reportData;
 
+    if (filterStatus === 'Active') {
+      filtered = filtered.filter((item) => item.IsActive === true);
+    } else if (filterStatus === 'Inactive') {
+      filtered = filtered.filter((item) => item.IsActive === false);
+    }
+
     if (searchText) {
       const lowerSearch = searchText.toLowerCase();
       filtered = filtered.filter((item) =>
@@ -331,7 +340,7 @@ export default function CustomerGrid() {
     }
 
     return filtered;
-  }, [reportData, searchText]);
+  }, [reportData, searchText, filterStatus]);
 
   // Sort Data
   const sortedData = useMemo(() => {
@@ -406,8 +415,8 @@ export default function CustomerGrid() {
         elevation={0}
         sx={{
           p: 2.5,
-          mb: 2,
-          borderRadius: '12px',
+          mb: 0,
+          borderRadius: '12px 12px 0 0',
           border: '1px solid',
           borderColor: 'divider',
         }}
@@ -487,6 +496,76 @@ export default function CustomerGrid() {
             />
           </Stack>
         )}
+      </Paper>
+
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2,
+          mt: 0,
+          borderRadius: '0 0 12px 12px',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderTop: 0,
+          overflow: 'hidden',
+        }}
+      >
+        <Tabs
+          value={filterStatus}
+          onChange={(_, val) => { setFilterStatus(val); setPage(0); }}
+          sx={{
+            px: 2,
+            '& .MuiTabs-indicator': {
+              height: 3,
+              borderRadius: '3px 3px 0 0',
+            },
+            '& .MuiTab-root': {
+              minHeight: 48,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              textTransform: 'none',
+              color: 'text.secondary',
+              '&.Mui-selected': { color: 'primary.main' },
+            },
+          }}
+        >
+          <Tab
+            value="All"
+            label={
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Iconify icon="mdi:view-list-outline" width={18} />
+                <span>All</span>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'inherit', lineHeight: 1 }}>
+                  ({reportData.length})
+                </Typography>
+              </Stack>
+            }
+          />
+          <Tab
+            value="Active"
+            label={
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Iconify icon="mdi:check-circle-outline" width={18} />
+                <span>Active</span>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'inherit', lineHeight: 1 }}>
+                  ({reportData.filter(r => r.IsActive).length})
+                </Typography>
+              </Stack>
+            }
+          />
+          <Tab
+            value="Inactive"
+            label={
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Iconify icon="mdi:close-circle-outline" width={18} />
+                <span>Inactive</span>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'inherit', lineHeight: 1 }}>
+                  ({reportData.filter(r => !r.IsActive).length})
+                </Typography>
+              </Stack>
+            }
+          />
+        </Tabs>
       </Paper>
 
       {/* Table */}
