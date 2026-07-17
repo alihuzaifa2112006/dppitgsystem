@@ -151,7 +151,7 @@ function Row({ row, handleViewDetails, handleDelete, countryCodeMap }) {
                     <Box sx={{ mt: 1, pl: 4 }}>
                       {row.Contacts && row.Contacts.length > 0 ? (
                         <TableContainer sx={{ maxHeight: 160, overflowY: 'auto', overflowX: 'hidden', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: 'max-content', minWidth: '50%' }}>
+                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: '100%' }}>
                             <TableHead>
                               <TableRow>
                                 <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Name</TableCell>
@@ -192,7 +192,7 @@ function Row({ row, handleViewDetails, handleDelete, countryCodeMap }) {
                     <Box sx={{ mt: 1, pl: 4 }}>
                       {row.PaymentTerms && row.PaymentTerms.length > 0 ? (
                         <TableContainer sx={{ maxHeight: 160, overflowY: 'auto', overflowX: 'hidden', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: 'max-content', minWidth: '50%' }}>
+                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: '100%' }}>
                             <TableHead>
                               <TableRow>
                                 <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Term</TableCell>
