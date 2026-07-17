@@ -132,6 +132,42 @@ export function useNavData() {
                 title: t('Customer'),
                 path: paths.dashboard.Powertool.Customer.root,
               },
+              {
+                title: t('Offices'),
+                path: paths.dashboard.Powertool.Office.root,
+              },
+              {
+                title: t('Factories'),
+                path: paths.dashboard.Powertool.Factory.root,
+              },
+              {
+                title: t('Transaction Types'),
+                path: paths.dashboard.Powertool.TransactionType.root,
+              },
+              {
+                title: t('Payment Terms'),
+                path: paths.dashboard.Powertool.PaymentTerm.root,
+              },
+              {
+                title: t('Payment Modes'),
+                path: paths.dashboard.Powertool.PaymentMode.root,
+              },
+              {
+                title: t('Incoterms'),
+                path: paths.dashboard.Powertool.Incoterm.root,
+              },
+              {
+                title: t('Transport Modes'),
+                path: paths.dashboard.Powertool.TransportMode.root,
+              },
+              {
+                title: t('Composition'),
+                path: paths.dashboard.Powertool.Composition.root,
+              },
+              {
+                title: t('Buying Departments'),
+                path: paths.dashboard.Powertool.BuyingDepartment.root,
+              },
             ],
           },
         ],

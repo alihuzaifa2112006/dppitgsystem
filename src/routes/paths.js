@@ -73,6 +73,51 @@ export const paths = {
         edit: (id) => `${ROOTS.DASHBOARD}/powertool/customers/edit/${id}`,
         view: (id) => `${ROOTS.DASHBOARD}/powertool/customers/view/${id}`,
       },
+      Office: {
+        root: `${ROOTS.DASHBOARD}/powertool/offices`,
+        new: `${ROOTS.DASHBOARD}/powertool/offices/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/offices/edit/${id}`,
+      },
+      Factory: {
+        root: `${ROOTS.DASHBOARD}/powertool/factories`,
+        new: `${ROOTS.DASHBOARD}/powertool/factories/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/factories/edit/${id}`,
+      },
+      TransactionType: {
+        root: `${ROOTS.DASHBOARD}/powertool/transaction-types`,
+        new: `${ROOTS.DASHBOARD}/powertool/transaction-types/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/transaction-types/edit/${id}`,
+      },
+      PaymentTerm: {
+        root: `${ROOTS.DASHBOARD}/powertool/payment-terms`,
+        new: `${ROOTS.DASHBOARD}/powertool/payment-terms/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/payment-terms/edit/${id}`,
+      },
+      PaymentMode: {
+        root: `${ROOTS.DASHBOARD}/powertool/payment-modes`,
+        new: `${ROOTS.DASHBOARD}/powertool/payment-modes/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/payment-modes/edit/${id}`,
+      },
+      Incoterm: {
+        root: `${ROOTS.DASHBOARD}/powertool/incoterms`,
+        new: `${ROOTS.DASHBOARD}/powertool/incoterms/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/incoterms/edit/${id}`,
+      },
+      TransportMode: {
+        root: `${ROOTS.DASHBOARD}/powertool/transport-modes`,
+        new: `${ROOTS.DASHBOARD}/powertool/transport-modes/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/transport-modes/edit/${id}`,
+      },
+      Composition: {
+        root: `${ROOTS.DASHBOARD}/powertool/composition`,
+        new: `${ROOTS.DASHBOARD}/powertool/composition/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/composition/edit/${id}`,
+      },
+      BuyingDepartment: {
+        root: `${ROOTS.DASHBOARD}/powertool/buying-departments`,
+        new: `${ROOTS.DASHBOARD}/powertool/buying-departments/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/buying-departments/edit/${id}`,
+      },
     },
     Settings: {
       root: `${ROOTS.DASHBOARD}/settings`,
