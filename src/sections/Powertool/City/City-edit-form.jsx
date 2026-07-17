@@ -14,7 +14,7 @@ import {
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useSnackbar } from 'src/components/snackbar';
 import { useSettingsContext } from 'src/components/settings';
-import FormProvider, { RHFAutocomplete, RHFTextField, RHFSwitch } from 'src/components/hook-form';
+import FormProvider, { RHFAutocomplete, RHFTextField } from 'src/components/hook-form';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { LoadingScreen } from 'src/components/loading-screen';
 import { paths } from 'src/routes/paths';
@@ -32,8 +32,6 @@ export default function CityEditForm() {
   const CitySchema = Yup.object().shape({
     Country: Yup.object().nullable().required('Country is required'),
     CityName: Yup.string().required('City Name is required'),
-    SortOrder: Yup.number().required('Sort Order is required').typeError('Must be a number'),
-    IsActive: Yup.boolean(),
   });
 
   const methods = useForm({
@@ -41,8 +39,6 @@ export default function CityEditForm() {
     defaultValues: {
       Country: null,
       CityName: '',
-      SortOrder: 0,
-      IsActive: true,
     },
   });
 
@@ -77,8 +73,6 @@ export default function CityEditForm() {
           reset({
             Country: matchedCountry || null,
             CityName: cityData.Name || cityData.City_Name || '',
-            SortOrder: cityData.SortOrder || 0,
-            IsActive: cityData.IsActive !== undefined ? cityData.IsActive : true,
           });
         }
       } catch (error) {
@@ -105,8 +99,8 @@ export default function CityEditForm() {
       CityId: parseInt(id, 10),
       Name: data.CityName,
       CountryID: countryId,
-      SortOrder: parseInt(data.SortOrder, 10),
-      IsActive: data.IsActive,
+      SortOrder: 0,
+      IsActive: true,
     };
 
     try {
@@ -166,25 +160,6 @@ export default function CityEditForm() {
                 name="CityName"
                 label="City Name *"
                 placeholder="e.g. Multan, Quetta..."
-              />
-            </Grid>
-
-            {/* SORT ORDER */}
-            <Grid item xs={12} md={6}>
-              <RHFTextField
-                name="SortOrder"
-                label="Sort Order *"
-                type="number"
-                placeholder="e.g. 1"
-              />
-            </Grid>
-
-            {/* STATUS SWITCH */}
-            <Grid item xs={12} md={6}>
-              <RHFSwitch
-                name="IsActive"
-                label="Is Active"
-                sx={{ m: 0 }}
               />
             </Grid>
           </Grid>
