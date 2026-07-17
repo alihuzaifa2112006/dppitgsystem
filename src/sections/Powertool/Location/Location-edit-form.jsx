@@ -15,11 +15,11 @@ import {
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useSnackbar } from 'src/components/snackbar';
 import { useSettingsContext } from 'src/components/settings';
-import FormProvider, { RHFAutocomplete, RHFTextField } from 'src/components/hook-form';
+import FormProvider, { RHFAutocomplete, RHFTextField, RHFSwitch } from 'src/components/hook-form';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { LoadingScreen } from 'src/components/loading-screen';
 import { paths } from 'src/routes/paths';
-import { Get, Post } from 'src/api/apibasemethods';
+import { Get, Put } from 'src/api/apibasemethods';
 
 export default function LocationEditForm() {
   const { id } = useParams();
@@ -33,6 +33,8 @@ export default function LocationEditForm() {
   const CountrySchema = Yup.object().shape({
     Continent: Yup.object().nullable().required('Continent is required'),
     CountryName: Yup.string().required('Country Name is required'),
+    CountryCode: Yup.string().required('Country Code is required'),
+    IsActive: Yup.boolean(),
   });
 
   const methods = useForm({
@@ -40,6 +42,8 @@ export default function LocationEditForm() {
     defaultValues: {
       Continent: null,
       CountryName: '',
+      CountryCode: '',
+      IsActive: true,
     },
   });
 
@@ -62,13 +66,20 @@ export default function LocationEditForm() {
         if (countryRes.status === 200) {
           const countryData = countryRes?.data?.Data || countryRes?.data || {};
           
-          const matchedContinent = contList.find(
-            (c) => (c.Continent_ID || c.Id) === (countryData.ContinentId || countryData.Continent_ID)
-          );
+          const matchedContinent = contList.find((c) => {
+            const listId = c.Continent_ID || c.ContinentId || c.Id;
+            const dataId = countryData.ContinentId || countryData.Continent_ID;
+            if (listId !== undefined && dataId !== undefined && listId === dataId) return true;
+            const listName = c.Continent_Name || c.Name;
+            const dataName = countryData.ContinentName || countryData.Continent_Name;
+            return listName && dataName && listName === dataName;
+          });
 
           reset({
             Continent: matchedContinent || null,
             CountryName: countryData.Country_Name || countryData.Name || '',
+            CountryCode: countryData.Country_Code || '',
+            IsActive: countryData.IsActive !== undefined ? countryData.IsActive : true,
           });
         }
       } catch (error) {
@@ -92,13 +103,15 @@ export default function LocationEditForm() {
     }
 
     const payload = {
-      Id: parseInt(id, 10),
+      Country_ID: parseInt(id, 10),
       ContinentId: continentId,
-      CountryName: data.CountryName,
+      Country_Name: data.CountryName,
+      Country_Code: data.CountryCode,
+      IsActive: data.IsActive,
     };
 
     try {
-      const response = await Post('Country/Update', payload);
+      const response = await Put('Country/Update', payload);
       if (response.status === 200) {
         enqueueSnackbar('Country updated successfully!');
         navigate(paths.dashboard.Powertool.Location.root);
@@ -154,6 +167,24 @@ export default function LocationEditForm() {
                 name="CountryName"
                 label="Country Name *"
                 placeholder="e.g. Argentina, Chile..."
+              />
+            </Grid>
+
+            {/* EDIT COUNTRY CODE */}
+            <Grid item xs={12} md={6}>
+              <RHFTextField
+                name="CountryCode"
+                label="Country Code *"
+                placeholder="e.g. AR, CL..."
+              />
+            </Grid>
+
+            {/* STATUS SWITCH */}
+            <Grid item xs={12} md={6}>
+              <RHFSwitch
+                name="IsActive"
+                label="Is Active"
+                sx={{ m: 0 }}
               />
             </Grid>
           </Grid>

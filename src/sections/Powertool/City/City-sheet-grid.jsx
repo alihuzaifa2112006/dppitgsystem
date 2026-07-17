@@ -14,9 +14,12 @@ import {
   Grid,
   Autocomplete,
   Tooltip,
+  IconButton,
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { Get } from 'src/api/apibasemethods';
+import { RouterLink } from 'src/routes/components';
+import { paths } from 'src/routes/paths';
 
 export default function CitySheetGrid() {
   const [searchText, setSearchText] = useState('');
@@ -154,7 +157,11 @@ export default function CitySheetGrid() {
                         </span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell align="right">-</TableCell>
+                    <TableCell align="right">
+                      <IconButton component={RouterLink} href={paths.dashboard.Powertool.City.edit(city?.CityId || city?.City_ID || city?.Id || 0)}>
+                        <Iconify icon="solar:pen-bold" />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
