@@ -123,7 +123,7 @@ export default function PaymentTermSheetGrid() {
 
       {/* Table */}
       <Paper sx={{ width: '100%', borderRadius: 3, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-        <TableContainer>
+        <TableContainer sx={{ maxHeight: 380, overflowY: 'auto' }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>

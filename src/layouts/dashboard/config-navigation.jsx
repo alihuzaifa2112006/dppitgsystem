@@ -165,7 +165,7 @@ export function useNavData() {
                 path: paths.dashboard.Powertool.Composition.root,
               },
               {
-                title: t('Buying Departments'),
+                title: t('Banks'), path: paths.dashboard.Powertool.Bank.root }, { title: t('Countries'), path: paths.dashboard.Powertool.Location.root }, { title: t('Buying Departments'),
                 path: paths.dashboard.Powertool.BuyingDepartment.root,
               },
             ],

@@ -53,6 +53,12 @@ const TransportModeEditPage = lazy(() => import('src/pages/dashboard/Powertool/T
 const CompositionListPage = lazy(() => import('src/pages/dashboard/Powertool/Composition/list'));
 const CompositionNewPage = lazy(() => import('src/pages/dashboard/Powertool/Composition/new'));
 const CompositionEditPage = lazy(() => import('src/pages/dashboard/Powertool/Composition/edit'));
+const BankListPage = lazy(() => import('src/pages/dashboard/Powertool/Bank/list'));
+const BankNewPage = lazy(() => import('src/pages/dashboard/Powertool/Bank/new'));
+const BankEditPage = lazy(() => import('src/pages/dashboard/Powertool/Bank/edit'));
+const LocationListPage = lazy(() => import('src/pages/dashboard/Powertool/Location/list'));
+const LocationNewPage = lazy(() => import('src/pages/dashboard/Powertool/Location/new'));
+const LocationEditPage = lazy(() => import('src/pages/dashboard/Powertool/Location/edit'));
 const BuyingDepartmentListPage = lazy(() => import('src/pages/dashboard/Powertool/BuyingDepartment/list'));
 const BuyingDepartmentNewPage = lazy(() => import('src/pages/dashboard/Powertool/BuyingDepartment/new'));
 const BuyingDepartmentEditPage = lazy(() => import('src/pages/dashboard/Powertool/BuyingDepartment/edit'));
@@ -388,6 +394,35 @@ export const dashboardRoutes = [
           },
         ],
       },
+        {
+        path: 'powertool/locations',
+        children: [
+          {
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <LocationListPage />
+              </Suspense>
+            ),
+            index: true,
+          },
+          {
+            path: 'new',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <LocationNewPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'edit/:id',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <LocationEditPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
       {
         path: 'powertool/buying-departments',
         children: [
@@ -412,6 +447,35 @@ export const dashboardRoutes = [
             element: (
               <Suspense fallback={<LoadingScreen />}>
                 <BuyingDepartmentEditPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
+      {
+        path: 'powertool/banks',
+        children: [
+          {
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <BankListPage />
+              </Suspense>
+            ),
+            index: true,
+          },
+          {
+            path: 'new',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <BankNewPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'edit/:id',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <BankEditPage />
               </Suspense>
             ),
           },

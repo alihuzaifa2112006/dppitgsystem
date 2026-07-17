@@ -113,6 +113,16 @@ export const paths = {
         new: `${ROOTS.DASHBOARD}/powertool/composition/new`,
         edit: (id) => `${ROOTS.DASHBOARD}/powertool/composition/edit/${id}`,
       },
+            Bank: {
+        root: `${ROOTS.DASHBOARD}/powertool/banks`,
+        new: `${ROOTS.DASHBOARD}/powertool/banks/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/banks/edit/${id}`,
+      },
+            Location: {
+        root: `${ROOTS.DASHBOARD}/powertool/locations`,
+        new: `${ROOTS.DASHBOARD}/powertool/locations/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/locations/edit/${id}`,
+      },
       BuyingDepartment: {
         root: `${ROOTS.DASHBOARD}/powertool/buying-departments`,
         new: `${ROOTS.DASHBOARD}/powertool/buying-departments/new`,

@@ -577,7 +577,7 @@ export default function CustomerGrid() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
         }}
       >
-        <TableContainer sx={{ maxHeight: 600, overflowY: 'auto' }}>
+        <TableContainer sx={{ maxHeight: 380, overflowY: 'auto' }}>
           <Table stickyHeader sx={{ minWidth: 1600 }}>
             <TableHead>
               <TableRow>
