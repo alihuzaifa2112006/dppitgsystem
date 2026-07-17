@@ -150,7 +150,7 @@ export function useNavData() {
                 ],
               },
               {
-                title: t('Localization'),
+                title: t('Locations'),
                 children: [
                   { title: t('Countries'), path: paths.dashboard.Powertool.Location.root },
                   { title: t('Cities'), path: paths.dashboard.Powertool.City.root },
