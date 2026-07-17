@@ -17,6 +17,7 @@ import { useSnackbar } from 'src/components/snackbar';
 import { useSettingsContext } from 'src/components/settings';
 import FormProvider, { RHFAutocomplete, RHFTextField } from 'src/components/hook-form';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
+import { LoadingScreen } from 'src/components/loading-screen';
 import { paths } from 'src/routes/paths';
 import { Get, Post } from 'src/api/apibasemethods';
 
@@ -111,11 +112,7 @@ export default function LocationEditForm() {
   });
 
   if (loading) {
-    return (
-      <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-        <Typography>Loading Country Data...</Typography>
-      </Container>
-    );
+    return <LoadingScreen />;
   }
 
   return (

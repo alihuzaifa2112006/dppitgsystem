@@ -13,6 +13,7 @@ import {
   Card,
   Grid,
   Autocomplete,
+  Tooltip,
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { Get } from 'src/api/apibasemethods';
@@ -22,49 +23,49 @@ export default function CitySheetGrid() {
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [cities, setCities] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch Countries on load
+  // Fetch Cities and Countries on load
   useEffect(() => {
-    const fetchCountries = async () => {
+    const fetchData = async () => {
       try {
-        const res = await Get('Country/GetAll');
-        if (res.status === 200) {
-          setCountries(res?.data?.Data || []);
+        const [cityRes, countryRes] = await Promise.all([
+          Get('City/GetAll'),
+          Get('Country/GetAll')
+        ]);
+        
+        if (cityRes.status === 200) {
+          setCities(cityRes?.data?.Data || cityRes?.data || []);
+        }
+        if (countryRes.status === 200) {
+          setCountries(countryRes?.data?.Data || []);
         }
       } catch (error) {
-        console.error('Error fetching countries:', error);
-      }
-    };
-    fetchCountries();
-  }, []);
-
-  // Fetch Cities when a country is selected
-  useEffect(() => {
-    const fetchCities = async () => {
-      if (!selectedCountry) {
-        setCities([]);
-        return;
-      }
-      setLoading(true);
-      try {
-        const countryId = selectedCountry?.Country_ID || selectedCountry?.Id || selectedCountry?.CountryId;
-        const res = await Get(`City/GetByCountry?countryId=${countryId}`);
-        if (res.status === 200) {
-          setCities(res?.data?.Data || res?.data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching cities:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchCities();
-  }, [selectedCountry]);
+    fetchData();
+  }, []);
 
-  const filteredCities = cities.filter((city) =>
-    (city?.City_Name || city?.Name || '').toLowerCase().includes(searchText.toLowerCase())
-  );
+  const filteredCities = cities.filter((city) => {
+    const matchesSearch = (city?.Name || city?.City_Name || '').toLowerCase().includes(searchText.toLowerCase());
+    
+    if (!selectedCountry) return matchesSearch;
+
+    const cityCountryId = city?.CountryID || city?.CountryId || city?.Country_ID;
+    const selectedCountryId = selectedCountry?.Country_ID || selectedCountry?.CountryId || selectedCountry?.Id;
+    
+    const cityCountryName = city?.CountryName || city?.Country_Name;
+    const selectedCountryName = selectedCountry?.Country_Name || selectedCountry?.Name;
+
+    const matchesCountry = 
+      (cityCountryId && selectedCountryId && cityCountryId === selectedCountryId) ||
+      (cityCountryName && selectedCountryName && cityCountryName === selectedCountryName);
+    
+    return matchesSearch && matchesCountry;
+  });
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -80,9 +81,14 @@ export default function CitySheetGrid() {
               getOptionLabel={(option) => option?.Country_Name || option?.Name || ''}
               value={selectedCountry}
               onChange={(event, newValue) => setSelectedCountry(newValue)}
-              isOptionEqualToValue={(option, value) => 
-                (option?.Country_ID || option?.Id) === (value?.Country_ID || value?.Id)
-              }
+              isOptionEqualToValue={(option, value) => {
+                const optId = option?.Country_ID || option?.CountryId || option?.Id;
+                const valId = value?.Country_ID || value?.CountryId || value?.Id;
+                if (optId && valId) return optId === valId;
+                const optName = option?.Country_Name || option?.Name;
+                const valName = value?.Country_Name || value?.Name;
+                return optName === valName;
+              }}
               renderInput={(params) => (
                 <TextField 
                   {...params} 
@@ -102,10 +108,11 @@ export default function CitySheetGrid() {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               sx={{
-                '& .MuiOutlinedInput-root': { borderRadius: '12px', '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' } }
+                '& .MuiOutlinedInput-root': { borderRadius: '12px', height: '100%', minHeight: '56px', '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' } }
               }}
               InputProps={{
                 startAdornment: <InputAdornment position="start"><Iconify icon="eva:search-fill" width={22} sx={{ color: 'text.secondary' }} /></InputAdornment>,
+                sx: { height: '100%' }
               }}
             />
           </Grid>
@@ -124,13 +131,7 @@ export default function CitySheetGrid() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {!selectedCountry ? (
-                <TableRow>
-                  <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.disabled' }}>
-                    Please select a country to view its cities.
-                  </TableCell>
-                </TableRow>
-              ) : loading ? (
+              {loading ? (
                 <TableRow>
                   <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.disabled' }}>
                     Loading cities...
@@ -139,14 +140,20 @@ export default function CitySheetGrid() {
               ) : filteredCities.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.disabled' }}>
-                    No cities found for this country.
+                    No cities found.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredCities.map((city, index) => (
                   <TableRow hover key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                    <TableCell sx={{ fontWeight: 600 }}>{city?.City_Name || city?.Name || '-'}</TableCell>
-                    <TableCell>{city?.Country_Name || selectedCountry?.Country_Name || selectedCountry?.Name || '-'}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{city?.Name || city?.City_Name || '-'}</TableCell>
+                    <TableCell>
+                      <Tooltip title={city?.ContinentName || city?.Continent_Name || 'Unknown Continent'} arrow placement="top">
+                        <span>
+                          {city?.CountryName || city?.Country_Name || '-'}
+                        </span>
+                      </Tooltip>
+                    </TableCell>
                     <TableCell align="right">-</TableCell>
                   </TableRow>
                 ))
