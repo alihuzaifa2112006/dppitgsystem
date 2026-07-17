@@ -59,6 +59,9 @@ const BankEditPage = lazy(() => import('src/pages/dashboard/Powertool/Bank/edit'
 const LocationListPage = lazy(() => import('src/pages/dashboard/Powertool/Location/list'));
 const LocationNewPage = lazy(() => import('src/pages/dashboard/Powertool/Location/new'));
 const LocationEditPage = lazy(() => import('src/pages/dashboard/Powertool/Location/edit'));
+const CityListPage = lazy(() => import('src/pages/dashboard/Powertool/City/list'));
+const CityNewPage = lazy(() => import('src/pages/dashboard/Powertool/City/new'));
+const CityEditPage = lazy(() => import('src/pages/dashboard/Powertool/City/edit'));
 const BuyingDepartmentListPage = lazy(() => import('src/pages/dashboard/Powertool/BuyingDepartment/list'));
 const BuyingDepartmentNewPage = lazy(() => import('src/pages/dashboard/Powertool/BuyingDepartment/new'));
 const BuyingDepartmentEditPage = lazy(() => import('src/pages/dashboard/Powertool/BuyingDepartment/edit'));
@@ -418,6 +421,35 @@ export const dashboardRoutes = [
             element: (
               <Suspense fallback={<LoadingScreen />}>
                 <LocationEditPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
+      {
+        path: 'powertool/cities',
+        children: [
+          {
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CityListPage />
+              </Suspense>
+            ),
+            index: true,
+          },
+          {
+            path: 'new',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CityNewPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'edit/:id',
+            element: (
+              <Suspense fallback={<LoadingScreen />}>
+                <CityEditPage />
               </Suspense>
             ),
           },

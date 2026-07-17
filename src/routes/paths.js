@@ -123,6 +123,11 @@ export const paths = {
         new: `${ROOTS.DASHBOARD}/powertool/locations/new`,
         edit: (id) => `${ROOTS.DASHBOARD}/powertool/locations/edit/${id}`,
       },
+            City: {
+        root: `${ROOTS.DASHBOARD}/powertool/cities`,
+        new: `${ROOTS.DASHBOARD}/powertool/cities/new`,
+        edit: (id) => `${ROOTS.DASHBOARD}/powertool/cities/edit/${id}`,
+      },
       BuyingDepartment: {
         root: `${ROOTS.DASHBOARD}/powertool/buying-departments`,
         new: `${ROOTS.DASHBOARD}/powertool/buying-departments/new`,
