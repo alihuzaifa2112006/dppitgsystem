@@ -90,7 +90,7 @@ export default function CustomerEditForm({ currentData }) {
     // General Information
     Cust_Name: Yup.string().required('Customer Name is required'),
     DisplayName: Yup.string().required('Display Name is required'),
-    Commission: Yup.number().typeError('Commission must be a number').required('Commission is required'),
+    CommissionPercent: Yup.number().typeError('Commission must be a number').required('Commission is required').max(100, 'Commission cannot exceed 100'),
     Website: Yup.string().required('Website is required'),
     Forwarder: Yup.string().required('Forwarder is required'),
     GlnNo: Yup.string().required('GLN NO is required'),
@@ -133,7 +133,7 @@ export default function CustomerEditForm({ currentData }) {
     () => ({
       Cust_Name: currentData?.CustomerName || currentData?.Cust_Name || '',
       DisplayName: currentData?.DisplayName || '',
-      Commission: currentData?.CommissionPercent !== undefined ? currentData.CommissionPercent : (currentData?.Commission !== undefined ? currentData.Commission : 0),
+      CommissionPercent: currentData?.CommissionPercent !== undefined ? currentData.CommissionPercent : (currentData?.Commission !== undefined ? currentData.Commission : 0),
       Website: currentData?.Website || '',
       Forwarder: currentData?.Forwarder || '',
       GlnNo: currentData?.GLNNo || currentData?.GlnNo || '',
@@ -429,7 +429,7 @@ export default function CustomerEditForm({ currentData }) {
       const payload = {
         CustomerName: data.Cust_Name || '',
         DisplayName: data.DisplayName || '',
-        CommissionPercent: Number(data.Commission) || 0,
+        CommissionPercent: Number(data.CommissionPercent) || 0,
         Website: data.Website || '',
         Forwarder: data.Forwarder || '',
         GLNNo: data.GlnNo || '',
@@ -631,7 +631,19 @@ export default function CustomerEditForm({ currentData }) {
                 <RHFTextField name="DisplayName" label="DISPLAY NAME" placeholder="e.g. A. K. MARKETING" />
               </Grid>
               <Grid item xs={12} md={4}>
-                <RHFTextField name="Commission" label="COMMISSION %" type="number" placeholder="0" />
+                <RHFTextField
+                  name="CommissionPercent"
+                  label="COMMISSION %"
+                  type="number"
+                  placeholder="0"
+                  InputProps={{ inputProps: { min: 0, max: 100 } }}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (Number(val) > 100) val = 100;
+                    if (Number(val) < 0) val = 0;
+                    methods.setValue('CommissionPercent', val, { shouldValidate: true });
+                  }}
+                />
               </Grid>
 
               <Grid item xs={12} md={4}>
