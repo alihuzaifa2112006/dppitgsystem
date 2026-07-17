@@ -143,7 +143,7 @@ export default function CustomerEditForm({ currentData }) {
       AddressLine1: currentData?.AddressLine1 || '',
       AddressLine2: currentData?.AddressLine2 || '',
       Continent: currentData?.ContinentId ? { ContinentId: currentData.ContinentId, Name: currentData.ContinentName } : (currentData?.Continent || null),
-      Country: currentData?.CountryID ? { Country_ID: currentData.CountryID, Country_Name: currentData.Country_Name } : null,
+      Country: currentData?.CountryID ? { Country_ID: currentData.CountryID, Country_Name: currentData.CountryName || currentData.Country_Name } : null,
       City: currentData?.CityId ? { CityId: currentData.CityId, Name: currentData.CityName } : null,
       PostalCode: currentData?.PostalCode || '',
       Phone: currentData?.Phone || '',
