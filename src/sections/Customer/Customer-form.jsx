@@ -445,9 +445,8 @@ export default function CustomerForm({ currentData }) {
         WarehouseEmail: data.Warehouse_Email || '',
         WarehouseGLNNo: data.Warehouse_GlnNo || '',
         WarehouseVatNo: data.Warehouse_VatNo || '',
-
-        // IsActive: isActive,
-        IsActive: true,
+        
+        IsActive: isActive,
 
         PaymentTerms: paymentTerms.map(pt => ({
           SupplierId: pt.Supplier?.InvitationId || pt.Supplier?.SupplierId || null,
@@ -580,17 +579,19 @@ export default function CustomerForm({ currentData }) {
           </Box>
         </Stack>
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              color="primary"
-            />
-          }
-          label={isActive ? 'Active' : 'Disabled'}
-          labelPlacement="start"
-        />
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+            Customer Status:
+          </Typography>
+          <RadioGroup
+            row
+            value={isActive ? 'true' : 'false'}
+            onChange={(e) => setIsActive(e.target.value === 'true')}
+          >
+            <FormControlLabel value="true" control={<Radio color="primary" />} label="Active" />
+            <FormControlLabel value="false" control={<Radio color="error" />} label="Inactive" />
+          </RadioGroup>
+        </Stack>
       </Stack>
 
       <Grid container spacing={3}>

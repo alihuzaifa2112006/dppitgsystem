@@ -38,7 +38,7 @@ import { alpha } from '@mui/material/styles';
 import { useSnackbar } from 'src/components/snackbar';
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField, RHFAutocomplete } from 'src/components/hook-form';
-import { Get, Post } from 'src/api/apibasemethods';
+import { Get, Post, Put } from 'src/api/apibasemethods';
 import { paths } from 'src/routes/paths';
 
 export default function CustomerEditForm({ currentData }) {
@@ -131,38 +131,38 @@ export default function CustomerEditForm({ currentData }) {
   // Default Values
   const defaultValues = useMemo(
     () => ({
-      Cust_Name: currentData?.Cust_Name || '',
+      Cust_Name: currentData?.CustomerName || currentData?.Cust_Name || '',
       DisplayName: currentData?.DisplayName || '',
-      Commission: currentData?.Commission !== undefined ? currentData.Commission : 0,
+      Commission: currentData?.CommissionPercent !== undefined ? currentData.CommissionPercent : (currentData?.Commission !== undefined ? currentData.Commission : 0),
       Website: currentData?.Website || '',
       Forwarder: currentData?.Forwarder || '',
-      GlnNo: currentData?.GlnNo || '',
+      GlnNo: currentData?.GLNNo || currentData?.GlnNo || '',
       VatNo: currentData?.VatNo || '',
-      TransactionMode: currentData?.TransactionMode || null,
-      DefaultIncoterm: currentData?.DefaultIncoterm || null,
+      TransactionMode: currentData?.TransactionModeId ? { TransactionModeId: currentData.TransactionModeId, Name: currentData.TransactionModeName } : (currentData?.TransactionMode || null),
+      DefaultIncoterm: currentData?.DefaultIncotermId ? { IncotermId: currentData.DefaultIncotermId, Code: currentData.IncotermCode, Name: currentData.IncotermName } : (currentData?.DefaultIncoterm || null),
       AddressLine1: currentData?.AddressLine1 || '',
       AddressLine2: currentData?.AddressLine2 || '',
-      Continent: currentData?.Continent || null,
-      Country: null,
-      City: null,
+      Continent: currentData?.ContinentId ? { ContinentId: currentData.ContinentId, Name: currentData.ContinentName } : (currentData?.Continent || null),
+      Country: currentData?.CountryID ? { Country_ID: currentData.CountryID, Country_Name: currentData.Country_Name } : null,
+      City: currentData?.CityId ? { CityId: currentData.CityId, Name: currentData.CityName } : null,
       PostalCode: currentData?.PostalCode || '',
       Phone: currentData?.Phone || '',
       Fax: currentData?.Fax || '',
-      DefaultCurrency: currentData?.DefaultCurrency || null,
-      DefaultPaymentMode: currentData?.DefaultPaymentMode || '',
-      DefaultShipmentMode: currentData?.DefaultShipmentMode || '',
-      DefaultPaymentTerm: currentData?.DefaultPaymentTerm || '',
+      DefaultCurrency: currentData?.DefaultCurrencyId ? { CurrencyId: currentData.DefaultCurrencyId, Code: currentData.CurrencyCode } : (currentData?.DefaultCurrency || null),
+      DefaultPaymentMode: currentData?.DefaultPaymentModeId ? { PaymentModeId: currentData.DefaultPaymentModeId, Name: currentData.PaymentModeName } : (currentData?.DefaultPaymentMode || null),
+      DefaultShipmentMode: currentData?.DefaultShipmentModeId ? { ShipmentModeId: currentData.DefaultShipmentModeId, Name: currentData.ShipmentModeName } : (currentData?.DefaultShipmentMode || null),
+      DefaultPaymentTerm: currentData?.DefaultPaymentTermId ? { PaymentTermId: currentData.DefaultPaymentTermId, Term: currentData.PaymentTermName } : (currentData?.DefaultPaymentTerm || null),
       DefaultTolerance: currentData?.DefaultTolerance || '',
-      Warehouse_AddressLine1: currentData?.Warehouse_AddressLine1 || '',
-      Warehouse_AddressLine2: currentData?.Warehouse_AddressLine2 || '',
-      Warehouse_Country: null,
-      Warehouse_City: null,
-      Warehouse_PostalCode: currentData?.Warehouse_PostalCode || '',
-      Warehouse_Phone: currentData?.Warehouse_Phone || '',
-      Warehouse_Fax: currentData?.Warehouse_Fax || '',
-      Warehouse_Email: currentData?.Warehouse_Email || '',
-      Warehouse_GlnNo: currentData?.Warehouse_GlnNo || '',
-      Warehouse_VatNo: currentData?.Warehouse_VatNo || '',
+      Warehouse_AddressLine1: currentData?.WarehouseAddressLine1 || currentData?.Warehouse_AddressLine1 || '',
+      Warehouse_AddressLine2: currentData?.WarehouseAddressLine2 || currentData?.Warehouse_AddressLine2 || '',
+      Warehouse_Country: currentData?.WarehouseCountryID ? { Country_ID: currentData.WarehouseCountryID, Country_Name: currentData.WarehouseCountryName } : null,
+      Warehouse_City: currentData?.WarehouseCityId ? { CityId: currentData.WarehouseCityId, Name: currentData.WarehouseCityName } : null,
+      Warehouse_PostalCode: currentData?.WarehousePostalCode || currentData?.Warehouse_PostalCode || '',
+      Warehouse_Phone: currentData?.WarehousePhone || currentData?.Warehouse_Phone || '',
+      Warehouse_Fax: currentData?.WarehouseFax || currentData?.Warehouse_Fax || '',
+      Warehouse_Email: currentData?.WarehouseEmail || currentData?.Warehouse_Email || '',
+      Warehouse_GlnNo: currentData?.WarehouseGLNNo || currentData?.Warehouse_GlnNo || '',
+      Warehouse_VatNo: currentData?.WarehouseVatNo || currentData?.Warehouse_VatNo || '',
       Contact_Name: '',
       Contact_Designation: '',
       Contact_CellNo: '',
@@ -397,8 +397,26 @@ export default function CustomerEditForm({ currentData }) {
   useEffect(() => {
     if (currentData) {
       reset(defaultValues);
-      setContacts(currentData.BuyerContacts || []);
-      setWarehouseEnabled(currentData.WarehouseAddressEnabled || false);
+      setContacts(currentData.Contacts || currentData.BuyerContacts || []);
+
+      if (currentData.PaymentTerms && Array.isArray(currentData.PaymentTerms)) {
+        setPaymentTerms(
+          currentData.PaymentTerms.map((pt) => ({
+            ...pt,
+            Supplier: { SupplierId: pt.SupplierId, SupplierName: pt.SupplierName },
+            PaymentTerm: pt.Term,
+            DueDays: pt.DueDays,
+            PaymentMethod: { PaymentModeId: pt.PaymentModeId, Name: pt.PaymentModeName },
+            SuppTerm: pt.SuppTerm,
+            SuppDays: pt.SuppDays,
+            TransactionType: pt.TransactionType,
+          }))
+        );
+      } else {
+        setPaymentTerms([]);
+      }
+
+      setWarehouseEnabled(currentData.WarehouseEnabled !== undefined ? currentData.WarehouseEnabled : (currentData.WarehouseAddressEnabled || false));
       setIsActive(currentData.IsActive !== undefined ? currentData.IsActive : true);
     }
   }, [currentData, reset, defaultValues]);
@@ -470,7 +488,7 @@ export default function CustomerEditForm({ currentData }) {
 
       if (currentData?.CustomerId || currentData?.CustomerID) {
         payload.CustomerId = currentData.CustomerId || currentData.CustomerID;
-        const response = await Post('Customer/Update', payload);
+        const response = await Put('Customer/Update', payload);
         if (response.status === 200 || response.status === 201) {
           enqueueSnackbar('Customer updated successfully!', { variant: 'success' });
           navigate(paths.dashboard.Powertool.Customer.root);
@@ -577,17 +595,19 @@ export default function CustomerEditForm({ currentData }) {
           </Box>
         </Stack>
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              color="primary"
-            />
-          }
-          label={isActive ? 'Active' : 'Disabled'}
-          labelPlacement="start"
-        />
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+            Customer Status:
+          </Typography>
+          <RadioGroup
+            row
+            value={isActive ? 'true' : 'false'}
+            onChange={(e) => setIsActive(e.target.value === 'true')}
+          >
+            <FormControlLabel value="true" control={<Radio color="primary" />} label="Active" />
+            <FormControlLabel value="false" control={<Radio color="error" />} label="Inactive" />
+          </RadioGroup>
+        </Stack>
       </Stack>
 
       <Grid container spacing={3}>
