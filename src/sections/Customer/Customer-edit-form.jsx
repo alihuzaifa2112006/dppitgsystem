@@ -209,51 +209,6 @@ export default function CustomerEditForm({ currentData }) {
     }
   }, []);
 
-  // Fetch cities based on Country in Edit Mode
-  useEffect(() => {
-    if (currentData?.Country && countries.length > 0) {
-      const matchedCountry = countries.find(
-        (c) => c.Country_Name.toLowerCase() === currentData.Country.toLowerCase()
-      );
-      if (matchedCountry) {
-        getCities(matchedCountry.Country_ID);
-      }
-    }
-  }, [currentData, countries, getCities]);
-
-  // Fetch warehouse cities based on Warehouse_Country in Edit Mode
-  useEffect(() => {
-    if (currentData?.WarehouseAddressEnabled && currentData?.Warehouse_Country && warehouseCountries.length > 0) {
-      const matchedCountry = warehouseCountries.find(
-        (c) => c.Country_Name.toLowerCase() === currentData.Warehouse_Country.toLowerCase()
-      );
-      if (matchedCountry) {
-        setValue('Warehouse_Country', matchedCountry);
-        getWarehouseCities(matchedCountry.Country_ID);
-      }
-    }
-  }, [currentData, warehouseCountries, getWarehouseCities, setValue]);
-
-  // Handle Edit Mode City Matching
-  useEffect(() => {
-    if (currentData?.City && cities.length > 0) {
-      const matched = cities.find(
-        (c) => (c.Name || c.City_Name || '').toLowerCase() === currentData.City.toLowerCase()
-      );
-      if (matched) setValue('City', matched);
-    }
-  }, [currentData, cities, setValue]);
-
-  // Handle Edit Mode Warehouse City Matching
-  useEffect(() => {
-    if (currentData?.Warehouse_City && warehouseCities.length > 0) {
-      const matched = warehouseCities.find(
-        (c) => (c.Name || c.City_Name || '').toLowerCase() === currentData.Warehouse_City.toLowerCase()
-      );
-      if (matched) setValue('Warehouse_City', matched);
-    }
-  }, [currentData, warehouseCities, setValue]);
-
   const getCountries = useCallback(async (continentId) => {
     try {
       const response = await Get(`Country/GetByContinent?continentId=${continentId}`);
@@ -265,38 +220,12 @@ export default function CustomerEditForm({ currentData }) {
     }
   }, []);
 
-  // Fetch countries based on continent in Edit Mode
+  // Fetch initial dropdown options based on currentData IDs
   useEffect(() => {
-    if (currentData?.Continent && continents.length > 0) {
-      const selected = continents.find(
-        (c) => c.Name.toLowerCase() === currentData.Continent.toLowerCase()
-      );
-      if (selected) {
-        setValue('Continent', selected);
-        getCountries(selected.ContinentId);
-      }
-    }
-  }, [currentData, continents, getCountries, setValue]);
-
-  // Handle Edit Mode Country Matching
-  useEffect(() => {
-    if (currentData?.Country && countries.length > 0) {
-      const matched = countries.find(
-        (c) => c.Country_Name.toLowerCase() === currentData.Country.toLowerCase()
-      );
-      if (matched) setValue('Country', matched);
-    }
-  }, [currentData, countries, setValue]);
-
-  // // Handle Edit Mode Currency Matching
-  // useEffect(() => {
-  //   if (currentData?.DefaultCurrency && currencies.length > 0) {
-  //     const matched = currencies.find(
-  //       (c) => c.Currency_Name.toLowerCase() === currentData.DefaultCurrency.toLowerCase()
-  //     );
-  //     if (matched) setValue('DefaultCurrency', matched);
-  //   }
-  // }, [currentData, currencies, setValue]);
+    if (currentData?.ContinentId) getCountries(currentData.ContinentId);
+    if (currentData?.CountryID) getCities(currentData.CountryID);
+    if (currentData?.WarehouseCountryID) getWarehouseCities(currentData.WarehouseCountryID);
+  }, [currentData, getCountries, getCities, getWarehouseCities]);
 
   // Load Transaction Modes, Incoterms and Continents
   useEffect(() => {
