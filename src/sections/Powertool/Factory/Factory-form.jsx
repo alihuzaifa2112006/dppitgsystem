@@ -601,7 +601,7 @@ export default function FactoryForm({ currentData }) {
               <Grid item xs={12} md={4}>
                 <RHFAutocomplete
                   name="Supplier"
-                  label="LINKED SUPPLIER (FK) *"
+                  label="LINKED SUPPLIER  *"
                   placeholder="Select linked supplier"
                   options={suppliers}
                   getOptionLabel={(option) => option?.SupplierName || ''}
