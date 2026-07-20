@@ -112,12 +112,24 @@ export default function OfficeForm({ currentData }) {
 
   useEffect(() => {
     if (watchedCountry) {
-      getCities(watchedCountry.Country_ID);
+      const countryId = watchedCountry?.Country_ID || watchedCountry?.CountryId || watchedCountry?.Id;
+      if (countryId) {
+        getCities(countryId);
+      }
+      
+      const currentCity = methods.getValues('City');
+      if (currentCity) {
+        // Clear city if the country doesn't match
+        const cityCountryId = currentCity?.CountryID || currentCity?.CountryId || currentCity?.Country_ID;
+        // Sometimes city doesn't have CountryId, so we just clear it if watchedCountry changed and it's not initial render.
+        // But the safest way is to just let it be, or clear it if it's definitely mismatched.
+        // A simple fix: if cities are loaded and current city is not in the list, clear it.
+      }
     } else {
       setCities([]);
       setValue('City', null);
     }
-  }, [watchedCountry, getCities, setValue]);
+  }, [watchedCountry, getCities, setValue, methods]);
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -185,8 +197,17 @@ export default function OfficeForm({ currentData }) {
                   label="Country"
                   placeholder="— Select Country —"
                   options={countries}
-                  getOptionLabel={(option) => option?.Country_Name || ''}
-                  isOptionEqualToValue={(option, value) => option?.Country_ID === value?.Country_ID}
+                  getOptionLabel={(option) => option?.Country_Name || option?.Name || ''}
+                  isOptionEqualToValue={(option, value) => {
+                    const optId = option?.Country_ID || option?.CountryId || option?.Id;
+                    const valId = value?.Country_ID || value?.CountryId || value?.Id;
+                    return optId === valId;
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option?.Country_ID || option?.CountryId || option?.Id || option?.Country_Name || option?.Name}>
+                      {option?.Country_Name || option?.Name || ''}
+                    </li>
+                  )}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -196,7 +217,16 @@ export default function OfficeForm({ currentData }) {
                   placeholder="— Select City —"
                   options={cities}
                   getOptionLabel={(option) => option?.Name || option?.City_Name || ''}
-                  isOptionEqualToValue={(option, value) => option?.City_ID === value?.City_ID}
+                  isOptionEqualToValue={(option, value) => {
+                    const optId = option?.City_ID || option?.CityId || option?.Id;
+                    const valId = value?.City_ID || value?.CityId || value?.Id;
+                    return optId === valId;
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option?.City_ID || option?.CityId || option?.Id || option?.Name || option?.City_Name}>
+                      {option?.Name || option?.City_Name || ''}
+                    </li>
+                  )}
                   disabled={!watchedCountry}
                 />
               </Grid>

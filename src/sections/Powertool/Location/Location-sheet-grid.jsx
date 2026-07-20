@@ -14,6 +14,7 @@ import {
   IconButton,
   Autocomplete,
   Grid,
+  LinearProgress,
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { Get } from 'src/api/apibasemethods';
@@ -134,8 +135,9 @@ export default function LocationSheetGrid() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.disabled' }}>
-                    Loading...
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
+                    <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 1, borderRadius: 1 }} />
+                    <Box sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>Loading locations...</Box>
                   </TableCell>
                 </TableRow>
               ) : filteredCountries.length === 0 ? (

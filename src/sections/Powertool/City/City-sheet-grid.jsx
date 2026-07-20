@@ -15,6 +15,7 @@ import {
   Autocomplete,
   Tooltip,
   IconButton,
+  LinearProgress,
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { Get } from 'src/api/apibasemethods';
@@ -136,8 +137,9 @@ export default function CitySheetGrid() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.disabled' }}>
-                    Loading cities...
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
+                    <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 1, borderRadius: 1 }} />
+                    <Box sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>Loading cities...</Box>
                   </TableCell>
                 </TableRow>
               ) : filteredCities.length === 0 ? (
