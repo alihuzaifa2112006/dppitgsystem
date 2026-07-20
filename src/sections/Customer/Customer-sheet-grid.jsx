@@ -264,7 +264,7 @@ export default function CustomerGrid() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('CustomerName');
-  
+
   const [filterStatus, setFilterStatus] = useState('All');
   const [deleteId, setDeleteId] = useState(null);
   const [countryOptions, setCountryOptions] = useState([]);
