@@ -133,7 +133,7 @@ export default function FactoryForm({ currentData }) {
       ProductsCategories: currentData?.ProductsCategories || '',
       ProcessActivity: currentData?.ProcessActivity || '',
       NoOfEmployees: currentData?.NoOfEmployees || null,
-      CapacityMonth: currentData?.CapacityMonth || '',
+      CapacityMonth: currentData?.CapacityPerMonth || currentData?.CapacityMonth || '',
       WeeklyOffDay: currentData?.WeeklyOffDay || null,
       NoOfShifts: currentData?.NoOfShifts || null,
       ShiftTime: currentData?.ShiftTime || '',
@@ -293,9 +293,9 @@ export default function FactoryForm({ currentData }) {
 
   // Bind Supplier in edit mode
   useEffect(() => {
-    if (currentData?.SupplierId && suppliers.length > 0) {
+    if (currentData?.LinkedSupplierId && suppliers.length > 0) {
       const matched = suppliers.find(
-        (s) => (s.InvitationId || s.VendorID || s.Id) === currentData.SupplierId
+        (s) => (s.InvitationId || s.VendorID || s.Id) === currentData.LinkedSupplierId
       );
       if (matched) {
         setValue('Supplier', matched);
@@ -316,8 +316,8 @@ export default function FactoryForm({ currentData }) {
 
   // Bind Country in edit mode
   useEffect(() => {
-    if (currentData?.CountryId && countries.length > 0) {
-      const matched = countries.find((c) => (c.Country_ID || c.CountryId) === currentData.CountryId);
+    if (currentData?.CountryID && countries.length > 0) {
+      const matched = countries.find((c) => (c.Country_ID || c.CountryId) === currentData.CountryID);
       if (matched) {
         setValue('Country', matched);
         getCities(matched.Country_ID || matched.CountryId);
@@ -508,7 +508,7 @@ export default function FactoryForm({ currentData }) {
       try {
         const payload = {
           FactoryName: data.FactoryName,
-          SupplierId: data.Supplier?.InvitationId || data.Supplier?.VendorID || data.Supplier?.Id || 0,
+          LinkedSupplierId: data.Supplier?.InvitationId || data.Supplier?.VendorID || data.Supplier?.Id || 0,
           ContactPerson: data.ContactPerson || '',
           Phone: data.Phone || '',
           Fax: data.Fax || '',
@@ -516,19 +516,21 @@ export default function FactoryForm({ currentData }) {
           AddressLine1: data.AddressLine1,
           AddressLine2: data.AddressLine2 || '',
           ContinentId: data.Continent?.ContinentId || 0,
-          CountryId: data.Country?.Country_ID || data.Country?.CountryId || 0,
+          CountryID: data.Country?.Country_ID || data.Country?.CountryId || 0,
           CityId: data.City?.City_ID || data.City?.CityId || 0,
           ZipCode: data.ZipCode,
 
           // Production Setup
           ProductsCategories: data.ProductsCategories || '',
           ProcessActivity: data.ProcessActivity || '',
-          NoOfEmployees: data.NoOfEmployees ? Number(data.NoOfEmployees) : 0,
-          CapacityMonth: data.CapacityMonth || '',
+          NoOfEmployees: data.NoOfEmployees ? data.NoOfEmployees.toString() : "0",
+          CapacityPerMonth: data.CapacityMonth || '',
           WeeklyOffDay: data.WeeklyOffDay || '',
-          NoOfShifts: data.NoOfShifts ? Number(data.NoOfShifts) : 0,
+          NoOfShifts: data.NoOfShifts ? data.NoOfShifts.toString() : "0",
           ShiftTime: data.ShiftTime || '',
 
+          IsWPF: currentData?.IsWPF || false,
+          IsGlobalFactory: currentData?.IsGlobalFactory || false,
           IsActive: !!data.IsActive,
 
           // Nested lists
