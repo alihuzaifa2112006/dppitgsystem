@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -18,23 +18,46 @@ import {
   Stack,
   Button,
   Tabs,
-  Tab
+  Tab,
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { Get, Delete } from 'src/api/apibasemethods';
+import { useSnackbar } from 'src/components/snackbar';
+import { LoadingScreen } from 'src/components/loading-screen';
 
 export default function FactorySheetGrid() {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [reportData, setReportData] = useState([]);
 
-  // MOCK DATA (Empty for now)
-  const reportData = useMemo(() => [], []);
+  // Fetch factories
+  const fetchFactories = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await Get('Factory/GetAll');
+      if (response.status === 200) {
+        setReportData(response?.data?.Data || response?.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching factories:', error);
+      enqueueSnackbar(error?.response?.data?.Message || 'Failed to fetch factories', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [enqueueSnackbar]);
+
+  useEffect(() => {
+    fetchFactories();
+  }, [fetchFactories]);
 
   // Filter Data
   const filteredData = useMemo(() => {
@@ -43,7 +66,7 @@ export default function FactorySheetGrid() {
     if (filterStatus === 'Inactive') filtered = filtered.filter((r) => !r.IsActive);
     if (searchText) {
       filtered = filtered.filter((r) =>
-        (r.Name || '').toLowerCase().includes(searchText.toLowerCase())
+        (r.FactoryName || r.Name || '').toLowerCase().includes(searchText.toLowerCase())
       );
     }
     return filtered;
@@ -55,15 +78,33 @@ export default function FactorySheetGrid() {
     navigate(paths.dashboard.Powertool.Factory.edit(id));
   };
 
-  const confirmDelete = () => {
-    setDeleteId(null);
-    // API Call goes here
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      // Use DELETE method as requested
+      const response = await Delete(`Factory/Delete?id=${deleteId}`);
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar('Factory deleted successfully!', { variant: 'success' });
+        fetchFactories();
+      } else {
+        enqueueSnackbar(response?.data?.Message || 'Delete failed', { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error deleting factory:', error);
+      enqueueSnackbar(error?.response?.data?.Message || 'Error deleting factory', { variant: 'error' });
+    } finally {
+      setDeleteId(null);
+    }
   };
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <Box sx={{ width: '100%' }}>
       {/* Search Bar */}
-            <Paper
+      <Paper
         elevation={0}
         sx={{
           p: 2.5,
@@ -77,7 +118,10 @@ export default function FactorySheetGrid() {
           fullWidth
           placeholder="Search Factories..."
           value={searchText}
-          onChange={(e) => { setSearchText(e.target.value); setPage(0); }}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            setPage(0);
+          }}
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: '12px',
@@ -105,19 +149,55 @@ export default function FactorySheetGrid() {
       </Paper>
 
       {/* Tabs */}
-      <Paper elevation={0} sx={{ mb: 2, borderRadius: '0 0 12px 12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2,
+          borderRadius: '0 0 12px 12px',
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden',
+        }}
+      >
         <Tabs
           value={filterStatus}
-          onChange={(e, val) => { setFilterStatus(val); setPage(0); }}
+          onChange={(e, val) => {
+            setFilterStatus(val);
+            setPage(0);
+          }}
           sx={{
             px: 2,
             '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' },
             '& .MuiTab-root': { minHeight: 48, fontWeight: 600, fontSize: '0.875rem', textTransform: 'none' },
           }}
         >
-          <Tab value="All" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:view-list-outline" /><span>All ({reportData.length})</span></Stack>} />
-          <Tab value="Active" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:check-circle-outline" /><span>Active ({reportData.filter(r => r.IsActive).length})</span></Stack>} />
-          <Tab value="Inactive" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:close-circle-outline" /><span>Inactive ({reportData.filter(r => !r.IsActive).length})</span></Stack>} />
+          <Tab
+            value="All"
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Iconify icon="mdi:view-list-outline" />
+                <span>All ({reportData.length})</span>
+              </Stack>
+            }
+          />
+          <Tab
+            value="Active"
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Iconify icon="mdi:check-circle-outline" />
+                <span>Active ({reportData.filter((r) => r.IsActive).length})</span>
+              </Stack>
+            }
+          />
+          <Tab
+            value="Inactive"
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Iconify icon="mdi:close-circle-outline" />
+                <span>Inactive ({reportData.filter((r) => !r.IsActive).length})</span>
+              </Stack>
+            }
+          />
         </Tabs>
       </Paper>
 
@@ -130,26 +210,33 @@ export default function FactorySheetGrid() {
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ID</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>NAME</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>STATUS</TableCell>
-                <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ACTIONS</TableCell>
+                <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>
+                  ACTIONS
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
                   <TableRow hover key={row.FactoryId || index}>
-                    <TableCell>{row.FactoryId}</TableCell>
-                    <TableCell>{row.Name}</TableCell>
+                    <TableCell>{row.FactoryId || row.Id}</TableCell>
+                    <TableCell>{row.FactoryName || row.Name}</TableCell>
                     <TableCell>
-                      <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
+                      <Chip
+                        label={row.IsActive ? 'Active' : 'Inactive'}
+                        color={row.IsActive ? 'success' : 'error'}
+                        size="small"
+                        variant="soft"
+                      />
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => handleEdit(row.FactoryId)} sx={{ color: 'primary.main' }}>
+                        <IconButton size="small" onClick={() => handleEdit(row.FactoryId || row.Id)} sx={{ color: 'primary.main' }}>
                           <Iconify icon="solar:pen-bold" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton size="small" onClick={() => setDeleteId(row.FactoryId)} sx={{ color: 'error.main' }}>
+                        <IconButton size="small" onClick={() => setDeleteId(row.FactoryId || row.Id)} sx={{ color: 'error.main' }}>
                           <Iconify icon="solar:trash-bin-trash-bold" />
                         </IconButton>
                       </Tooltip>
@@ -159,7 +246,9 @@ export default function FactorySheetGrid() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
-                    <Typography variant="body2" color="text.secondary">No Factories found.</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      No Factories found.
+                    </Typography>
                   </TableCell>
                 </TableRow>
               )}
@@ -173,7 +262,10 @@ export default function FactorySheetGrid() {
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={(e, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
         />
       </Paper>
 
@@ -182,7 +274,11 @@ export default function FactorySheetGrid() {
         onClose={() => setDeleteId(null)}
         title="Delete Factory"
         content="Are you sure you want to delete this item?"
-        action={<Button variant="contained" color="error" onClick={confirmDelete}>Delete</Button>}
+        action={
+          <Button variant="contained" color="error" onClick={confirmDelete}>
+            Delete
+          </Button>
+        }
       />
     </Box>
   );
