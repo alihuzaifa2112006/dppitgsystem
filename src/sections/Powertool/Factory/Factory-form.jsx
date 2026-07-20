@@ -52,6 +52,10 @@ export default function FactoryForm({ currentData }) {
   const [continents, setContinents] = useState([]);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
+  const [weekDays, setWeekDays] = useState([]);
+  const [ratings, setRatings] = useState([]);
+  const [appendixes, setAppendixes] = useState([]);
+  const [classTypes, setClassTypes] = useState([]);
 
   // Editing indices
   const [editingContactIndex, setEditingContactIndex] = useState(null);
@@ -198,6 +202,54 @@ export default function FactoryForm({ currentData }) {
     }
   };
 
+  const fetchWeekDays = async () => {
+    try {
+      const res = await Get('WeekDay/GetAll');
+      if (res.status === 200) {
+        const data = res?.data?.Data || res?.data || [];
+        setWeekDays(data.map(d => d.Name));
+      }
+    } catch (err) {
+      console.error('Error fetching week days:', err);
+    }
+  };
+
+  const fetchRatings = async () => {
+    try {
+      const res = await Get('Rating/GetAll');
+      if (res.status === 200) {
+        const data = res?.data?.Data || res?.data || [];
+        setRatings(data.map(d => d.Name));
+      }
+    } catch (err) {
+      console.error('Error fetching ratings:', err);
+    }
+  };
+
+  const fetchAppendixes = async () => {
+    try {
+      const res = await Get('Appendix/GetAll');
+      if (res.status === 200) {
+        const data = res?.data?.Data || res?.data || [];
+        setAppendixes(data.map(d => d.Name));
+      }
+    } catch (err) {
+      console.error('Error fetching appendixes:', err);
+    }
+  };
+
+  const fetchClassTypes = async () => {
+    try {
+      const res = await Get('ClassType/GetAll');
+      if (res.status === 200) {
+        const data = res?.data?.Data || res?.data || [];
+        setClassTypes(data.map(d => d.Name));
+      }
+    } catch (err) {
+      console.error('Error fetching class types:', err);
+    }
+  };
+
   const getCountries = useCallback(async (continentId) => {
     try {
       const response = await Get(`Country/GetByContinent?continentId=${continentId}`);
@@ -223,6 +275,10 @@ export default function FactoryForm({ currentData }) {
   useEffect(() => {
     fetchSuppliers();
     fetchContinents();
+    fetchWeekDays();
+    fetchRatings();
+    fetchAppendixes();
+    fetchClassTypes();
   }, []);
 
   // Reset values when currentData changes
@@ -714,7 +770,7 @@ export default function FactoryForm({ currentData }) {
                   name="WeeklyOffDay"
                   label="WEEKLY OFF DAY"
                   placeholder="Select day"
-                  options={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
+                  options={weekDays}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
@@ -929,7 +985,7 @@ export default function FactoryForm({ currentData }) {
                   name="TempRating"
                   label="RATING *"
                   placeholder="Select rating"
-                  options={['A', 'B', 'C', 'D', 'E', 'F']}
+                  options={ratings}
                   error={!!socialErrors.rating}
                   helperText={socialErrors.rating}
                 />
@@ -1085,7 +1141,7 @@ export default function FactoryForm({ currentData }) {
                   name="TempOekoAppendix"
                   label="APPENDIX *"
                   placeholder="Select appendix"
-                  options={['Appendix 4', 'Appendix 6']}
+                  options={appendixes}
                   error={!!oekoErrors.appendix}
                   helperText={oekoErrors.appendix}
                 />
@@ -1095,7 +1151,7 @@ export default function FactoryForm({ currentData }) {
                   name="TempOekoClassType"
                   label="CLASS TYPE *"
                   placeholder="Select class type"
-                  options={['Class I', 'Class II', 'Class III', 'Class IV']}
+                  options={classTypes}
                   error={!!oekoErrors.classType}
                   helperText={oekoErrors.classType}
                 />
