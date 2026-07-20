@@ -619,11 +619,7 @@ export default function FactoryForm({ currentData }) {
               <Typography variant="h5" sx={{ fontWeight: 800 }}>
                 {watchedValues?.FactoryName || 'New Factory'}
               </Typography>
-              {currentData?.FactoryId && (
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  ID: {currentData.FactoryId}
-                </Typography>
-              )}
+
             </Box>
           </Stack>
 
