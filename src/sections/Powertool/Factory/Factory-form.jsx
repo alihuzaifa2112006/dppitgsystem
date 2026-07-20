@@ -1237,12 +1237,7 @@ export default function FactoryForm({ currentData }) {
 
           {/* Bottom helper text and actions */}
           <Stack spacing={3}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ color: 'text.secondary', px: 1 }}>
-              <Iconify icon="eva:info-outline" width={18} sx={{ color: 'primary.main' }} />
-              <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
-                Production Entity Rule: When a Factory is assigned to an Order, it becomes the production entity for inspections. If no factory is set, the linked Supplier acts as production entity.
-              </Typography>
-            </Stack>
+
 
             <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ pt: 2 }}>
               <Button variant="outlined" color="inherit" onClick={() => navigate(paths.dashboard.Powertool.Factory.root)}>
