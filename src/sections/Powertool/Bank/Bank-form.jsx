@@ -12,6 +12,7 @@ import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
 import Iconify from 'src/components/iconify';
 import PropTypes from 'prop-types';
+import { Post, Put } from 'src/api/apibasemethods';
 
 export default function BankForm({ currentData }) {
   const settings = useSettingsContext();
@@ -21,8 +22,8 @@ export default function BankForm({ currentData }) {
   const BankSchema = Yup.object().shape({
     TitleOfAccount: Yup.string().required('Title of Account is required'),
     BankName: Yup.string().required('Bank Name is required'),
-    Branch: Yup.string(),
-    AccountNumber: Yup.string(),
+    Branch: Yup.string().required('Branch is required'),
+    AccountNumber: Yup.string().required('Account Number is required'),
     SwiftIban: Yup.string(),
   });
 
@@ -41,16 +42,44 @@ export default function BankForm({ currentData }) {
 
   const { handleSubmit, formState: { isSubmitting } } = methods;
 
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      enqueueSnackbar('Bank created successfully!');
-      navigate(paths.dashboard.Powertool.Bank.root);
-    } catch (error) {
-      console.error(error);
-      enqueueSnackbar('Error creating Bank', { variant: 'error' });
+  const onSubmit = handleSubmit(
+    async (data) => {
+      try {
+        const payload = {
+          TitleOfAccount: data.TitleOfAccount,
+          BankName: data.BankName,
+          Branch: data.Branch || '',
+          AccountNumber: data.AccountNumber || '',
+          SwiftIban: data.SwiftIban || '',
+          IsActive: true,
+        };
+
+        let response;
+        if (currentData) {
+          payload.BankAccountId = currentData?.BankAccountId || currentData?.Id || 0;
+          response = await Put('Bank/Update', payload);
+        } else {
+          response = await Post('Bank/Create', payload);
+        }
+
+        if (response.status === 200) {
+          enqueueSnackbar(currentData ? 'Bank updated successfully!' : 'Bank created successfully!');
+          navigate(paths.dashboard.Powertool.Bank.root);
+        } else {
+          enqueueSnackbar(response?.data?.Message || 'Something went wrong', { variant: 'error' });
+        }
+      } catch (error) {
+        console.error(error);
+        enqueueSnackbar(error?.response?.data?.Message || 'Error saving Bank', { variant: 'error' });
+      }
+    },
+    (errors) => {
+      const errorMessages = Object.values(errors).map((err) => err.message);
+      if (errorMessages.length > 0) {
+        enqueueSnackbar(errorMessages[0], { variant: 'error' });
+      }
     }
-  });
+  );
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -76,10 +105,10 @@ export default function BankForm({ currentData }) {
                 <RHFTextField name="BankName" label="Bank Name *" placeholder="e.g. DBS Bank (Hong Kong) Ltd" />
               </Grid>
               <Grid item xs={12}>
-                <RHFTextField name="Branch" label="Branch" placeholder="Branch name" />
+                <RHFTextField name="Branch" label="Branch *" placeholder="Branch name" />
               </Grid>
               <Grid item xs={12}>
-                <RHFTextField name="AccountNumber" label="Account Number" placeholder="Account number" />
+                <RHFTextField name="AccountNumber" label="Account Number *" placeholder="Account number" />
               </Grid>
               <Grid item xs={12}>
                 <RHFTextField name="SwiftIban" label="SWIFT / IBAN" placeholder="SWIFT or IBAN code" />
