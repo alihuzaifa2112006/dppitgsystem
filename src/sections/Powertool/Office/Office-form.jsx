@@ -104,10 +104,20 @@ export default function OfficeForm({ currentData }) {
     }
   }, []);
 
+  const fetchBanks = async () => {
+    try {
+      const res = await Get('Bank/GetAll');
+      if (res.status === 200) {
+        setBanks(res?.data?.Data || res?.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching banks:', error);
+    }
+  };
+
   useEffect(() => {
     fetchCountries();
-    // Setting dummy banks for now
-    setBanks([{ id: 1, name: 'Standard Chartered Bank' }, { id: 2, name: 'HSBC' }]);
+    fetchBanks();
   }, []);
 
   useEffect(() => {
@@ -271,8 +281,20 @@ export default function OfficeForm({ currentData }) {
                   label="Linked Bank Account"
                   placeholder="— No bank linked —"
                   options={banks}
-                  getOptionLabel={(option) => option?.name || ''}
-                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  getOptionLabel={(option) => {
+                    if (!option) return '';
+                    return option?.BankName || option?.TitleOfAccount || '';
+                  }}
+                  isOptionEqualToValue={(option, value) => {
+                    const optId = option?.BankAccountId || option?.Id;
+                    const valId = value?.BankAccountId || value?.Id;
+                    return optId === valId;
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option?.BankAccountId || option?.Id || option?.BankName || option?.TitleOfAccount}>
+                      {option?.BankName ? `${option.BankName} - ${option?.TitleOfAccount || ''}` : option?.TitleOfAccount || ''}
+                    </li>
+                  )}
                 />
               </Grid>
             </Grid>
