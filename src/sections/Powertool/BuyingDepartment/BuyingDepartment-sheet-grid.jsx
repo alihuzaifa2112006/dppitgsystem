@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -18,36 +18,58 @@ import {
   Stack,
   Button,
   Tabs,
-  Tab
+  Tab,
+  LinearProgress,
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { Get, Delete } from 'src/api/apibasemethods';
+import { useSnackbar } from 'src/components/snackbar';
 
 export default function BuyingDepartmentSheetGrid() {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteId, setDeleteId] = useState(null);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // MOCK DATA (Empty for now)
-  const reportData = useMemo(() => [], []);
+  const fetchDepartments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await Get('Department/GetAll');
+      if (res.status === 200) {
+        setDepartments(res?.data?.Data || res?.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      enqueueSnackbar('Error fetching departments', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [enqueueSnackbar]);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [fetchDepartments]);
 
   // Filter Data
   const filteredData = useMemo(() => {
-    let filtered = reportData;
+    let filtered = departments;
     if (filterStatus === 'Active') filtered = filtered.filter((r) => r.IsActive);
     if (filterStatus === 'Inactive') filtered = filtered.filter((r) => !r.IsActive);
     if (searchText) {
       filtered = filtered.filter((r) =>
-        (r.Name || '').toLowerCase().includes(searchText.toLowerCase())
+        (r.DepartmentName || r.Name || '').toLowerCase().includes(searchText.toLowerCase())
       );
     }
     return filtered;
-  }, [reportData, searchText, filterStatus]);
+  }, [departments, searchText, filterStatus]);
 
   const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -55,9 +77,20 @@ export default function BuyingDepartmentSheetGrid() {
     navigate(paths.dashboard.Powertool.BuyingDepartment.edit(id));
   };
 
-  const confirmDelete = () => {
-    setDeleteId(null);
-    // API Call goes here
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const res = await Delete(`Department/Delete?id=${deleteId}`);
+      if (res.status === 200) {
+        enqueueSnackbar('Buying Department deleted successfully!');
+        fetchDepartments();
+      }
+    } catch (error) {
+      console.error('Error deleting department:', error);
+      enqueueSnackbar(error?.response?.data?.Message || 'Error deleting department', { variant: 'error' });
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -115,9 +148,9 @@ export default function BuyingDepartmentSheetGrid() {
             '& .MuiTab-root': { minHeight: 48, fontWeight: 600, fontSize: '0.875rem', textTransform: 'none' },
           }}
         >
-          <Tab value="All" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:view-list-outline" /><span>All ({reportData.length})</span></Stack>} />
-          <Tab value="Active" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:check-circle-outline" /><span>Active ({reportData.filter(r => r.IsActive).length})</span></Stack>} />
-          <Tab value="Inactive" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:close-circle-outline" /><span>Inactive ({reportData.filter(r => !r.IsActive).length})</span></Stack>} />
+          <Tab value="All" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:view-list-outline" /><span>All ({departments.length})</span></Stack>} />
+          <Tab value="Active" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:check-circle-outline" /><span>Active ({departments.filter(r => r.IsActive).length})</span></Stack>} />
+          <Tab value="Inactive" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:close-circle-outline" /><span>Inactive ({departments.filter(r => !r.IsActive).length})</span></Stack>} />
         </Tabs>
       </Paper>
 
@@ -134,22 +167,29 @@ export default function BuyingDepartmentSheetGrid() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedData.length > 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                    <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 1, borderRadius: 1 }} />
+                    <Box sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>Loading departments...</Box>
+                  </TableCell>
+                </TableRow>
+              ) : paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
-                  <TableRow hover key={row.BuyingDepartmentId || index}>
-                    <TableCell>{row.BuyingDepartmentId}</TableCell>
-                    <TableCell>{row.Name}</TableCell>
+                  <TableRow hover key={row.DepartmentId || row.BuyingDepartmentId || index}>
+                    <TableCell>{row.DepartmentId || row.BuyingDepartmentId}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{row.DepartmentName || row.Name}</TableCell>
                     <TableCell>
                       <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => handleEdit(row.BuyingDepartmentId)} sx={{ color: 'primary.main' }}>
+                        <IconButton size="small" onClick={() => handleEdit(row.DepartmentId || row.BuyingDepartmentId)} sx={{ color: 'primary.main' }}>
                           <Iconify icon="solar:pen-bold" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton size="small" onClick={() => setDeleteId(row.BuyingDepartmentId)} sx={{ color: 'error.main' }}>
+                        <IconButton size="small" onClick={() => setDeleteId(row.DepartmentId || row.BuyingDepartmentId)} sx={{ color: 'error.main' }}>
                           <Iconify icon="solar:trash-bin-trash-bold" />
                         </IconButton>
                       </Tooltip>

@@ -14,12 +14,12 @@ export default function BuyingDepartmentEditForm() {
   useEffect(() => {
     const fetchDepartment = async () => {
       try {
-        const response = await Get(`BuyingDepartment/GetById?id=${id}`);
+        const response = await Get(`Department/GetById?id=${id}`);
         if (response.status === 200) {
           setCurrentData(response?.data?.Data || response?.data);
         }
       } catch (error) {
-        console.error('Error fetching buying department data:', error);
+        console.error('Error fetching department data:', error);
       } finally {
         setLoading(false);
       }

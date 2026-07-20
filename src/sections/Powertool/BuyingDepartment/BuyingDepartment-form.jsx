@@ -19,13 +19,13 @@ export default function BuyingDepartmentForm({ currentData }) {
   const { enqueueSnackbar } = useSnackbar();
 
   const BuyingDepartmentSchema = Yup.object().shape({
-    Name: Yup.string().required('Department Name is required'),
-    IsActive: Yup.boolean(),
+    DepartmentName: Yup.string().required('Department Name is required'),
+    IsActive: Yup.boolean().required('Status is required'),
   });
 
   const defaultValues = useMemo(
     () => ({
-      Name: currentData?.Name || '',
+      DepartmentName: currentData?.DepartmentName || currentData?.Name || '',
       IsActive: currentData?.IsActive !== undefined ? currentData.IsActive : true,
     }),
     [currentData]
@@ -52,16 +52,16 @@ export default function BuyingDepartmentForm({ currentData }) {
     async (data) => {
       try {
         const payload = {
-          Name: data.Name,
+          DepartmentName: data.DepartmentName,
           IsActive: String(data.IsActive) === 'true' || data.IsActive === true,
         };
 
         let response;
         if (currentData) {
-          payload.BuyingDepartmentId = currentData?.BuyingDepartmentId || currentData?.Id || 0;
-          response = await Put('BuyingDepartment/Update', payload);
+          payload.DepartmentId = currentData?.DepartmentId || currentData?.BuyingDepartmentId || currentData?.Id || 0;
+          response = await Put('Department/Update', payload);
         } else {
-          response = await Post('BuyingDepartment/Create', payload);
+          response = await Post('Department/Create', payload);
         }
 
         if (response.status === 200) {
@@ -118,7 +118,7 @@ export default function BuyingDepartmentForm({ currentData }) {
 
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <RHFTextField name="Name" label="Department Name *" placeholder="e.g. Casual Wear" />
+              <RHFTextField name="DepartmentName" label="Department Name *" placeholder="e.g. Casual Wear" />
             </Grid>
           </Grid>
 
