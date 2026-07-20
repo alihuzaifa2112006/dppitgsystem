@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -18,36 +18,61 @@ import {
   Stack,
   Button,
   Tabs,
-  Tab
+  Tab,
+  LinearProgress,
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { Get, Delete } from 'src/api/apibasemethods';
+import { useSnackbar } from 'src/components/snackbar';
 
 export default function OfficeSheetGrid() {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteId, setDeleteId] = useState(null);
+  const [offices, setOffices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // MOCK DATA (Empty for now)
-  const reportData = useMemo(() => [], []);
+  const fetchOffices = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await Get('Office/GetAll');
+      if (res.status === 200) {
+        setOffices(res?.data?.Data || res?.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching offices:', error);
+      enqueueSnackbar('Error fetching offices', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [enqueueSnackbar]);
+
+  useEffect(() => {
+    fetchOffices();
+  }, [fetchOffices]);
 
   // Filter Data
   const filteredData = useMemo(() => {
-    let filtered = reportData;
+    let filtered = offices;
     if (filterStatus === 'Active') filtered = filtered.filter((r) => r.IsActive);
     if (filterStatus === 'Inactive') filtered = filtered.filter((r) => !r.IsActive);
     if (searchText) {
+      const search = searchText.toLowerCase();
       filtered = filtered.filter((r) =>
-        (r.Name || '').toLowerCase().includes(searchText.toLowerCase())
+        (r.OfficeName || r.Name || '').toLowerCase().includes(search) ||
+        (r.BankName || '').toLowerCase().includes(search) ||
+        (r.Phone || '').toLowerCase().includes(search)
       );
     }
     return filtered;
-  }, [reportData, searchText, filterStatus]);
+  }, [offices, searchText, filterStatus]);
 
   const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -55,9 +80,20 @@ export default function OfficeSheetGrid() {
     navigate(paths.dashboard.Powertool.Office.edit(id));
   };
 
-  const confirmDelete = () => {
-    setDeleteId(null);
-    // API Call goes here
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const res = await Delete(`Office/Delete?id=${deleteId}`);
+      if (res.status === 200) {
+        enqueueSnackbar('Office deleted successfully!');
+        fetchOffices();
+      }
+    } catch (error) {
+      console.error('Error deleting office:', error);
+      enqueueSnackbar(error?.response?.data?.Message || 'Error deleting office', { variant: 'error' });
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -115,9 +151,9 @@ export default function OfficeSheetGrid() {
             '& .MuiTab-root': { minHeight: 48, fontWeight: 600, fontSize: '0.875rem', textTransform: 'none' },
           }}
         >
-          <Tab value="All" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:view-list-outline" /><span>All ({reportData.length})</span></Stack>} />
-          <Tab value="Active" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:check-circle-outline" /><span>Active ({reportData.filter(r => r.IsActive).length})</span></Stack>} />
-          <Tab value="Inactive" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:close-circle-outline" /><span>Inactive ({reportData.filter(r => !r.IsActive).length})</span></Stack>} />
+          <Tab value="All" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:view-list-outline" /><span>All ({offices.length})</span></Stack>} />
+          <Tab value="Active" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:check-circle-outline" /><span>Active ({offices.filter(r => r.IsActive).length})</span></Stack>} />
+          <Tab value="Inactive" label={<Stack direction="row" spacing={1} alignItems="center"><Iconify icon="mdi:close-circle-outline" /><span>Inactive ({offices.filter(r => !r.IsActive).length})</span></Stack>} />
         </Tabs>
       </Paper>
 
@@ -127,29 +163,76 @@ export default function OfficeSheetGrid() {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ID</TableCell>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>NAME</TableCell>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>STATUS</TableCell>
-                <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ACTIONS</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Office Name</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Code</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Address</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>City</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Country</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Contact</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Bank Account</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Status</TableCell>
+                <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedData.length > 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
+                    <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 1, borderRadius: 1 }} />
+                    <Box sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>Loading offices...</Box>
+                  </TableCell>
+                </TableRow>
+              ) : paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
-                  <TableRow hover key={row.OfficeId || index}>
-                    <TableCell>{row.OfficeId}</TableCell>
-                    <TableCell>{row.Name}</TableCell>
+                  <TableRow hover key={row.OfficeId || row.Id || index}>
+                    <TableCell sx={{ fontWeight: 600 }}>{row.OfficeName || '-'}</TableCell>
+                    <TableCell>{row.OfficeCode || '-'}</TableCell>
+                    <TableCell>
+                      <Box>
+                        <Box sx={{ fontSize: '0.875rem' }}>{row.AddressLine1 || '-'}</Box>
+                        {row.AddressLine2 && (
+                          <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{row.AddressLine2}</Box>
+                        )}
+                        {row.PostalCode && (
+                          <Box sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>Zip: {row.PostalCode}</Box>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{row.CityName || '-'}</TableCell>
+                    <TableCell>{row.CountryName || '-'}</TableCell>
+                    <TableCell>
+                      <Box>
+                        <Box sx={{ fontSize: '0.875rem' }}>{row.Phone || '-'}</Box>
+                        {row.Email && (
+                          <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{row.Email}</Box>
+                        )}
+                        {row.Fax && row.Fax !== 'f' && (
+                          <Box sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>Fax: {row.Fax}</Box>
+                        )}
+                        {row.TaxIdVatNo && (
+                          <Box sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>Tax ID: {row.TaxIdVatNo}</Box>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box>
+                        <Box sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{row.BankName || '-'}</Box>
+                        {row.BankAccountTitle && (
+                          <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{row.BankAccountTitle}</Box>
+                        )}
+                      </Box>
+                    </TableCell>
                     <TableCell>
                       <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => handleEdit(row.OfficeId)} sx={{ color: 'primary.main' }}>
+                        <IconButton size="small" onClick={() => handleEdit(row.OfficeId || row.Id)} sx={{ color: 'primary.main' }}>
                           <Iconify icon="solar:pen-bold" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton size="small" onClick={() => setDeleteId(row.OfficeId)} sx={{ color: 'error.main' }}>
+                        <IconButton size="small" onClick={() => setDeleteId(row.OfficeId || row.Id)} sx={{ color: 'error.main' }}>
                           <Iconify icon="solar:trash-bin-trash-bold" />
                         </IconButton>
                       </Tooltip>
@@ -158,7 +241,7 @@ export default function OfficeSheetGrid() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
                     <Typography variant="body2" color="text.secondary">No Offices found.</Typography>
                   </TableCell>
                 </TableRow>

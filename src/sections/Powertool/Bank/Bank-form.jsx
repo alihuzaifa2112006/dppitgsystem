@@ -117,7 +117,7 @@ export default function BankForm({ currentData }) {
           </Box>
           <Stack direction="row" justifyContent="flex-end" spacing={2} mt={5}>
             <Button variant="outlined" onClick={() => navigate(paths.dashboard.Powertool.Bank.root)}>Cancel</Button>
-            <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+            <LoadingButton type="submit" variant="contained" color="primary" loading={isSubmitting}>
               {currentData ? 'Update Bank' : 'Save Bank'}
             </LoadingButton>
           </Stack>
