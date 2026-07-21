@@ -639,7 +639,7 @@ export default function FactoryForm({ currentData }) {
         </Stack>
 
         <Stack spacing={4}>
-          {/* Card 1: Factory Information */}
+
           <Card sx={{ p: 4, borderRadius: '16px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)' }}>
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
               <Iconify icon="solar:home-smile-angle-bold" width={24} sx={{ color: 'primary.main' }} />
