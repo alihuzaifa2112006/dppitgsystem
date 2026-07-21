@@ -127,7 +127,6 @@ export default function TransactionTypeSheetGrid() {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ID</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>NAME</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>STATUS</TableCell>
                 <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ACTIONS</TableCell>
@@ -137,7 +136,6 @@ export default function TransactionTypeSheetGrid() {
               {paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
                   <TableRow hover key={row.TransactionTypeId || index}>
-                    <TableCell>{row.TransactionTypeId}</TableCell>
                     <TableCell>{row.Name}</TableCell>
                     <TableCell>
                       <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
@@ -158,7 +156,7 @@ export default function TransactionTypeSheetGrid() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
                     <Typography variant="body2" color="text.secondary">No Transaction Types found.</Typography>
                   </TableCell>
                 </TableRow>
