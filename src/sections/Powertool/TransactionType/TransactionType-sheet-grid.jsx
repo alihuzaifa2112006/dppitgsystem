@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -18,23 +18,46 @@ import {
   Stack,
   Button,
   Tabs,
-  Tab
+  Tab,
+  LinearProgress
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { Get, Delete } from 'src/api/apibasemethods';
+import { useSnackbar } from 'src/components/snackbar';
 
 export default function TransactionTypeSheetGrid() {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteId, setDeleteId] = useState(null);
 
-  // MOCK DATA (Empty for now)
-  const reportData = useMemo(() => [], []);
+  const [reportData, setReportData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTransactionModes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await Get('TransactionMode/GetAll');
+      if (res.status === 200) {
+        setReportData(res?.data?.Data || res?.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching transaction modes:', error);
+      enqueueSnackbar('Error fetching transaction types', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [enqueueSnackbar]);
+
+  useEffect(() => {
+    fetchTransactionModes();
+  }, [fetchTransactionModes]);
 
   // Filter Data
   const filteredData = useMemo(() => {
@@ -55,9 +78,20 @@ export default function TransactionTypeSheetGrid() {
     navigate(paths.dashboard.Powertool.TransactionType.edit(id));
   };
 
-  const confirmDelete = () => {
-    setDeleteId(null);
-    // API Call goes here
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const res = await Delete(`TransactionMode/Delete?id=${deleteId}`);
+      if (res.status === 200) {
+        enqueueSnackbar('Transaction Type deleted successfully!');
+        fetchTransactionModes();
+      }
+    } catch (error) {
+      console.error('Error deleting transaction type:', error);
+      enqueueSnackbar(error?.response?.data?.Message || 'Error deleting transaction type', { variant: 'error' });
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -133,27 +167,37 @@ export default function TransactionTypeSheetGrid() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((row, index) => (
-                  <TableRow hover key={row.TransactionTypeId || index}>
-                    <TableCell>{row.Name}</TableCell>
-                    <TableCell>
-                      <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => handleEdit(row.TransactionTypeId)} sx={{ color: 'primary.main' }}>
-                          <Iconify icon="solar:pen-bold" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton size="small" onClick={() => setDeleteId(row.TransactionTypeId)} sx={{ color: 'error.main' }}>
-                          <Iconify icon="solar:trash-bin-trash-bold" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
+                    <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 1, borderRadius: 1 }} />
+                    <Box sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>Loading transaction types...</Box>
+                  </TableCell>
+                </TableRow>
+              ) : paginatedData.length > 0 ? (
+                paginatedData.map((row, index) => {
+                  const id = row.TransactionModeId || row.TransactionTypeId || row.Id;
+                  return (
+                    <TableRow hover key={id || index}>
+                      <TableCell>{row.Name}</TableCell>
+                      <TableCell>
+                        <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Tooltip title="Edit">
+                          <IconButton size="small" onClick={() => handleEdit(id)} sx={{ color: 'primary.main' }}>
+                            <Iconify icon="solar:pen-bold" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton size="small" onClick={() => setDeleteId(id)} sx={{ color: 'error.main' }}>
+                            <Iconify icon="solar:trash-bin-trash-bold" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={3} align="center" sx={{ py: 5 }}>

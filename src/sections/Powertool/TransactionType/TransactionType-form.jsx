@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Card, TextField, Button, Grid, Stack } from '@mui/material';
+import { Container, Card, TextField, Button, Grid, Stack, Typography, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
@@ -15,6 +15,8 @@ export default function TransactionTypeForm() {
     description: '',
     sortOrder: 0,
   });
+
+  const [isActive, setIsActive] = useState(true);
 
   const [errors, setErrors] = useState({
     typeName: false,
@@ -59,6 +61,20 @@ export default function TransactionTypeForm() {
       />
 
       <Card sx={{ p: 3 }}>
+        <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+            Status:
+          </Typography>
+          <RadioGroup
+            row
+            value={isActive ? 'true' : 'false'}
+            onChange={(e) => setIsActive(e.target.value === 'true')}
+          >
+            <FormControlLabel value="true" control={<Radio color="primary" />} label="Active" />
+            <FormControlLabel value="false" control={<Radio color="error" />} label="Inactive" />
+          </RadioGroup>
+        </Stack>
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
             <TextField 
