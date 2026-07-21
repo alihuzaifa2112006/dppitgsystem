@@ -25,206 +25,82 @@ import {
   Collapse,
   Button,
   Tabs,
-  Tab
+  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Divider
 } from '@mui/material';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 
-function Row({ row, handleViewDetails, handleDelete, countryCodeMap }) {
-  const [open, setOpen] = useState(false);
-  const [contactsOpen, setContactsOpen] = useState(false);
-  const [paymentTermsOpen, setPaymentTermsOpen] = useState(false);
+function Row({ row, handleViewDetails, handleEditDetails, handleDelete, countryCodeMap }) {
   const countryCode = countryCodeMap[row.CountryName] || '';
 
   return (
-    <>
-      <TableRow hover sx={{ '& > *': { borderBottom: 'unset', whiteSpace: 'nowrap' } }}>
-        <TableCell>
-          <IconButton size="small" onClick={() => setOpen(!open)}>
-            <Iconify icon={open ? 'eva:arrow-down-fill' : 'eva:arrow-right-fill'} />
-          </IconButton>
-        </TableCell>
-        <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>
-          {row.CustomerName || '-'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.DisplayName || '—'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.CommissionPercent !== undefined ? `${row.CommissionPercent}%` : '—'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.Website || '—'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.Phone || '—'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.TransactionModeName || '—'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.IncotermCode || '—'}
-        </TableCell>
-        <TableCell sx={{ fontSize: '0.875rem' }}>
-          {row.CountryName ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {countryCode && (
-                <Iconify
-                  icon={`circle-flags:${countryCode.toLowerCase()}`}
-                  sx={{ width: 22, height: 22, flexShrink: 0 }}
-                />
-              )}
-              <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                {row.CountryName}
-              </Typography>
-            </Box>
-          ) : (
-            '—'
-          )}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.CityName || '—'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.CurrencyCode || '—'}
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          <Chip
-            label={row.IsActive ? 'Active' : 'Inactive'}
-            color={row.IsActive ? 'success' : 'error'}
+    <TableRow hover sx={{ '& > *': { borderBottom: 'unset', whiteSpace: 'nowrap' } }}>
+      <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}>
+        {row.CustomerName || '-'}
+      </TableCell>
+      <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+        {row.DisplayName || '—'}
+      </TableCell>
+      <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+        {row.CommissionPercent !== undefined ? `${row.CommissionPercent}%` : '—'}
+      </TableCell>
+      <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+        {row.Website || '—'}
+      </TableCell>
+      <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+        <Chip
+          label={row.IsActive ? 'Active' : 'Inactive'}
+          color={row.IsActive ? 'success' : 'error'}
+          size="small"
+          variant="soft"
+          sx={{ fontWeight: 600 }}
+        />
+      </TableCell>
+      <TableCell
+        sx={{
+          textAlign: 'center',
+          position: 'sticky',
+          right: 0,
+          bgcolor: 'background.paper',
+          zIndex: 1,
+          boxShadow: (th) => `-2px 0 4px ${th.palette.divider}`,
+        }}
+      >
+        <Tooltip title="View details" arrow>
+          <IconButton
             size="small"
-            variant="soft"
-            sx={{ fontWeight: 600 }}
-          />
-        </TableCell>
-        <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          {row.CreatedAt ? new Date(row.CreatedAt).toLocaleDateString() : '—'}
-        </TableCell>
-        <TableCell
-          sx={{
-            textAlign: 'center',
-            position: 'sticky',
-            right: 0,
-            bgcolor: 'background.paper',
-            zIndex: 1,
-            boxShadow: (th) => `-2px 0 4px ${th.palette.divider}`,
-          }}
-        >
-          <Tooltip title="Edit customer" arrow>
-            <IconButton
-              size="small"
-              onClick={() => handleViewDetails(row.CustomerId)}
-              sx={{ color: 'primary.main', padding: '4px' }}
-            >
-              <Iconify icon="solar:pen-bold" width={22} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete customer" arrow>
-            <IconButton
-              size="small"
-              onClick={() => handleDelete(row.CustomerId || row.CustomerID)}
-              sx={{ color: 'error.main', padding: '4px' }}
-            >
-              <Iconify icon="solar:trash-bin-trash-bold" width={22} />
-            </IconButton>
-          </Tooltip>
-        </TableCell>
-      </TableRow>
-
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={14}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ margin: 2, p: 2, bgcolor: 'background.neutral', borderRadius: 1.5, border: '1px solid', borderColor: 'divider', overflowX: 'hidden' }}>
-              <Stack spacing={2}>
-                <Box>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ cursor: 'pointer', display: 'inline-flex' }} onClick={() => setContactsOpen(!contactsOpen)}>
-                    <IconButton size="small">
-                      <Iconify icon={contactsOpen ? 'eva:arrow-down-fill' : 'eva:arrow-right-fill'} />
-                    </IconButton>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                      Contacts
-                    </Typography>
-                  </Stack>
-                  <Collapse in={contactsOpen} timeout="auto" unmountOnExit>
-                    <Box sx={{ mt: 1, pl: 4 }}>
-                      {row.Contacts && row.Contacts.length > 0 ? (
-                        <TableContainer sx={{ maxHeight: 160, overflowY: 'auto', overflowX: 'hidden', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: '100%' }}>
-                            <TableHead>
-                              <TableRow>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Name</TableCell>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Designation</TableCell>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Cell No</TableCell>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Email</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {row.Contacts.map((c, i) => (
-                                <TableRow key={c.ContactId || i}>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.Name || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.Designation || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.CellNo || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{c.Email || '-'}</TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">No contacts available.</Typography>
-                      )}
-                    </Box>
-                  </Collapse>
-                </Box>
-
-                <Box>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ cursor: 'pointer', display: 'inline-flex' }} onClick={() => setPaymentTermsOpen(!paymentTermsOpen)}>
-                    <IconButton size="small">
-                      <Iconify icon={paymentTermsOpen ? 'eva:arrow-down-fill' : 'eva:arrow-right-fill'} />
-                    </IconButton>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                      Payment Terms
-                    </Typography>
-                  </Stack>
-                  <Collapse in={paymentTermsOpen} timeout="auto" unmountOnExit>
-                    <Box sx={{ mt: 1, pl: 4 }}>
-                      {row.PaymentTerms && row.PaymentTerms.length > 0 ? (
-                        <TableContainer sx={{ maxHeight: 160, overflowY: 'auto', overflowX: 'hidden', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                          <Table size="small" stickyHeader sx={{ bgcolor: 'background.paper', width: '100%' }}>
-                            <TableHead>
-                              <TableRow>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Term</TableCell>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Days</TableCell>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Supplier</TableCell>
-                                <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Mode</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {row.PaymentTerms.map((pt, i) => (
-                                <TableRow key={pt.PaymentTermId || i}>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.Term || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.DueDays || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.SupplierName || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{pt.PaymentModeName || '-'}</TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">No payment terms available.</Typography>
-                      )}
-                    </Box>
-                  </Collapse>
-                </Box>
-              </Stack>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </>
+            onClick={() => handleViewDetails(row)}
+            sx={{ color: 'text.secondary', padding: '4px' }}
+          >
+            <Iconify icon="solar:eye-bold" width={22} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Edit customer" arrow>
+          <IconButton
+            size="small"
+            onClick={() => handleEditDetails(row.CustomerId || row.CustomerID)}
+            sx={{ color: 'primary.main', padding: '4px' }}
+          >
+            <Iconify icon="solar:pen-bold" width={22} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete customer" arrow>
+          <IconButton
+            size="small"
+            onClick={() => handleDelete(row.CustomerId || row.CustomerID)}
+            sx={{ color: 'error.main', padding: '4px' }}
+          >
+            <Iconify icon="solar:trash-bin-trash-bold" width={22} />
+          </IconButton>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -249,6 +125,7 @@ Row.propTypes = {
     PaymentTerms: PropTypes.array,
   }).isRequired,
   handleViewDetails: PropTypes.func.isRequired,
+  handleEditDetails: PropTypes.func.isRequired,
   handleDelete: PropTypes.func.isRequired,
   countryCodeMap: PropTypes.object.isRequired,
 };
@@ -267,6 +144,7 @@ export default function CustomerGrid() {
 
   const [filterStatus, setFilterStatus] = useState('All');
   const [deleteId, setDeleteId] = useState(null);
+  const [viewData, setViewData] = useState(null);
   const [countryOptions, setCountryOptions] = useState([]);
 
   // Fetch Country Options to get flags
@@ -384,8 +262,12 @@ export default function CustomerGrid() {
     setPage(0);
   };
 
-  const handleViewDetails = (id) => {
+  const handleEditDetails = (id) => {
     navigate(paths.dashboard.Powertool.Customer.edit(id));
+  };
+
+  const handleViewDetails = (row) => {
+    setViewData(row);
   };
 
   const confirmDelete = async () => {
@@ -578,10 +460,9 @@ export default function CustomerGrid() {
         }}
       >
         <TableContainer sx={{ maxHeight: 380, overflowY: 'auto' }}>
-          <Table stickyHeader sx={{ minWidth: 1600 }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ backgroundColor: 'background.neutral', width: 40 }} />
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                   <TableSortLabel active={orderBy === 'CustomerName'} direction={order} onClick={() => handleSort('CustomerName')} hideSortIcon>
                     CUSTOMER
@@ -597,28 +478,7 @@ export default function CustomerGrid() {
                   WEBSITE
                 </TableCell>
                 <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-                  PHONE
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-                  TRANSACTION MODE
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-                  INCOTERM
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-                  COUNTRY
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-                  CITY
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-                  CURRENCY
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                   STATUS
-                </TableCell>
-                <TableCell sx={{ backgroundColor: 'background.neutral', fontWeight: 600, color: 'text.secondary', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
-                  CREATED AT
                 </TableCell>
                 <TableCell sx={{
                   backgroundColor: 'background.neutral',
@@ -630,7 +490,7 @@ export default function CustomerGrid() {
                   right: 0,
                   zIndex: 10,
                   boxShadow: (th) => `-2px 0 4px ${th.palette.divider}`,
-                  width: 100,
+                  width: 120,
                 }}>
                   ACTIONS
                 </TableCell>
@@ -638,7 +498,7 @@ export default function CustomerGrid() {
             </TableHead>
             <TableBody>
               {paginatedData.map((row, index) => (
-                <Row key={row.CustomerId || index} row={row} handleViewDetails={handleViewDetails} handleDelete={(id) => setDeleteId(id)} countryCodeMap={countryCodeMap} />
+                <Row key={row.CustomerId || index} row={row} handleViewDetails={handleViewDetails} handleEditDetails={handleEditDetails} handleDelete={(id) => setDeleteId(id)} countryCodeMap={countryCodeMap} />
               ))}
             </TableBody>
           </Table>
@@ -666,6 +526,158 @@ export default function CustomerGrid() {
           </Button>
         }
       />
+
+      {/* View Details Dialog */}
+      <Dialog open={!!viewData} onClose={() => setViewData(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
+        <DialogTitle sx={{ pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Iconify icon="solar:user-circle-bold" width={28} sx={{ color: 'primary.main' }} />
+            <Typography variant="h6">Customer Details</Typography>
+          </Stack>
+          <IconButton onClick={() => setViewData(null)}>
+            <Iconify icon="eva:close-fill" />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ p: 3 }}>
+          {viewData && (
+            <Stack spacing={3}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ color: 'text.primary', mb: 2, fontWeight: 700 }}>
+                  General Information
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Customer Name</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.CustomerName || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Display Name</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.DisplayName || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Status</Typography>
+                    <Box sx={{ mt: 0.5 }}>
+                      <Chip label={viewData.IsActive ? 'Active' : 'Inactive'} color={viewData.IsActive ? 'success' : 'error'} size="small" variant="soft" />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Website</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.Website || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Commission</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.CommissionPercent !== undefined ? `${viewData.CommissionPercent}%` : '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Phone</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.Phone || '-'}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Divider sx={{ borderStyle: 'dashed' }} />
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ color: 'text.primary', mb: 2, fontWeight: 700 }}>
+                  Address & Settings
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Country</Typography>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
+                      {countryCodeMap[viewData.CountryName] && <Iconify icon={`circle-flags:${countryCodeMap[viewData.CountryName].toLowerCase()}`} width={18} />}
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.CountryName || '-'}</Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>City</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.CityName || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Currency</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.CurrencyCode || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Transaction Mode</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.TransactionModeName || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Incoterm</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{viewData.IncotermCode || '-'}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {viewData.Contacts && viewData.Contacts.length > 0 && (
+                <>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ color: 'text.primary', mb: 2, fontWeight: 700 }}>
+                      Contacts
+                    </Typography>
+                    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: 'background.neutral' }}>
+                            <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Designation</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Cell No</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {viewData.Contacts.map((c, i) => (
+                            <TableRow key={i}>
+                              <TableCell>{c.Name || '-'}</TableCell>
+                              <TableCell>{c.Designation || '-'}</TableCell>
+                              <TableCell>{c.CellNo || '-'}</TableCell>
+                              <TableCell>{c.Email || '-'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                </>
+              )}
+
+              {viewData.PaymentTerms && viewData.PaymentTerms.length > 0 && (
+                <>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ color: 'text.primary', mb: 2, fontWeight: 700 }}>
+                      Payment Terms
+                    </Typography>
+                    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: 'background.neutral' }}>
+                            <TableCell sx={{ fontWeight: 600 }}>Term</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Days</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Supplier</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Mode</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {viewData.PaymentTerms.map((pt, i) => (
+                            <TableRow key={i}>
+                              <TableCell>{pt.Term || '-'}</TableCell>
+                              <TableCell>{pt.DueDays || '-'}</TableCell>
+                              <TableCell>{pt.SupplierName || '-'}</TableCell>
+                              <TableCell>{pt.PaymentModeName || '-'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                </>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
