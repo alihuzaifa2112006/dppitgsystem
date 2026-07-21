@@ -160,7 +160,6 @@ export default function BuyingDepartmentSheetGrid() {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ID</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>NAME</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>STATUS</TableCell>
                 <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ACTIONS</TableCell>
@@ -169,7 +168,7 @@ export default function BuyingDepartmentSheetGrid() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
                     <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 1, borderRadius: 1 }} />
                     <Box sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>Loading departments...</Box>
                   </TableCell>
@@ -177,7 +176,6 @@ export default function BuyingDepartmentSheetGrid() {
               ) : paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
                   <TableRow hover key={row.DepartmentId || row.BuyingDepartmentId || index}>
-                    <TableCell>{row.DepartmentId || row.BuyingDepartmentId}</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>{row.DepartmentName || row.Name}</TableCell>
                     <TableCell>
                       <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
@@ -198,7 +196,7 @@ export default function BuyingDepartmentSheetGrid() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
                     <Typography variant="body2" color="text.secondary">No Buying Departments found.</Typography>
                   </TableCell>
                 </TableRow>
