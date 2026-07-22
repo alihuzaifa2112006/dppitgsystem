@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
 import { Container, Card, TextField, Button, Grid, Stack, Typography, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import { useSettingsContext } from 'src/components/settings';
+import { useRouter } from 'src/routes/hooks';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
 import { useSnackbar } from 'src/components/snackbar';
+import { Post } from 'src/api/apibasemethods';
 
 export default function TransactionTypeForm() {
   const settings = useSettingsContext();
   const { enqueueSnackbar } = useSnackbar();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     typeName: '',
     code: '',
     description: '',
-    sortOrder: 0,
   });
 
   const [isActive, setIsActive] = useState(true);
 
   const [errors, setErrors] = useState({
     typeName: false,
-    sortOrder: false,
   });
 
   const handleChange = (e) => {
@@ -32,20 +33,39 @@ export default function TransactionTypeForm() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newErrors = {
       typeName: !formData.typeName.trim(),
-      sortOrder: formData.sortOrder === '' || formData.sortOrder === null || Number(formData.sortOrder) <= 0,
     };
 
     setErrors(newErrors);
 
-    if (newErrors.typeName || newErrors.sortOrder) {
+    if (newErrors.typeName) {
       enqueueSnackbar('Please fill in all required fields.', { variant: 'error' });
       return;
     }
 
-    enqueueSnackbar('Transaction Type saved successfully!', { variant: 'success' });
+    try {
+      const payload = {
+        Name: formData.typeName,
+        Code: formData.code,
+        Description: formData.description,
+        SortOrder: 0,
+        IsActive: isActive,
+      };
+
+      const response = await Post('TransactionType/Create', payload);
+
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar('Transaction Type saved successfully!', { variant: 'success' });
+        router.push(paths.dashboard.Powertool.TransactionType.root);
+      } else {
+        enqueueSnackbar('Failed to save Transaction Type.', { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error saving transaction type:', error);
+      enqueueSnackbar(error.response?.data?.message || 'An error occurred while saving.', { variant: 'error' });
+    }
   };
 
   return (
@@ -98,7 +118,7 @@ export default function TransactionTypeForm() {
               onChange={handleChange}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={12}>
             <TextField 
               fullWidth 
               label="DESCRIPTION" 
@@ -106,19 +126,6 @@ export default function TransactionTypeForm() {
               name="description"
               value={formData.description}
               onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField 
-              fullWidth 
-              label="SORT ORDER *" 
-              placeholder="0" 
-              type="number" 
-              name="sortOrder"
-              value={formData.sortOrder}
-              onChange={handleChange}
-              error={errors.sortOrder}
-              helperText={errors.sortOrder ? 'Sort Order must be greater than 0' : ''}
             />
           </Grid>
         </Grid>

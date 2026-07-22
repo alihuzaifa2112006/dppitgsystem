@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -18,23 +18,46 @@ import {
   Stack,
   Button,
   Tabs,
-  Tab
+  Tab,
+  LinearProgress
 } from '@mui/material';
 import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { Get, Delete } from 'src/api/apibasemethods';
+import { useSnackbar } from 'src/components/snackbar';
 
 export default function PaymentTermSheetGrid() {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteId, setDeleteId] = useState(null);
 
-  // MOCK DATA (Empty for now)
-  const reportData = useMemo(() => [], []);
+  const [reportData, setReportData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPaymentTerms = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await Get('PaymentTerm/GetAll');
+      if (res.status === 200) {
+        setReportData(res?.data?.Data || res?.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching payment terms:', error);
+      enqueueSnackbar('Error fetching payment terms', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [enqueueSnackbar]);
+
+  useEffect(() => {
+    fetchPaymentTerms();
+  }, [fetchPaymentTerms]);
 
   // Filter Data
   const filteredData = useMemo(() => {
@@ -55,15 +78,26 @@ export default function PaymentTermSheetGrid() {
     navigate(paths.dashboard.Powertool.PaymentTerm.edit(id));
   };
 
-  const confirmDelete = () => {
-    setDeleteId(null);
-    // API Call goes here
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const res = await Delete(`PaymentTerm/Delete?id=${deleteId}`);
+      if (res.status === 200) {
+        enqueueSnackbar('Payment Term deleted successfully!');
+        fetchPaymentTerms();
+      }
+    } catch (error) {
+      console.error('Error deleting payment term:', error);
+      enqueueSnackbar(error?.response?.data?.Message || 'Error deleting payment term', { variant: 'error' });
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
     <Box sx={{ width: '100%' }}>
       {/* Search Bar */}
-            <Paper
+      <Paper
         elevation={0}
         sx={{
           p: 2.5,
@@ -127,17 +161,24 @@ export default function PaymentTermSheetGrid() {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ID</TableCell>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>NAME</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>TRANSACTION TYPE</TableCell>
+                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>PAYMENT TERM NAME</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>STATUS</TableCell>
                 <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ACTIONS</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedData.length > 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                    <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 1, borderRadius: 1 }} />
+                    <Box sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>Loading payment terms...</Box>
+                  </TableCell>
+                </TableRow>
+              ) : paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
                   <TableRow hover key={row.PaymentTermId || index}>
-                    <TableCell>{row.PaymentTermId}</TableCell>
+                    <TableCell>{row.TransactionTypeName || '-'}</TableCell>
                     <TableCell>{row.Name}</TableCell>
                     <TableCell>
                       <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />

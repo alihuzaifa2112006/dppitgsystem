@@ -81,7 +81,7 @@ export default function TransactionTypeSheetGrid() {
   const confirmDelete = async () => {
     if (!deleteId) return;
     try {
-      const res = await Delete(`TransactionMode/Delete?id=${deleteId}`);
+      const res = await Delete(`TransactionType/Delete?id=${deleteId}`);
       if (res.status === 200) {
         enqueueSnackbar('Transaction Type deleted successfully!');
         fetchTransactionModes();

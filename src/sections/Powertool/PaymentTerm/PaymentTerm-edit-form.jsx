@@ -1,11 +1,127 @@
-import React from 'react';
-import { Container, Card, TextField, Button, Grid, Stack } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Card, TextField, Button, Grid, Stack, Typography, RadioGroup, FormControlLabel, Radio, Box, Autocomplete, LinearProgress } from '@mui/material';
 import { useSettingsContext } from 'src/components/settings';
+import { useRouter, useParams } from 'src/routes/hooks';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
+import { useSnackbar } from 'src/components/snackbar';
+import { Get, Put } from 'src/api/apibasemethods';
 
 export default function PaymentTermEditForm() {
   const settings = useSettingsContext();
+  const { enqueueSnackbar } = useSnackbar();
+  const router = useRouter();
+  const { id } = useParams();
+
+  const [loading, setLoading] = useState(true);
+  const [transactionTypes, setTransactionTypes] = useState([]);
+  
+  const [formData, setFormData] = useState({
+    transactionType: null,
+    paymentTerm: '',
+    sortOrder: 0,
+  });
+
+  const [isActive, setIsActive] = useState(true);
+
+  const [errors, setErrors] = useState({
+    transactionType: false,
+    paymentTerm: false,
+  });
+
+  // Fetch Transaction Types for Dropdown
+  useEffect(() => {
+    const fetchTransactionTypes = async () => {
+      try {
+        const res = await Get('TransactionMode/GetAll');
+        if (res.status === 200) {
+          setTransactionTypes(res?.data?.Data || res?.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching transaction types:', error);
+      }
+    };
+    fetchTransactionTypes();
+  }, []);
+
+  // Fetch Existing Payment Term Data
+  useEffect(() => {
+    const fetchPaymentTerm = async () => {
+      if (!id || transactionTypes.length === 0) return;
+      try {
+        setLoading(true);
+        const response = await Get(`PaymentTerm/GetById?id=${id}`);
+        const resData = response.data?.Data || response.data;
+        if (response.status === 200 && resData) {
+          
+          // Find matching transaction type
+          const matchedType = transactionTypes.find(
+            (t) => (t.Id || t.TransactionModeId || t.TransactionTypeId) === resData.TransactionModeId
+          );
+
+          setFormData({
+            transactionType: matchedType || null,
+            paymentTerm: resData.Name || '',
+            sortOrder: resData.SortOrder || 0,
+          });
+          setIsActive(resData.IsActive);
+        } else {
+          enqueueSnackbar('Failed to fetch data.', { variant: 'error' });
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        enqueueSnackbar('An error occurred while fetching data.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPaymentTerm();
+  }, [id, transactionTypes, enqueueSnackbar]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: false }));
+    }
+  };
+
+  const handleUpdate = async () => {
+    const newErrors = {
+      transactionType: !formData.transactionType,
+      paymentTerm: !formData.paymentTerm.trim(),
+    };
+
+    setErrors(newErrors);
+
+    if (newErrors.transactionType || newErrors.paymentTerm) {
+      enqueueSnackbar('Please fill in all required fields.', { variant: 'error' });
+      return;
+    }
+
+    try {
+      const payload = {
+        PaymentTermId: Number(id),
+        TransactionModeId: formData.transactionType?.Id || formData.transactionType?.TransactionModeId || formData.transactionType?.TransactionTypeId || 0,
+        Name: formData.paymentTerm,
+        SortOrder: formData.sortOrder,
+        IsActive: isActive,
+      };
+
+      const response = await Put('PaymentTerm/Update', payload);
+
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar('Payment Term updated successfully!', { variant: 'success' });
+        router.push(paths.dashboard.Powertool.PaymentTerm.root);
+      } else {
+        enqueueSnackbar('Failed to update Payment Term.', { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error updating payment term:', error);
+      enqueueSnackbar(error.response?.data?.message || 'An error occurred while updating.', { variant: 'error' });
+    }
+  };
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -19,24 +135,76 @@ export default function PaymentTermEditForm() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <Card sx={{ p: 3 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <TextField fullWidth label="Field 1" defaultValue="Sample Data 1" />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField fullWidth label="Field 2" defaultValue="Sample Data 2" />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField fullWidth label="Field 3" defaultValue="Sample Data 3" />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField fullWidth label="Field 4" defaultValue="Sample Data 4" />
-          </Grid>
-        </Grid>
-        <Stack direction="row" justifyContent="flex-end" mt={3}>
-          <Button variant="contained" color="primary">Update</Button>
-        </Stack>
+      <Card sx={{ p: 4, borderRadius: '16px', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)' }}>
+        {loading ? (
+          <Box sx={{ py: 5, textAlign: 'center' }}>
+            <LinearProgress sx={{ maxWidth: 300, mx: 'auto', mb: 2 }} />
+            <Typography variant="body2" color="text.secondary">Loading data...</Typography>
+          </Box>
+        ) : (
+          <>
+            <Box mb={2}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                  BASIC INFORMATION
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                    Status:
+                  </Typography>
+                  <RadioGroup
+                    row
+                    value={isActive ? 'true' : 'false'}
+                    onChange={(e) => setIsActive(e.target.value === 'true')}
+                  >
+                    <FormControlLabel value="true" control={<Radio color="primary" />} label="Active" />
+                    <FormControlLabel value="false" control={<Radio color="error" />} label="Inactive" />
+                  </RadioGroup>
+                </Stack>
+              </Stack>
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Autocomplete
+                    options={transactionTypes}
+                    getOptionLabel={(option) => option?.Name || option?.TypeName || ''}
+                    value={formData.transactionType}
+                    onChange={(event, newValue) => {
+                      setFormData((prev) => ({ ...prev, transactionType: newValue }));
+                      if (errors.transactionType) setErrors((prev) => ({ ...prev, transactionType: false }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Transaction Type *"
+                        placeholder="— Select Transaction Type —"
+                        error={errors.transactionType}
+                        helperText={errors.transactionType ? 'Transaction Type is required' : ''}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField 
+                    fullWidth 
+                    label="Payment Term *" 
+                    placeholder="e.g. Net 30 Days" 
+                    name="paymentTerm"
+                    value={formData.paymentTerm}
+                    onChange={handleChange}
+                    error={errors.paymentTerm}
+                    helperText={errors.paymentTerm ? 'Payment Term is required' : ''}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Stack direction="row" justifyContent="flex-end" spacing={2} mt={3}>
+              <Button variant="outlined" onClick={() => router.push(paths.dashboard.Powertool.PaymentTerm.root)}>Cancel</Button>
+              <Button variant="contained" color="primary" onClick={handleUpdate}>Update</Button>
+            </Stack>
+          </>
+        )}
       </Card>
     </Container>
   );
