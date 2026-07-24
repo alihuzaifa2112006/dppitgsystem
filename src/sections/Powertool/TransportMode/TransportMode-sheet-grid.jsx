@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Get, Delete } from 'src/api/apibasemethods';
 import {
   Box,
   TextField,
@@ -24,17 +25,34 @@ import Iconify from 'src/components/iconify';
 import { useNavigate } from 'react-router';
 import { paths } from 'src/routes/paths';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { useSnackbar } from 'src/components/snackbar';
 
 export default function TransportModeSheetGrid() {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteId, setDeleteId] = useState(null);
 
-  // MOCK DATA (Empty for now)
-  const reportData = useMemo(() => [], []);
+  // Fetch Data
+  const [reportData, setReportData] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await Get('ShipmentMode/GetAll');
+      if (response.status === 200) {
+        setReportData(response?.data?.Data || response?.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   // Filter Data
   const filteredData = useMemo(() => {
@@ -55,9 +73,22 @@ export default function TransportModeSheetGrid() {
     navigate(paths.dashboard.Powertool.TransportMode.edit(id));
   };
 
-  const confirmDelete = () => {
-    setDeleteId(null);
-    // API Call goes here
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const response = await Delete(`ShipmentMode/Delete?id=${deleteId}`);
+      if (response.status === 200 || response.status === 204) {
+        enqueueSnackbar('Transport Mode deleted successfully!', { variant: 'success' });
+        fetchData();
+      } else {
+        enqueueSnackbar('Failed to delete Transport Mode.', { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+      enqueueSnackbar(error.response?.data?.message || 'An error occurred while deleting.', { variant: 'error' });
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -127,7 +158,6 @@ export default function TransportModeSheetGrid() {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ID</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>NAME</TableCell>
                 <TableCell sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>STATUS</TableCell>
                 <TableCell align="center" sx={{ bgcolor: 'background.neutral', fontWeight: 600, color: 'text.secondary' }}>ACTIONS</TableCell>
@@ -135,30 +165,32 @@ export default function TransportModeSheetGrid() {
             </TableHead>
             <TableBody>
               {paginatedData.length > 0 ? (
-                paginatedData.map((row, index) => (
-                  <TableRow hover key={row.TransportModeId || index}>
-                    <TableCell>{row.TransportModeId}</TableCell>
+                paginatedData.map((row, index) => {
+                  const id = row.ShipmentModeId || row.Id || row.TransportModeId || index;
+                  return (
+                  <TableRow hover key={id}>
                     <TableCell>{row.Name}</TableCell>
                     <TableCell>
                       <Chip label={row.IsActive ? 'Active' : 'Inactive'} color={row.IsActive ? 'success' : 'error'} size="small" variant="soft" />
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => handleEdit(row.TransportModeId)} sx={{ color: 'primary.main' }}>
+                        <IconButton size="small" onClick={() => handleEdit(id)} sx={{ color: 'primary.main' }}>
                           <Iconify icon="solar:pen-bold" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton size="small" onClick={() => setDeleteId(row.TransportModeId)} sx={{ color: 'error.main' }}>
+                        <IconButton size="small" onClick={() => setDeleteId(id)} sx={{ color: 'error.main' }}>
                           <Iconify icon="solar:trash-bin-trash-bold" />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
                     <Typography variant="body2" color="text.secondary">No Transport Modes found.</Typography>
                   </TableCell>
                 </TableRow>
