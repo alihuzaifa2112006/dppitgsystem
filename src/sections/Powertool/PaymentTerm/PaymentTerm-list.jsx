@@ -27,7 +27,7 @@ export default function PaymentTermList() {
             startIcon={<Iconify icon="mingcute:add-line" />}
             color="primary"
           >
-            Add PaymentTerm
+            Add Payment Term
           </Button>
         }
       />

@@ -27,7 +27,7 @@ export default function PaymentModeList() {
             startIcon={<Iconify icon="mingcute:add-line" />}
             color="primary"
           >
-            Add PaymentMode
+            Add Payment Mode
           </Button>
         }
       />

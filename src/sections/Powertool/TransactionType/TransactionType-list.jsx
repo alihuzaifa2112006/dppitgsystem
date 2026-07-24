@@ -27,7 +27,7 @@ export default function TransactionTypeList() {
             startIcon={<Iconify icon="mingcute:add-line" />}
             color="primary"
           >
-            Add TransactionType
+            Add Transaction Type
           </Button>
         }
       />

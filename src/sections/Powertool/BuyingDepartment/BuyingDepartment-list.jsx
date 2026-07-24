@@ -27,7 +27,7 @@ export default function BuyingDepartmentList() {
             startIcon={<Iconify icon="mingcute:add-line" />}
             color="primary"
           >
-            Add BuyingDepartment
+            Add Buying Department
           </Button>
         }
       />

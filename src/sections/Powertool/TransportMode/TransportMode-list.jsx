@@ -27,7 +27,7 @@ export default function TransportModeList() {
             startIcon={<Iconify icon="mingcute:add-line" />}
             color="primary"
           >
-            Add TransportMode
+            Add Transport Mode
           </Button>
         }
       />
